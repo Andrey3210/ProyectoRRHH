@@ -1,34 +1,70 @@
-/* 🟥 LAYOUT GENERAL: ocupa toda la pantalla menos el sidebar */
-.rcv-layout {
-  position: fixed;
-  top: 0;
-  left: 70px;
-  width: calc(100% - 70px);
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
+.rcv-page {
+  background: #f3f6fb;
+  border-radius: 12px;
+  padding: 16px 18px 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-/* 🟦 HEADER FIJO */
 .rcv-header {
-  background: white;
-  padding: 20px 30px 10px 30px;
-  border-bottom: 1px solid #ddd;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-/* 🟩 TABLA SCROLLABLE */
+.rcv-search {
+  max-width: 520px;
+  width: 100%;
+}
+
+.rcv-tabs {
+  gap: 8px;
+}
+
+.rcv-tabs .nav-link {
+  border: none;
+  padding: 10px 14px;
+  color: #4b5563;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.rcv-tabs .nav-link.active {
+  background: #e8f4e1;
+  color: #2f855a;
+  border: 1px solid #c9e4c6;
+}
+
+.rcv-subtabs {
+  gap: 10px;
+}
+
+.rcv-subtabs .nav-link {
+  border-radius: 16px;
+  border: 1px solid #d9e6d3;
+  color: #2f855a;
+  font-weight: 600;
+}
+
+.rcv-subtabs .nav-link.active {
+  background: #2f855a;
+  color: #fff;
+}
+
+.rcv-table-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
 .rcv-table-scroll {
-  flex: 1;
-  overflow-y: auto;
   overflow-x: auto;
-  padding: 0 30px 30px 30px;
 }
 
-/* 🟨 THEAD FIJO AL SCROLL */
 .sticky-thead th {
   position: sticky;
   top: 0;

@@ -63,93 +63,94 @@ const RecepcionCV = () => {
   )
 
   return (
-    <div className="rcv-layout">
+    <div className="rcv-page">
       <div className="rcv-header">
-        <h2 className="fw-bold">Recepción de CVs</h2>
+        <h2 className="fw-bold mb-0">Recepción de CVs</h2>
 
-        <div className="input-group shadow-sm mb-3" style={{ maxWidth: '600px' }}>
+        <div className="rcv-search input-group shadow-sm">
           <span className="input-group-text bg-white">
             <img src={searchIcon} alt="buscar" style={{ width: 24, height: 24 }} />
           </span>
           <input type="text" className="form-control" placeholder="Buscar postulante o puesto" />
         </div>
-
-        <ul className="nav nav-tabs mb-2">
-          {areas.map(area => (
-            <li className="nav-item" key={area}>
-              <button
-                className={"nav-link " + (areaActiva === area ? 'active fw-bold' : '')}
-                onClick={() => setAreaActiva(area)}
-              >
-                {area}
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <ul className="nav nav-pills mb-3">
-          {puestosDeAreaActiva.map(puesto => (
-            <li className="nav-item" key={puesto.idPuesto}>
-              <button
-                className={
-                  'nav-link ' +
-                  (puestoActivo?.idPuesto === puesto.idPuesto ? 'active fw-bold bg-success' : '')
-                }
-                onClick={() => setPuestoActivo(puesto)}
-              >
-                {puesto.nombrePuesto}
-              </button>
-            </li>
-          ))}
-        </ul>
       </div>
 
-      <div className="rcv-table-scroll">
-        {loading ? (
-          <div className="text-center p-5 fw-bold">Cargando postulantes...</div>
-        ) : postulantes.length === 0 ? (
-          <div className="text-center p-5 fw-bold text-danger">
-            No hay postulantes en revisión para este puesto
-          </div>
-        ) : (
-          <table className="table table-striped table-bordered align-middle w-100">
-            <thead className="table-success text-center sticky-thead">
-              <tr>
-                <th>ID postulante</th>
-                <th>Nombre completo</th>
-                <th>Teléfono</th>
-                <th>Email</th>
-                <th>Edad</th>
-                <th>Género</th>
-                <th>CV</th>
-              </tr>
-            </thead>
-            <tbody>
-              {postulantes.map(p => (
-                <tr key={p.idPostulante}>
-                  <td className="text-center">{p.idPostulante}</td>
-                  <td>{`${p.nombres} ${p.apellidoPaterno} ${p.apellidoMaterno || ''}`}</td>
-                  <td>{p.telefono}</td>
-                  <td>{p.email}</td>
-                  <td className="text-center">{p.edad ?? '-'}</td>
-                  <td>{p.genero}</td>
-                  <td className="text-center">
-                    <button
-                      className="btn btn-success btn-sm rounded-pill px-3"
-                      onClick={() =>
-                        navigate(`/postulantes/${p.idPostulante}/cv`, {
-                          state: { postulante: p, nombrePuesto: puestoActivo?.nombrePuesto }
-                        })
-                      }
-                    >
-                      <img src={cvIcon} alt="CV" style={{ width: 24, height: 24 }} />
-                    </button>
-                  </td>
+      <ul className="nav nav-tabs rcv-tabs border-0 mb-2">
+        {areas.map(area => (
+          <li className="nav-item" key={area}>
+            <button
+              className={"nav-link " + (areaActiva === area ? 'active' : '')}
+              onClick={() => setAreaActiva(area)}
+            >
+              {area}
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <ul className="nav nav-pills rcv-subtabs mb-3">
+        {puestosDeAreaActiva.map(puesto => (
+          <li className="nav-item" key={puesto.idPuesto}>
+            <button
+              className={
+                'nav-link ' + (puestoActivo?.idPuesto === puesto.idPuesto ? 'active' : '')
+              }
+              onClick={() => setPuestoActivo(puesto)}
+            >
+              {puesto.nombrePuesto}
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <div className="rcv-table-wrapper">
+        <div className="rcv-table-scroll">
+          {loading ? (
+            <div className="text-center p-5 fw-bold">Cargando postulantes...</div>
+          ) : postulantes.length === 0 ? (
+            <div className="text-center p-5 fw-bold text-danger">
+              No hay postulantes en revisión para este puesto
+            </div>
+          ) : (
+            <table className="table table-striped table-bordered align-middle w-100">
+              <thead className="table-success text-center sticky-thead">
+                <tr>
+                  <th>ID postulante</th>
+                  <th>Nombre completo</th>
+                  <th>Teléfono</th>
+                  <th>Email</th>
+                  <th>Edad</th>
+                  <th>Género</th>
+                  <th>CV</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {postulantes.map(p => (
+                  <tr key={p.idPostulante}>
+                    <td className="text-center">{p.idPostulante}</td>
+                    <td>{`${p.nombres} ${p.apellidoPaterno} ${p.apellidoMaterno || ''}`}</td>
+                    <td>{p.telefono}</td>
+                    <td>{p.email}</td>
+                    <td className="text-center">{p.edad ?? '-'}</td>
+                    <td>{p.genero}</td>
+                    <td className="text-center">
+                      <button
+                        className="btn btn-success btn-sm rounded-pill px-3"
+                        onClick={() =>
+                          navigate(`/postulantes/${p.idPostulante}/cv`, {
+                            state: { postulante: p, nombrePuesto: puestoActivo?.nombrePuesto }
+                          })
+                        }
+                      >
+                        <img src={cvIcon} alt="CV" style={{ width: 24, height: 24 }} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   )
