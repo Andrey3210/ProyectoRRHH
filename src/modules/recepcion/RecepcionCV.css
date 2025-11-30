@@ -1,1 +1,95 @@
-/* Estilos para el componente de Recepción de CVs - En desarrollo */
+.rcv-page {
+  position: relative;
+  margin-left: 70px;
+  width: calc(100% - 70px);
+  min-height: calc(100vh - 32px);
+  background: #f3f6fb;
+  padding: 20px 24px 24px;
+}
+
+.rcv-toolbar {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
+}
+
+.rcv-search {
+  min-width: 320px;
+}
+
+.rcv-search .form-control {
+  border-left: 0;
+}
+
+.rcv-filter .form-select {
+  min-width: 180px;
+}
+
+.rcv-navbars {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 6px 12px 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 10px;
+}
+
+.rcv-tabs {
+  gap: 6px;
+}
+
+.rcv-tabs .nav-link {
+  border: none;
+  padding: 10px 14px;
+  color: #4b5563;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.rcv-tabs .nav-link.active {
+  background: #e8f4e1;
+  color: #2f855a;
+  border: 1px solid #c9e4c6;
+}
+
+.rcv-subtabs {
+  gap: 8px;
+}
+
+.rcv-subtabs .nav-link {
+  border-radius: 16px;
+  border: 1px solid #d9e6d3;
+  color: #2f855a;
+  font-weight: 600;
+}
+
+.rcv-subtabs .nav-link.active {
+  background: #2f855a;
+  color: #fff;
+}
+
+.rcv-table-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
+.rcv-table-scroll {
+  overflow-x: auto;
+}
+
+.rcv-table-scroll table {
+  width: 100%;
+}
+
+.sticky-thead th {
+  position: sticky;
+  top: 0;
+  background: #7bb641;
+  z-index: 5;
+}

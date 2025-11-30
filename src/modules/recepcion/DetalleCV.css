@@ -1,0 +1,108 @@
+/* Vista completa respetando el sidebar */
+.cv-full-view {
+  position: relative;
+  margin-left: 70px;
+  width: calc(100% - 70px);
+  background: #f3f6fb;
+  padding: 18px 22px 22px;
+  border-radius: 12px;
+  min-height: calc(100vh - 32px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.cv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cv-tabs {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.cv-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 10px;
+  color: #475467;
+}
+
+.cv-tab-active {
+  border: 1px solid #c9e4c6;
+  color: #2f855a;
+  background: #e8f4e1;
+}
+
+.cv-rating-box {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+  margin-bottom: 14px;
+}
+
+.cv-body {
+  display: flex;
+  gap: 18px;
+}
+
+.cv-info-card,
+.cv-preview-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.cv-info-card {
+  flex: 2.2;
+  overflow-y: auto;
+}
+
+.cv-preview-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cv-pdf-box {
+  flex-grow: 1;
+  border: 2px dashed #c9e4c6;
+  border-radius: 12px;
+  background: #f8fff2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+}
+
+.cv-pdf-placeholder {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.cv-info-card p span {
+  margin-left: 10px;
+  font-weight: 500;
+  color: #333;
+}
+
+.cv-info-card .row {
+  margin-bottom: 12px;
+}
+
+.cv-info-card hr {
+  border-top: 1px solid #d9e6d3;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
