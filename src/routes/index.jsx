@@ -9,6 +9,7 @@ import DetalleCandidato from '../modules/reclutamiento/DetalleCandidato'
 import FormularioPuesto from '../modules/reclutamiento/FormularioPuesto'
 import Pipeline from '../modules/reclutamiento/Pipeline'
 import RecepcionCV from '../modules/recepcion/RecepcionCV'
+import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
 
 const Routes = () => {
@@ -108,13 +109,21 @@ const Routes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/recepcion-cv" 
+      <Route
+        path="/recepcion-cv"
         element={
           <ProtectedRoute>
             <RecepcionCV />
           </ProtectedRoute>
-        } 
+        }
+      />
+      <Route
+        path="/postulantes/:id/cv"
+        element={
+          <ProtectedRoute>
+            <DetalleCV />
+          </ProtectedRoute>
+        }
       />
       <Route 
         path="/entrevistas" 

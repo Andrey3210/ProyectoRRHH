@@ -26,6 +26,9 @@ public class ProcesoSeleccion {
     
     @Column(name = "id_vacante", unique = true)
     private Integer idVacante;
+
+    @Column(name = "id_puesto")
+    private Integer idPuesto;
     
     @Column(name = "nombre_proceso", length = 200)
     private String nombreProceso;
@@ -59,6 +62,11 @@ public class ProcesoSeleccion {
     @JoinColumn(name = "id_vacante", insertable = false, updatable = false)
     @JsonIgnore
     private Vacante vacante;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_puesto", insertable = false, updatable = false)
+    @JsonIgnore
+    private Puesto puesto;
     
     @OneToMany(mappedBy = "procesoSeleccion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore

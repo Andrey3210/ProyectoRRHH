@@ -1,1 +1,37 @@
-/* Estilos para el componente de Recepción de CVs - En desarrollo */
+/* 🟥 LAYOUT GENERAL: ocupa toda la pantalla menos el sidebar */
+.rcv-layout {
+  position: fixed;
+  top: 0;
+  left: 70px;
+  width: calc(100% - 70px);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+/* 🟦 HEADER FIJO */
+.rcv-header {
+  background: white;
+  padding: 20px 30px 10px 30px;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* 🟩 TABLA SCROLLABLE */
+.rcv-table-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 0 30px 30px 30px;
+}
+
+/* 🟨 THEAD FIJO AL SCROLL */
+.sticky-thead th {
+  position: sticky;
+  top: 0;
+  background: #7bb641;
+  z-index: 5;
+}
