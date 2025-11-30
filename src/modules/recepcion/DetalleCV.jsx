@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import cvIcon from './assets/curriculum.svg'
 import './DetalleCV.css'
 
 const DetalleCV = () => {
@@ -29,7 +28,8 @@ const DetalleCV = () => {
     <div className="cv-full-view">
       <div className="cv-header">
         <div>
-          <h2 className="fw-bold">Recepción de CVs</h2>
+          <h2 className="fw-bold mb-0">Recepción de CVs</h2>
+          <p className="text-muted mb-0">Inventario y logística &gt; Jefe de logística</p>
           <div className="cv-tabs">
             <button
               className={tabActiva === 'info' ? 'cv-tab-btn cv-tab-active' : 'cv-tab-btn'}
@@ -93,9 +93,7 @@ const DetalleCV = () => {
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Edad</strong>
-                    <span className="ms-2">
-                      {postulante.edad ? `${postulante.edad} años` : ''}
-                    </span>
+                    <span className="ms-2">{postulante.edad ? `${postulante.edad} años` : ''}</span>
                   </p>
                 </div>
                 <div className="col-md-6">
@@ -216,8 +214,8 @@ const DetalleCV = () => {
         </div>
 
         <div className="cv-preview-card">
-          <div className="cv-img-box">
-            <img src={cvIcon} alt="Vista previa del CV" />
+          <div className="cv-pdf-box">
+            <div className="cv-pdf-placeholder">Visor PDF pendiente</div>
           </div>
 
           <button className="btn btn-success w-100 rounded-pill fw-semibold">

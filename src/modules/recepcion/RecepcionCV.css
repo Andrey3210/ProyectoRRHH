@@ -1,26 +1,44 @@
 .rcv-page {
+  position: relative;
+  margin-left: 70px;
+  width: calc(100% - 70px);
+  min-height: calc(100vh - 32px);
   background: #f3f6fb;
-  border-radius: 12px;
-  padding: 16px 18px 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  padding: 20px 24px 24px;
 }
 
-.rcv-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
+.rcv-toolbar {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   margin-bottom: 12px;
 }
 
 .rcv-search {
-  max-width: 520px;
-  width: 100%;
+  min-width: 320px;
+}
+
+.rcv-search .form-control {
+  border-left: 0;
+}
+
+.rcv-filter .form-select {
+  min-width: 180px;
+}
+
+.rcv-navbars {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 6px 12px 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 10px;
 }
 
 .rcv-tabs {
-  gap: 8px;
+  gap: 6px;
 }
 
 .rcv-tabs .nav-link {
@@ -38,7 +56,7 @@
 }
 
 .rcv-subtabs {
-  gap: 10px;
+  gap: 8px;
 }
 
 .rcv-subtabs .nav-link {
@@ -56,13 +74,17 @@
 .rcv-table-wrapper {
   background: #fff;
   border-radius: 12px;
-  padding: 14px 16px 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  padding: 12px 14px 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
 }
 
 .rcv-table-scroll {
   overflow-x: auto;
+}
+
+.rcv-table-scroll table {
+  width: 100%;
 }
 
 .sticky-thead th {

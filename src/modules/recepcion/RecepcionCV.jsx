@@ -12,6 +12,8 @@ const RecepcionCV = () => {
   const [puestoActivo, setPuestoActivo] = useState(null)
   const [postulantes, setPostulantes] = useState([])
   const [loading, setLoading] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
+  const [filtroGenero, setFiltroGenero] = useState('')
 
   const navigate = useNavigate()
 
@@ -62,57 +64,111 @@ const RecepcionCV = () => {
     [puestos, areaActiva]
   )
 
+  const generosDisponibles = useMemo(() => {
+    const generos = new Set(postulantes.map(p => p.genero).filter(Boolean))
+    return Array.from(generos)
+  }, [postulantes])
+
+  const postulantesFiltrados = useMemo(() => {
+    const termino = busqueda.trim().toLowerCase()
+    return postulantes.filter(p => {
+      const coincideTexto = termino
+        ? `${p.nombres} ${p.apellidoPaterno} ${p.apellidoMaterno || ''} ${p.email}`
+            .toLowerCase()
+            .includes(termino)
+        : true
+      const coincideGenero = filtroGenero ? p.genero === filtroGenero : true
+      return coincideTexto && coincideGenero
+    })
+  }, [postulantes, busqueda, filtroGenero])
+
+  const handleBuscar = event => {
+    event.preventDefault()
+    setBusqueda(busqueda.trim())
+  }
+
   return (
     <div className="rcv-page">
-      <div className="rcv-header">
-        <h2 className="fw-bold mb-0">Recepción de CVs</h2>
+      <div className="rcv-toolbar">
+        <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-3 w-100">
+          <div>
+            <h2 className="fw-bold mb-0">Recepción de CVs</h2>
+            <p className="text-muted mb-0">Inventario y logística &gt; Jefe de logística</p>
+          </div>
 
-        <div className="rcv-search input-group shadow-sm">
-          <span className="input-group-text bg-white">
-            <img src={searchIcon} alt="buscar" style={{ width: 24, height: 24 }} />
-          </span>
-          <input type="text" className="form-control" placeholder="Buscar postulante o puesto" />
+          <div className="ms-lg-auto d-flex flex-wrap gap-3 align-items-center">
+            <form className="rcv-search input-group shadow-sm" onSubmit={handleBuscar}>
+              <span className="input-group-text bg-white">
+                <img src={searchIcon} alt="buscar" style={{ width: 20, height: 20 }} />
+              </span>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Buscar postulante o puesto"
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+              />
+              <button className="btn btn-success" type="submit">
+                Buscar
+              </button>
+            </form>
+
+            <div className="rcv-filter">
+              <select
+                className="form-select"
+                value={filtroGenero}
+                onChange={e => setFiltroGenero(e.target.value)}
+              >
+                <option value="">Todos los géneros</option>
+                {generosDisponibles.map(genero => (
+                  <option key={genero} value={genero}>
+                    {genero}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
-      <ul className="nav nav-tabs rcv-tabs border-0 mb-2">
-        {areas.map(area => (
-          <li className="nav-item" key={area}>
-            <button
-              className={"nav-link " + (areaActiva === area ? 'active' : '')}
-              onClick={() => setAreaActiva(area)}
-            >
-              {area}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="rcv-navbars">
+        <ul className="nav nav-tabs rcv-tabs border-0 mb-2 flex-nowrap overflow-auto">
+          {areas.map(area => (
+            <li className="nav-item" key={area}>
+              <button
+                className={'nav-link ' + (areaActiva === area ? 'active' : '')}
+                onClick={() => setAreaActiva(area)}
+              >
+                {area}
+              </button>
+            </li>
+          ))}
+        </ul>
 
-      <ul className="nav nav-pills rcv-subtabs mb-3">
-        {puestosDeAreaActiva.map(puesto => (
-          <li className="nav-item" key={puesto.idPuesto}>
-            <button
-              className={
-                'nav-link ' + (puestoActivo?.idPuesto === puesto.idPuesto ? 'active' : '')
-              }
-              onClick={() => setPuestoActivo(puesto)}
-            >
-              {puesto.nombrePuesto}
-            </button>
-          </li>
-        ))}
-      </ul>
+        <ul className="nav nav-pills rcv-subtabs mb-3 flex-nowrap overflow-auto">
+          {puestosDeAreaActiva.map(puesto => (
+            <li className="nav-item" key={puesto.idPuesto}>
+              <button
+                className={'nav-link ' + (puestoActivo?.idPuesto === puesto.idPuesto ? 'active' : '')}
+                onClick={() => setPuestoActivo(puesto)}
+              >
+                {puesto.nombrePuesto}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <div className="rcv-table-wrapper">
         <div className="rcv-table-scroll">
           {loading ? (
             <div className="text-center p-5 fw-bold">Cargando postulantes...</div>
-          ) : postulantes.length === 0 ? (
+          ) : postulantesFiltrados.length === 0 ? (
             <div className="text-center p-5 fw-bold text-danger">
               No hay postulantes en revisión para este puesto
             </div>
           ) : (
-            <table className="table table-striped table-bordered align-middle w-100">
+            <table className="table table-striped table-bordered align-middle">
               <thead className="table-success text-center sticky-thead">
                 <tr>
                   <th>ID postulante</th>
@@ -125,7 +181,7 @@ const RecepcionCV = () => {
                 </tr>
               </thead>
               <tbody>
-                {postulantes.map(p => (
+                {postulantesFiltrados.map(p => (
                   <tr key={p.idPostulante}>
                     <td className="text-center">{p.idPostulante}</td>
                     <td>{`${p.nombres} ${p.apellidoPaterno} ${p.apellidoMaterno || ''}`}</td>
