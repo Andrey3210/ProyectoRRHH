@@ -9,6 +9,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -106,9 +107,9 @@ public class CandidatoController {
 
                 try {
                     ByteArrayResource recurso = new ByteArrayResource(Files.readAllBytes(rutaArchivo));
-                    String contentType = cv.getTipoArchivo() != null ? cv.getTipoArchivo() : MediaType.APPLICATION_PDF_VALUE;
+                    MediaType contentType = determinarContentType(cv, rutaArchivo);
                     return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
+                        .contentType(contentType)
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cv.getNombreArchivo() + "\"")
                         .body((Resource) recurso);
                 } catch (IOException e) {
@@ -116,6 +117,36 @@ public class CandidatoController {
                 }
             })
             .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Resource>build());
+    }
+
+    private MediaType determinarContentType(CV cv, Path rutaArchivo) {
+        try {
+            String tipoDetectado = Files.probeContentType(rutaArchivo);
+            if (tipoDetectado != null) {
+                return MediaType.parseMediaType(tipoDetectado);
+            }
+        } catch (IOException | InvalidMediaTypeException ignored) {
+        }
+
+        if (cv.getTipoArchivo() != null) {
+            try {
+                return MediaType.parseMediaType(cv.getTipoArchivo());
+            } catch (InvalidMediaTypeException ignored) {
+            }
+        }
+
+        String nombreArchivo = cv.getNombreArchivo();
+        if (nombreArchivo != null && nombreArchivo.contains(".")) {
+            String extension = nombreArchivo.substring(nombreArchivo.lastIndexOf('.') + 1).toLowerCase();
+            return switch (extension) {
+                case "pdf" -> MediaType.APPLICATION_PDF;
+                case "doc" -> MediaType.parseMediaType("application/msword");
+                case "docx" -> MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+                default -> MediaType.APPLICATION_OCTET_STREAM;
+            };
+        }
+
+        return MediaType.APPLICATION_OCTET_STREAM;
     }
     
     @PostMapping("/buscar")
