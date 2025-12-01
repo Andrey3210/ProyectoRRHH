@@ -193,6 +193,7 @@ const DetalleCV = () => {
           {tabActiva === 'info' && (
             <>
               <div className="row mb-3">
+                <br />
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Email</strong>
@@ -262,6 +263,7 @@ const DetalleCV = () => {
               detallePostulante.formacionesAcademicas.length > 0 ? (
                 detallePostulante.formacionesAcademicas.map((formacion, idx) => (
                   <div key={formacion.idFormacion || idx} className="mb-3">
+                    <br />
                     <div className="row mb-3">
                       <div className="col-md-6">
                         <p className="mb-1">
