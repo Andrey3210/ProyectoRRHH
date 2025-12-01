@@ -7,7 +7,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "habilidades_tecnicas")
 @DiscriminatorValue("TECNICA")
+@PrimaryKeyJoinColumn(name = "id_habilidad")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "habilidades")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "tipo_habilidad", discriminatorType = DiscriminatorType.STRING)
 @Data
 @NoArgsConstructor
@@ -21,6 +21,15 @@ public abstract class Habilidad {
     
     @Column(name = "nombre_habilidad", nullable = false, length = 200)
     private String nombreHabilidad;
+
+    @Column(name = "descripcion")
+    private String descripcion;
+
+    @Column(name = "categoria")
+    private String categoria;
+
+    @Column(name = "activo")
+    private Boolean activo;
     
     public abstract String describirHabilidad();
 }
