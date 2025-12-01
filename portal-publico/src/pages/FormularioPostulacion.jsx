@@ -156,20 +156,15 @@ const FormularioPostulacion = () => {
 
       const nuevoPostulante = await apiClient.post('/candidatos', postulanteData)
 
-      // 2. Subir el CV desde Google Drive
+      // 2. Subir el CV desde Google Drive y registrar la postulación
       if (formData.cvGoogleDriveLink) {
         await apiClient.post('/cvs/google-drive', {
           idPostulante: nuevoPostulante.idPostulante,
+          idVacante: parseInt(idVacante),
           enlaceGoogleDrive: formData.cvGoogleDriveLink,
           fuente: 'PORTAL'
         })
       }
-
-      // 3. Vincular postulante a la vacante
-      await apiClient.post('/reclutamiento/vincular', {
-        idCandidato: nuevoPostulante.idPostulante,
-        idVacante: parseInt(idVacante)
-      })
 
       setSuccess(true)
       
