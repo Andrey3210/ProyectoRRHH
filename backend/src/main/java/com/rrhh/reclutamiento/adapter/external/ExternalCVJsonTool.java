@@ -3,8 +3,10 @@ package com.rrhh.reclutamiento.adapter.external;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -21,31 +23,55 @@ import java.util.stream.StreamSupport;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ExternalCVJsonTool {
 
     private final ObjectMapper objectMapper;
 
     public ExternalProfile leerPerfilDesdeArchivo(Path ruta) {
-        if (ruta == null || !Files.exists(ruta)) {
+        if (ruta == null) {
+            log.warn("Ruta nula recibida para lectura de CV");
             return ExternalProfile.vacio();
         }
 
-        try {
-            String nombre = ruta.getFileName().toString().toLowerCase();
-            if (nombre.endsWith(".json")) {
-                return leerDesdeJson(ruta);
+        String nombre = ruta.getFileName().toString().toLowerCase();
+        log.info("Leyendo CV desde {}", ruta);
+
+        if (Files.exists(ruta)) {
+            try {
+                return leerSegunExtension(nombre, Files.newInputStream(ruta));
+            } catch (IOException e) {
+                log.error("No se pudo leer archivo {}: {}", ruta, e.getMessage(), e);
+                return ExternalProfile.vacio();
             }
-            if (nombre.endsWith(".pdf")) {
-                return leerDesdePdf(ruta);
-            }
-            return ExternalProfile.vacio();
-        } catch (IOException e) {
-            return ExternalProfile.vacio();
         }
+
+        ClassPathResource resource = new ClassPathResource(ruta.toString());
+        if (resource.exists()) {
+            try {
+                return leerSegunExtension(nombre, resource.getInputStream());
+            } catch (IOException e) {
+                log.error("No se pudo leer recurso en classpath {}: {}", ruta, e.getMessage(), e);
+            }
+        }
+
+        log.warn("Archivo {} no encontrado ni en sistema de archivos ni en classpath", ruta);
+        return ExternalProfile.vacio();
     }
 
-    private ExternalProfile leerDesdeJson(Path ruta) throws IOException {
-        JsonNode root = objectMapper.readTree(ruta.toFile());
+    private ExternalProfile leerSegunExtension(String nombreArchivo, java.io.InputStream inputStream) throws IOException {
+        if (nombreArchivo.endsWith(".json")) {
+            return leerDesdeJson(inputStream);
+        }
+        if (nombreArchivo.endsWith(".pdf")) {
+            return leerDesdePdf(inputStream, nombreArchivo);
+        }
+        log.warn("Extensión de archivo no soportada para {}", nombreArchivo);
+        return ExternalProfile.vacio();
+    }
+
+    private ExternalProfile leerDesdeJson(java.io.InputStream inputStream) throws IOException {
+        JsonNode root = objectMapper.readTree(inputStream);
         return new ExternalProfile(
                 toList(root.path("formacion")),
                 toList(root.path("experiencias")),
@@ -53,14 +79,17 @@ public class ExternalCVJsonTool {
         );
     }
 
-    private ExternalProfile leerDesdePdf(Path ruta) throws IOException {
-        String texto = extraerTextoPlano(ruta);
+    private ExternalProfile leerDesdePdf(java.io.InputStream inputStream, String nombreArchivo) throws IOException {
+        String texto = extraerTextoPlano(inputStream);
         if (texto.isBlank()) {
+            log.warn("No se pudo extraer texto del PDF {} (contenido vacío)", nombreArchivo);
             return ExternalProfile.vacio();
         }
 
         List<JsonNode> experiencias = parsearExperiencias(texto);
         List<String> habilidades = parsearHabilidades(texto);
+
+        log.info("PDF {} parseado: experiencias {}, habilidades {}", nombreArchivo, experiencias.size(), habilidades.size());
 
         return new ExternalProfile(Collections.emptyList(), experiencias, habilidades);
     }
@@ -82,11 +111,13 @@ public class ExternalCVJsonTool {
         return Collections.emptyList();
     }
 
-    private String extraerTextoPlano(Path ruta) throws IOException {
-        try (PDDocument document = PDDocument.load(ruta.toFile())) {
+    private String extraerTextoPlano(java.io.InputStream inputStream) throws IOException {
+        try (PDDocument document = PDDocument.load(inputStream)) {
             PDFTextStripper stripper = new PDFTextStripper();
             String texto = stripper.getText(document);
-            return Normalizer.normalize(texto, Normalizer.Form.NFC);
+            String normalizado = Normalizer.normalize(texto, Normalizer.Form.NFC);
+            log.debug("Texto extraído del PDF ({} caracteres)", normalizado.length());
+            return normalizado;
         }
     }
 
@@ -95,13 +126,16 @@ public class ExternalCVJsonTool {
         String seccion = extraerSeccion(texto, "Experiencia Laboral", "Habilidades");
 
         if (!seccion.isBlank()) {
+            log.debug("Sección de experiencia localizada, iniciando parseo específico");
             experiencias.addAll(parsearExperienciasDesdeLineas(seccion.split("\\R")));
         }
 
         if (experiencias.isEmpty()) {
+            log.debug("No se detectó sección específica; se parseará todo el documento línea por línea");
             experiencias.addAll(parsearExperienciasDesdeLineas(texto.split("\\R")));
         }
 
+        log.debug("Experiencias encontradas: {}", experiencias.size());
         return experiencias;
     }
 
@@ -198,6 +232,7 @@ public class ExternalCVJsonTool {
     private List<String> extraerHabilidadesDesdeSeccion(String texto, String tituloSeccion) {
         String seccion = extraerSeccion(texto, tituloSeccion, "Habilidades", "Perfil", "Experiencia Laboral");
         if (seccion.isBlank()) {
+            log.debug("Sección {} no encontrada en el documento", tituloSeccion);
             return Collections.emptyList();
         }
 
