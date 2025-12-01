@@ -93,18 +93,27 @@ public class ExternalCVJsonTool {
     private List<JsonNode> parsearExperiencias(String texto) {
         List<JsonNode> experiencias = new ArrayList<>();
         String seccion = extraerSeccion(texto, "Experiencia Laboral", "Habilidades");
-        if (seccion.isBlank()) {
-            return experiencias;
+
+        if (!seccion.isBlank()) {
+            experiencias.addAll(parsearExperienciasDesdeLineas(seccion.split("\\R")));
         }
 
-        String[] lineas = seccion.split("\\R");
+        if (experiencias.isEmpty()) {
+            experiencias.addAll(parsearExperienciasDesdeLineas(texto.split("\\R")));
+        }
+
+        return experiencias;
+    }
+
+    private List<JsonNode> parsearExperienciasDesdeLineas(String[] lineas) {
+        List<JsonNode> experiencias = new ArrayList<>();
         String cargoActual = null;
         String empresaActual = null;
         LocalDate inicio = null;
         LocalDate fin = null;
         List<String> funciones = new ArrayList<>();
 
-        Pattern cabecera = Pattern.compile("^(?<cargo>[^–-]+)\\s+[–-]\\s+(?<empresa>.+)$");
+        Pattern cabecera = Pattern.compile("^(?<cargo>.+?)\\s+[–-]\\s+(?<empresa>.+)$");
         Pattern rangoAnios = Pattern.compile("(?<inicio>\\d{4})\\s*[–-]\\s*(?<fin>\\d{4}|Presente|Actual)", Pattern.CASE_INSENSITIVE);
 
         for (int i = 0; i < lineas.length; i++) {
@@ -121,6 +130,14 @@ public class ExternalCVJsonTool {
                 }
                 cargoActual = cabeceraMatcher.group("cargo").trim();
                 empresaActual = cabeceraMatcher.group("empresa").trim();
+
+                Matcher rangoEnMismaLinea = rangoAnios.matcher(empresaActual);
+                if (rangoEnMismaLinea.find()) {
+                    empresaActual = empresaActual.replace(rangoEnMismaLinea.group(), "").trim();
+                    inicio = parsearAnio(rangoEnMismaLinea.group("inicio"));
+                    fin = parsearAnio(rangoEnMismaLinea.group("fin"));
+                    continue;
+                }
 
                 if (i + 1 < lineas.length) {
                     Matcher rangoMatcher = rangoAnios.matcher(lineas[i + 1]);
@@ -170,6 +187,11 @@ public class ExternalCVJsonTool {
         List<String> habilidades = new ArrayList<>();
         habilidades.addAll(extraerHabilidadesDesdeSeccion(texto, "Habilidades Técnicas"));
         habilidades.addAll(extraerHabilidadesDesdeSeccion(texto, "Habilidades Blandas"));
+
+        if (habilidades.isEmpty()) {
+            habilidades.addAll(extraerHabilidadesDesdeSeccion(texto, "Habilidades"));
+        }
+
         return habilidades;
     }
 
@@ -194,14 +216,18 @@ public class ExternalCVJsonTool {
 
     private String extraerSeccion(String texto, String inicioClave, String... finPosibles) {
         String normalizado = texto.replace("\r", "");
-        int inicio = normalizado.indexOf(inicioClave);
+        String normalizadoLower = normalizado.toLowerCase();
+        String inicioClaveLower = inicioClave.toLowerCase();
+
+        int inicio = normalizadoLower.indexOf(inicioClaveLower);
         if (inicio == -1) {
             return "";
         }
 
         int fin = normalizado.length();
         for (String finClave : finPosibles) {
-            int posibleFin = normalizado.indexOf(finClave, inicio + inicioClave.length());
+            String finClaveLower = finClave.toLowerCase();
+            int posibleFin = normalizadoLower.indexOf(finClaveLower, inicio + inicioClaveLower.length());
             if (posibleFin != -1) {
                 fin = Math.min(fin, posibleFin);
             }
