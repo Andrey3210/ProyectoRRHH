@@ -6,6 +6,7 @@ import com.rrhh.reclutamiento.repository.PostulanteRepository;
 import com.rrhh.reclutamiento.repository.PuestoRepository;
 import com.rrhh.reclutamiento.service.IRecepcionCVService;
 import com.rrhh.shared.domain.enums.EtapaProceso;
+import com.rrhh.shared.domain.enums.EstadoPostulante;
 import com.rrhh.shared.domain.model.Postulante;
 import com.rrhh.shared.domain.model.PostulanteProceso;
 import com.rrhh.shared.domain.model.Puesto;
@@ -37,7 +38,7 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
     @Transactional(readOnly = true)
     public List<PostulanteRevisionDTO> obtenerPostulantesRevisionPorPuesto(Integer idPuesto) {
         List<PostulanteProceso> postulantesProceso = postulanteProcesoRepository
-                .findByPuestoYEtapa(idPuesto, EtapaProceso.REVISION_CV);
+                .findByPuestoYEtapa(idPuesto, EtapaProceso.REVISION_CV, EstadoPostulante.DESCARTADO);
 
         return postulantesProceso.stream()
                 .map(pp -> mapearAPostulanteRevision(pp.getPostulante()))
