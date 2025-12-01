@@ -34,29 +34,93 @@ public class ExternalCVJsonTool {
             return ExternalProfile.vacio();
         }
 
-        String nombre = ruta.getFileName().toString().toLowerCase();
-        log.info("Leyendo CV desde {}", ruta);
+        List<Path> candidatos = construirCandidatos(ruta);
+        String nombre = obtenerNombreArchivo(ruta);
 
-        if (Files.exists(ruta)) {
+        for (Path candidato : candidatos) {
+            log.info("Leyendo CV desde {}", candidato);
+            if (!Files.exists(candidato)) {
+                log.debug("Ruta candidata no existe: {}", candidato);
+                continue;
+            }
             try {
-                return leerSegunExtension(nombre, Files.newInputStream(ruta));
+                return leerSegunExtension(nombre, Files.newInputStream(candidato));
             } catch (IOException e) {
-                log.error("No se pudo leer archivo {}: {}", ruta, e.getMessage(), e);
+                log.error("No se pudo leer archivo {}: {}", candidato, e.getMessage(), e);
                 return ExternalProfile.vacio();
             }
         }
 
-        ClassPathResource resource = new ClassPathResource(ruta.toString());
-        if (resource.exists()) {
-            try {
-                return leerSegunExtension(nombre, resource.getInputStream());
-            } catch (IOException e) {
-                log.error("No se pudo leer recurso en classpath {}: {}", ruta, e.getMessage(), e);
+        String classpathRuta = extraerRutaClasspath(ruta.toString());
+        if (classpathRuta != null) {
+            ClassPathResource resource = new ClassPathResource(classpathRuta);
+            if (resource.exists()) {
+                log.info("Leyendo CV desde classpath: {}", classpathRuta);
+                try {
+                    return leerSegunExtension(nombre, resource.getInputStream());
+                } catch (IOException e) {
+                    log.error("No se pudo leer recurso en classpath {}: {}", classpathRuta, e.getMessage(), e);
+                }
+            } else {
+                log.debug("Recurso en classpath no encontrado: {}", classpathRuta);
             }
         }
 
-        log.warn("Archivo {} no encontrado ni en sistema de archivos ni en classpath", ruta);
+        log.warn("Archivo {} no encontrado en rutas candidatas ni en classpath", ruta);
         return ExternalProfile.vacio();
+    }
+
+    private String obtenerNombreArchivo(Path ruta) {
+        String normalizado = ruta.toString().replace("\\", "/");
+        int idx = normalizado.lastIndexOf('/');
+        String nombre = idx != -1 ? normalizado.substring(idx + 1) : normalizado;
+        return nombre.toLowerCase();
+    }
+
+    private List<Path> construirCandidatos(Path ruta) {
+        String normalizado = ruta.toString().replace("\\", "/");
+        List<Path> candidatos = new ArrayList<>();
+
+        Path directo = toAbsolute(normalizado);
+        candidatos.add(directo);
+
+        int idxBackend = normalizado.indexOf("backend/");
+        if (idxBackend != -1) {
+            String sinBackend = normalizado.substring(idxBackend + "backend/".length());
+            candidatos.add(toAbsolute(sinBackend));
+        }
+
+        int idxResources = normalizado.indexOf("src/main/resources/");
+        if (idxResources != -1) {
+            String desdeResources = normalizado.substring(idxResources);
+            candidatos.add(toAbsolute(desdeResources));
+        }
+
+        return candidatos;
+    }
+
+    private Path toAbsolute(String ruta) {
+        Path path = Path.of(ruta).normalize();
+        if (path.isAbsolute()) {
+            return path;
+        }
+        return Path.of("").toAbsolutePath().resolve(path).normalize();
+    }
+
+    private String extraerRutaClasspath(String rutaOriginal) {
+        String normalizado = rutaOriginal.replace("\\", "/");
+
+        int idxResources = normalizado.indexOf("src/main/resources/");
+        if (idxResources != -1) {
+            return normalizado.substring(idxResources + "src/main/resources/".length());
+        }
+
+        int idxCv = normalizado.indexOf("cv/");
+        if (idxCv != -1) {
+            return normalizado.substring(idxCv);
+        }
+
+        return null;
     }
 
     private ExternalProfile leerSegunExtension(String nombreArchivo, java.io.InputStream inputStream) throws IOException {
