@@ -16,6 +16,9 @@ const DetalleCV = () => {
   const [cvUrl, setCvUrl] = useState('')
   const [cargandoCV, setCargandoCV] = useState(false)
   const [errorCV, setErrorCV] = useState('')
+  const [habilidades, setHabilidades] = useState([])
+  const [cargandoHabilidades, setCargandoHabilidades] = useState(false)
+  const [errorHabilidades, setErrorHabilidades] = useState('')
 
   const formatFecha = fecha => {
     if (!fecha) return ''
@@ -41,6 +44,53 @@ const DetalleCV = () => {
     }
 
     cargarDetalle()
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+
+    const cargarHabilidades = async () => {
+      setCargandoHabilidades(true)
+      setErrorHabilidades('')
+
+      try {
+        const data = await apiClient.get(`/candidatos/${id}/habilidades`)
+
+        if (Array.isArray(data)) {
+          const habilidadesNormalizadas = data.map(h => ({
+            id: h.idPostulanteHabilidad || h.id_postulante_habilidad || h.idHabilidad || h.id_habilidad,
+            nombre:
+              h.nombreHabilidad ||
+              h.nombre_habilidad ||
+              h.habilidad?.nombreHabilidad ||
+              h.habilidad?.nombre_habilidad ||
+              '',
+            tipo:
+              h.tipo ||
+              h.tipoHabilidad ||
+              h.tipo_habilidad ||
+              h.habilidad?.tipoHabilidad ||
+              h.habilidad?.tipo_habilidad ||
+              '',
+            categoria: h.categoria || h.habilidad?.categoria || '',
+            nivelDominio: h.nivelDominio || h.nivel_dominio || '',
+            anosExperiencia: h.anosExperiencia ?? h.anos_experiencia ?? null,
+            descripcion: h.descripcion || h.habilidad?.descripcion || ''
+          }))
+
+          setHabilidades(habilidadesNormalizadas)
+        } else {
+          setHabilidades([])
+        }
+      } catch (err) {
+        console.error('Error cargando habilidades:', err)
+        setErrorHabilidades('No se pudieron cargar las habilidades del postulante.')
+      } finally {
+        setCargandoHabilidades(false)
+      }
+    }
+
+    cargarHabilidades()
   }, [id])
 
   useEffect(() => {
@@ -192,11 +242,11 @@ const DetalleCV = () => {
           <h4 className="fw-bold mb-4">
             {nombreCompleto}{nombrePuesto ? ` - ${nombrePuesto}` : ''}
           </h4>
-          <br />
-          <h5 className="mt-4 mb-2"><strong>Información personal</strong></h5>
-          <br />
           {tabActiva === 'info' && (
             <>
+              <br />
+              <h5 className="mt-4 mb-2"><strong>Información personal</strong></h5>
+              <br />
               <div className="row mb-3">
                 <br />
                 <div className="col-md-6">
@@ -384,9 +434,56 @@ const DetalleCV = () => {
           {tabActiva === 'skills' && (
             <div>
               <h5 className="fw-bold mb-3">Habilidades del postulante</h5>
-              <p className="text-muted">
-                Aquí podrás mostrar habilidades técnicas, blandas, resultados de pruebas, etc.
-              </p>
+
+              {cargandoHabilidades && <p className="text-muted">Cargando habilidades...</p>}
+              {!cargandoHabilidades && errorHabilidades && (
+                <p className="text-danger">{errorHabilidades}</p>
+              )}
+
+              {!cargandoHabilidades && !errorHabilidades && habilidades.length === 0 && (
+                <p className="text-muted">Sin habilidades registradas.</p>
+              )}
+
+              {!cargandoHabilidades && !errorHabilidades && habilidades.length > 0 && (
+                <div className="habilidades-lista">
+                  {['TECNICA', 'BLANDA'].map(tipo => {
+                    const habilidadesPorTipo = habilidades.filter(h => h.tipo === tipo)
+
+                    if (habilidadesPorTipo.length === 0) return null
+
+                    return (
+                      <div key={tipo} className="mb-4">
+                        <h6 className="fw-bold text-uppercase text-muted">{tipo === 'TECNICA' ? 'Técnicas' : 'Blandas'}</h6>
+                        <div className="list-group">
+                          {habilidadesPorTipo.map(habilidad => (
+                            <div key={habilidad.id} className="list-group-item">
+                              <div className="d-flex justify-content-between align-items-center">
+                                <div>
+                                  <p className="mb-1 fw-semibold">{habilidad.nombre}</p>
+                                  <small className="text-muted">{habilidad.categoria || 'Sin categoría'}</small>
+                                  {habilidad.descripcion && (
+                                    <p className="mb-1 text-muted small">{habilidad.descripcion}</p>
+                                  )}
+                                </div>
+                                <div className="text-end">
+                                  {habilidad.nivelDominio && (
+                                    <span className="badge text-bg-dark ms-2">Nivel: {habilidad.nivelDominio}</span>
+                                  )}
+                                  {habilidad.anosExperiencia !== null && habilidad.anosExperiencia !== undefined && (
+                                    <span className="badge text-bg-secondary ms-2">
+                                      {habilidad.anosExperiencia} año{habilidad.anosExperiencia === 1 ? '' : 's'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>

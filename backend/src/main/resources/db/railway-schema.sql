@@ -65,7 +65,6 @@ CREATE TABLE `postulantes_habilidades` (
    `id_postulante` int NOT NULL,
    `id_habilidad` int NOT NULL,
    `nivel_dominio` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-   `anos_experiencia` int DEFAULT '0',
    `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
    PRIMARY KEY (`id_postulante_habilidad`),
    UNIQUE KEY `unique_postulante_habilidad` (`id_postulante`,`id_habilidad`),
