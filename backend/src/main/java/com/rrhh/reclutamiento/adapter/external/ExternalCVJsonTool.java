@@ -302,12 +302,20 @@ public class ExternalCVJsonTool {
 
         List<String> habilidades = new ArrayList<>();
         for (String linea : seccion.split("\\R")) {
-            String limpia = linea.replace("•", "-").trim();
+            String limpia = linea
+                    .replace("•", "-")
+                    .replace("–", "-")
+                    .replace("—", "-")
+                    .replace("·", "-")
+                    .trim();
+
             if (limpia.startsWith("-")) {
                 String habilidad = limpia.substring(1).trim();
                 if (!habilidad.isBlank()) {
                     habilidades.add(habilidad);
                 }
+            } else if (!limpia.isBlank() && !limpia.equalsIgnoreCase(tituloSeccion)) {
+                habilidades.add(limpia);
             }
         }
         return habilidades;

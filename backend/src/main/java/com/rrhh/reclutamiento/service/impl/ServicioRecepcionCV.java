@@ -18,7 +18,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -202,34 +205,93 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
 
     private int registrarHabilidades(Postulante postulante, List<String> habilidades) {
         int nuevas = 0;
-        for (String nombreHabilidad : habilidades) {
-            if (nombreHabilidad == null || nombreHabilidad.isBlank()) {
+        Set<Integer> agregadasEnLote = new HashSet<>();
+        for (String habilidadLibre : habilidades) {
+            if (habilidadLibre == null || habilidadLibre.isBlank()) {
                 continue;
             }
 
-            Optional<Habilidad> habilidad = habilidadRepository.findByNombreIgnoreCase(nombreHabilidad.trim());
-            if (habilidad.isEmpty()) {
-                continue;
+            for (String nombreNormalizado : normalizarHabilidades(habilidadLibre)) {
+                Optional<Habilidad> habilidad = habilidadRepository.findByNombreIgnoreCase(nombreNormalizado);
+                if (habilidad.isEmpty()) {
+                    continue;
+                }
+
+                int idHabilidad = habilidad.get().getIdHabilidad();
+                if (agregadasEnLote.contains(idHabilidad)) {
+                    continue;
+                }
+
+                boolean existe = postulanteHabilidadRepository.existsByIdPostulanteAndIdHabilidad(
+                        postulante.getIdPostulante(), idHabilidad
+                );
+
+                if (existe) {
+                    continue;
+                }
+
+                PostulanteHabilidad postulanteHabilidad = new PostulanteHabilidad();
+                postulanteHabilidad.setIdPostulante(postulante.getIdPostulante());
+                postulanteHabilidad.setIdHabilidad(idHabilidad);
+                postulanteHabilidad.setNivelDominio("AUTOMATICO");
+                postulanteHabilidad.setFechaRegistro(LocalDate.now());
+
+                postulanteHabilidadRepository.save(postulanteHabilidad);
+                agregadasEnLote.add(idHabilidad);
+                nuevas++;
             }
-
-            boolean existe = postulanteHabilidadRepository.existsByIdPostulanteAndIdHabilidad(
-                    postulante.getIdPostulante(), habilidad.get().getIdHabilidad()
-            );
-
-            if (existe) {
-                continue;
-            }
-
-            PostulanteHabilidad postulanteHabilidad = new PostulanteHabilidad();
-            postulanteHabilidad.setIdPostulante(postulante.getIdPostulante());
-            postulanteHabilidad.setIdHabilidad(habilidad.get().getIdHabilidad());
-            postulanteHabilidad.setNivelDominio("AUTOMATICO");
-            postulanteHabilidad.setFechaRegistro(LocalDate.now());
-
-            postulanteHabilidadRepository.save(postulanteHabilidad);
-            nuevas++;
         }
         return nuevas;
+    }
+
+    private Set<String> normalizarHabilidades(String habilidadLibre) {
+        String base = habilidadLibre.trim();
+        String lower = base.toLowerCase();
+
+        Set<String> posibles = new LinkedHashSet<>();
+        posibles.add(base);
+
+        if (lower.contains("crm")) {
+            posibles.add("Manejo de CRM");
+        }
+        if (lower.contains("excel")) {
+            posibles.add("Excel Avanzado");
+        }
+        if (lower.contains("microsoft office") || (lower.contains("excel") && lower.contains("word"))) {
+            posibles.add("Microsoft Office");
+        }
+        if (lower.contains("venta")) {
+            posibles.add("Ventas");
+        }
+        if (lower.contains("cliente")) {
+            posibles.add("Atención al Cliente");
+        }
+        if (lower.contains("comunic")) {
+            posibles.add("Comunicación");
+        }
+        if (lower.contains("herramienta") && lower.contains("gest")) {
+            posibles.add("Manejo de Herramientas de Gestión");
+        }
+        if (lower.contains("reporte")) {
+            posibles.add("Gestión Documentaria");
+        }
+        if (lower.contains("equipo")) {
+            posibles.add("Trabajo en equipo");
+        }
+        if (lower.contains("proactiv")) {
+            posibles.add("Proactividad");
+        }
+        if (lower.contains("resoluci") && lower.contains("proble")) {
+            posibles.add("Resolución de problemas");
+        }
+        if (lower.contains("organiz")) {
+            posibles.add("Organización");
+        }
+        if (lower.contains("responsab")) {
+            posibles.add("Responsabilidad");
+        }
+
+        return posibles;
     }
 
     private PostulanteRevisionDTO mapearAPostulanteRevision(Postulante postulante) {
