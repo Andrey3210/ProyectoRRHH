@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface PostulanteRepository extends JpaRepository<Postulante, Integer> {
-    
+
     Optional<Postulante> findByEmail(String email);
 
     List<Postulante> findByEstadoPostulacion(EstadoPostulante estado);
@@ -32,7 +32,7 @@ public interface PostulanteRepository extends JpaRepository<Postulante, Integer>
            "LOWER(p.email) LIKE LOWER(CONCAT('%', :search, '%')))")
     List<Postulante> buscarPorTexto(@Param("search") String search,
                                     @Param("estadoExcluido") EstadoPostulante estadoExcluido);
-    
+
     @Query("SELECT DISTINCT p FROM Postulante p " +
            "LEFT JOIN FETCH p.cv cv " +
            "LEFT JOIN FETCH cv.datosExtraidos " +
@@ -46,5 +46,13 @@ public interface PostulanteRepository extends JpaRepository<Postulante, Integer>
            "LEFT JOIN FETCH ph.habilidad " +
            "WHERE p.idPostulante = :id")
     Optional<Postulante> findByIdWithHabilidades(@Param("id") Integer id);
-}
 
+    @Query("SELECT DISTINCT p FROM Postulante p " +
+            "LEFT JOIN FETCH p.cv cv " +
+            "LEFT JOIN FETCH p.experiencias " +
+            "LEFT JOIN FETCH p.formacionesAcademicas " +
+            "LEFT JOIN FETCH p.habilidades ph " +
+            "LEFT JOIN FETCH ph.habilidad " +
+            "WHERE p.idPostulante = :id")
+    Optional<Postulante> findByIdWithDetalles(@Param("id") Integer id);
+}
