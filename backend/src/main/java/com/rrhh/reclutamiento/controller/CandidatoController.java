@@ -209,6 +209,8 @@ public class CandidatoController {
             return encontrado;
         }
 
+        // Si no hay un CV real disponible (incluidos los PDFs que coloques en
+        // src/main/resources/cv), se usa el placeholder genérico.
         ClassPathResource placeholder = new ClassPathResource("cv/cv-placeholder.pdf");
         if (placeholder.exists()) {
             try {
