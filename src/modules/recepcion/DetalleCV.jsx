@@ -1,19 +1,44 @@
-import React, { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import apiClient from '../../services/api/client'
 import './DetalleCV.css'
 
 const DetalleCV = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  const { id } = useParams()
   const { postulante, nombrePuesto, area } = location.state || {}
 
   const [tabActiva, setTabActiva] = useState('info')
+  const [detallePostulante, setDetallePostulante] = useState(postulante)
+  const [cargandoDetalle, setCargandoDetalle] = useState(false)
+  const [errorCarga, setErrorCarga] = useState('')
 
   const formatFecha = fecha => {
     if (!fecha) return ''
     const date = new Date(fecha)
     return isNaN(date) ? fecha : date.toLocaleDateString()
   }
+
+  useEffect(() => {
+    if (!id) return
+
+    const cargarDetalle = async () => {
+      setCargandoDetalle(true)
+      setErrorCarga('')
+      try {
+        const data = await apiClient.get(`/rrhh/postulantes/${id}`)
+        setDetallePostulante(data)
+      } catch (err) {
+        console.error('Error cargando postulante:', err)
+        setErrorCarga('No se pudo cargar la información del postulante.')
+      } finally {
+        setCargandoDetalle(false)
+      }
+    }
+
+    cargarDetalle()
+  }, [id])
 
   const obtenerPeriodo = (inicio, fin) => {
     const inicioFmt = formatFecha(inicio)
@@ -22,10 +47,32 @@ const DetalleCV = () => {
     return inicioFmt || finFmt || ''
   }
 
-  if (!postulante) {
+  const obtenerEdad = fechaNacimiento => {
+    if (!fechaNacimiento) return null
+    const fecha = new Date(fechaNacimiento)
+    if (isNaN(fecha)) return null
+
+    const hoy = new Date()
+    let edad = hoy.getFullYear() - fecha.getFullYear()
+    const mes = hoy.getMonth() - fecha.getMonth()
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fecha.getDate())) {
+      edad--
+    }
+    return edad
+  }
+
+  if (cargandoDetalle) {
     return (
       <div className="cv-full-view d-flex flex-column justify-content-center align-items-center">
-        <p className="fs-4 text-danger">No se encontró información del postulante.</p>
+        <p className="fs-4">Cargando información del postulante...</p>
+      </div>
+    )
+  }
+
+  if (!detallePostulante || errorCarga) {
+    return (
+      <div className="cv-full-view d-flex flex-column justify-content-center align-items-center">
+        <p className="fs-4 text-danger">{errorCarga || 'No se encontró información del postulante.'}</p>
         <button className="btn btn-dark mt-3" onClick={() => navigate(-1)}>
           Volver
         </button>
@@ -33,8 +80,8 @@ const DetalleCV = () => {
     )
   }
 
-  const nombreCompleto = `${postulante.nombres} ${postulante.apellidoPaterno}${
-    postulante.apellidoMaterno ? ` ${postulante.apellidoMaterno}` : ''
+  const nombreCompleto = `${detallePostulante.nombres} ${detallePostulante.apellidoPaterno}${
+    detallePostulante.apellidoMaterno ? ` ${detallePostulante.apellidoMaterno}` : ''
   }`.trim()
 
   return (
@@ -81,13 +128,13 @@ const DetalleCV = () => {
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Email</strong>
-                    <span className="ms-2">{postulante.email || ''}</span>
+                    <span className="ms-2">{detallePostulante.email || ''}</span>
                   </p>
                 </div>
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Sexo</strong>
-                    <span className="ms-2">{postulante.genero || ''}</span>
+                    <span className="ms-2">{detallePostulante.genero || ''}</span>
                   </p>
                 </div>
               </div>
@@ -96,7 +143,7 @@ const DetalleCV = () => {
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Teléfono</strong>
-                    <span className="ms-2">{postulante.telefono || ''}</span>
+                    <span className="ms-2">{detallePostulante.telefono || ''}</span>
                   </p>
                 </div>
               </div>
@@ -105,13 +152,19 @@ const DetalleCV = () => {
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Edad</strong>
-                    <span className="ms-2">{postulante.edad ? `${postulante.edad} años` : ''}</span>
+                    <span className="ms-2">
+                      {detallePostulante.edad
+                        ? `${detallePostulante.edad} años`
+                        : obtenerEdad(detallePostulante.fechaNacimiento)
+                          ? `${obtenerEdad(detallePostulante.fechaNacimiento)} años`
+                          : ''}
+                    </span>
                   </p>
                 </div>
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Estado civil</strong>
-                    <span className="ms-2">{postulante.estadoCivil || ''}</span>
+                    <span className="ms-2">{detallePostulante.estadoCivil || ''}</span>
                   </p>
                 </div>
               </div>
@@ -120,13 +173,13 @@ const DetalleCV = () => {
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Fecha de nacimiento</strong>
-                    <span className="ms-2">{postulante.fechaNacimiento || ''}</span>
+                    <span className="ms-2">{detallePostulante.fechaNacimiento || ''}</span>
                   </p>
                 </div>
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Dirección</strong>
-                    <span className="ms-2">{postulante.direccion || ''}</span>
+                    <span className="ms-2">{detallePostulante.direccion || ''}</span>
                   </p>
                 </div>
               </div>
@@ -139,13 +192,13 @@ const DetalleCV = () => {
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Nivel de estudios</strong>
-                    <span className="ms-2">{postulante.nivelEstudios || ''}</span>
+                    <span className="ms-2">{detallePostulante.nivelEstudios || ''}</span>
                   </p>
                 </div>
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Situación</strong>
-                    <span className="ms-2">{postulante.situacionAcademica || ''}</span>
+                    <span className="ms-2">{detallePostulante.situacionAcademica || ''}</span>
                   </p>
                 </div>
               </div>
@@ -154,13 +207,13 @@ const DetalleCV = () => {
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Carrera</strong>
-                    <span className="ms-2">{postulante.carrera || ''}</span>
+                    <span className="ms-2">{detallePostulante.carrera || ''}</span>
                   </p>
                 </div>
                 <div className="col-md-6">
                   <p className="mb-1">
                     <strong>Fechas</strong>
-                    <span className="ms-2">{postulante.periodoCarrera || ''}</span>
+                    <span className="ms-2">{detallePostulante.periodoCarrera || ''}</span>
                   </p>
                 </div>
               </div>
@@ -169,7 +222,7 @@ const DetalleCV = () => {
                 <div className="col-md-12">
                   <p className="mb-1">
                     <strong>Institución</strong>
-                    <span className="ms-2">{postulante.institucion || ''}</span>
+                    <span className="ms-2">{detallePostulante.institucion || ''}</span>
                   </p>
                 </div>
               </div>
@@ -178,7 +231,7 @@ const DetalleCV = () => {
                 <div className="col-md-12">
                   <p className="mb-1">
                     <strong>Cursos / diplomados relevantes</strong>
-                    <span className="ms-2">{postulante.cursosRelevantes || ''}</span>
+                    <span className="ms-2">{detallePostulante.cursosRelevantes || ''}</span>
                   </p>
                 </div>
               </div>
@@ -189,8 +242,8 @@ const DetalleCV = () => {
               </h5>
               <br />
 
-              {Array.isArray(postulante.experiencias) && postulante.experiencias.length > 0 ? (
-                postulante.experiencias.map((exp, idx) => (
+              {Array.isArray(detallePostulante.experiencias) && detallePostulante.experiencias.length > 0 ? (
+                detallePostulante.experiencias.map((exp, idx) => (
                   <div key={exp.idExperiencia || idx} className="mb-3">
                     <div className="row mb-3">
                       <div className="col-md-6">

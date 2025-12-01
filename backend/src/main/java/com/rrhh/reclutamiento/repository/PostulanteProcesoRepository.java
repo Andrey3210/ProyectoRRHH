@@ -34,10 +34,13 @@ public interface PostulanteProcesoRepository extends JpaRepository<PostulantePro
     @Query("SELECT pp FROM PostulanteProceso pp " +
            "JOIN FETCH pp.postulante p " +
            "JOIN ProcesoSeleccion ps ON pp.idProcesoActual = ps.idProceso " +
-           "WHERE ps.idPuesto = :idPuesto AND pp.etapaActual = :etapa")
+           "WHERE ps.idPuesto = :idPuesto " +
+           "AND pp.etapaActual = :etapa " +
+           "AND p.estadoPostulacion <> :estadoExcluido")
     List<PostulanteProceso> findByPuestoYEtapa(
         @Param("idPuesto") Integer idPuesto,
-        @Param("etapa") EtapaProceso etapa
+        @Param("etapa") EtapaProceso etapa,
+        @Param("estadoExcluido") EstadoPostulante estadoExcluido
     );
     
     Optional<PostulanteProceso> findByIdProcesoActualAndIdPostulante(Integer idProceso, Integer idPostulante);
