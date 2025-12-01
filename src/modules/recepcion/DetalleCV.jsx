@@ -73,6 +73,8 @@ const DetalleCV = () => {
             {nombreCompleto}{nombrePuesto ? ` - ${nombrePuesto}` : ''}
           </h4>
           <br />
+          <h5 className="mt-4 mb-2"><strong>Información personal</strong></h5>
+          <br />
           {tabActiva === 'info' && (
             <>
               <div className="row mb-3">
@@ -130,6 +132,8 @@ const DetalleCV = () => {
               </div>
 
               <hr className="my-3" />
+              <h5 className="mt-4 mb-2"><strong>Formación Académica</strong></h5>
+              <br />
 
               <div className="row mb-3">
                 <div className="col-md-6">
