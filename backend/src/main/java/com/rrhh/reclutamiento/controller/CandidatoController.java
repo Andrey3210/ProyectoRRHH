@@ -2,6 +2,7 @@ package com.rrhh.reclutamiento.controller;
 
 import com.rrhh.shared.domain.model.Postulante;
 import com.rrhh.reclutamiento.repository.PostulanteRepository;
+import com.rrhh.shared.domain.enums.EstadoPostulante;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,13 +26,13 @@ public class CandidatoController {
             @RequestParam(required = false) String search) {
         
         List<Postulante> candidatos;
-        
+
         if (search != null && !search.isEmpty()) {
-            candidatos = postulanteRepository.buscarPorTexto(search);
+            candidatos = postulanteRepository.buscarPorTexto(search, EstadoPostulante.DESCARTADO);
         } else {
-            candidatos = postulanteRepository.findAll();
+            candidatos = postulanteRepository.findByEstadoPostulacionNot(EstadoPostulante.DESCARTADO);
         }
-        
+
         return ResponseEntity.ok(candidatos);
     }
     

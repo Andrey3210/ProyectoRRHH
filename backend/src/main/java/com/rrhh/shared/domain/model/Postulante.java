@@ -1,6 +1,7 @@
 package com.rrhh.shared.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.rrhh.shared.domain.enums.EstadoPostulante;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -79,15 +80,15 @@ public class Postulante {
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<PostulanteHabilidad> habilidades = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnore
+    @JsonIgnoreProperties(value = "postulante", allowSetters = true)
     private List<Experiencia> experiencias = new ArrayList<>();
-    
+
     @OneToOne(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private CV cv;
-    
+
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<PostulanteProceso> procesos = new ArrayList<>();
