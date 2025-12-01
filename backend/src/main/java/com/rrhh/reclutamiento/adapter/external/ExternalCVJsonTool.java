@@ -150,12 +150,13 @@ public class ExternalCVJsonTool {
             return ExternalProfile.vacio();
         }
 
+        List<JsonNode> formaciones = parsearFormaciones(texto);
         List<JsonNode> experiencias = parsearExperiencias(texto);
         List<String> habilidades = parsearHabilidades(texto);
 
-        log.info("PDF {} parseado: experiencias {}, habilidades {}", nombreArchivo, experiencias.size(), habilidades.size());
+        log.info("PDF {} parseado: formaciones {}, experiencias {}, habilidades {}", nombreArchivo, formaciones.size(), experiencias.size(), habilidades.size());
 
-        return new ExternalProfile(Collections.emptyList(), experiencias, habilidades);
+        return new ExternalProfile(formaciones, experiencias, habilidades);
     }
 
     private List<JsonNode> toList(JsonNode node) {
@@ -291,6 +292,117 @@ public class ExternalCVJsonTool {
         }
 
         return habilidades;
+    }
+
+    private List<JsonNode> parsearFormaciones(String texto) {
+        List<JsonNode> formaciones = new ArrayList<>();
+
+        String seccion = extraerSeccion(texto, "Formación Profesional", "Perfil", "Experiencia", "Habilidades");
+        if (seccion.isBlank()) {
+            seccion = extraerSeccion(texto, "Formación Académica", "Perfil", "Experiencia", "Habilidades");
+        }
+        if (seccion.isBlank()) {
+            seccion = extraerSeccion(texto, "Educación", "Perfil", "Experiencia", "Habilidades");
+        }
+
+        if (seccion.isBlank()) {
+            log.debug("No se encontraron secciones de formación específicas; se intentará parsear todo el texto");
+            seccion = texto;
+        }
+
+        String[] lineas = seccion.split("\\R");
+        Pattern cabecera = Pattern.compile("^(?<grado>.+?)\\s+[–-]\\s+(?<institucion>.+)$");
+        Pattern rangoAnios = Pattern.compile("(?<inicio>\\d{4})\\s*[–-]\\s*(?<fin>\\d{4}|Presente|Actual)", Pattern.CASE_INSENSITIVE);
+
+        String gradoActual = null;
+        String institucionActual = null;
+        LocalDate inicio = null;
+        LocalDate fin = null;
+        List<String> detalles = new ArrayList<>();
+
+        for (int i = 0; i < lineas.length; i++) {
+            String linea = lineas[i].trim();
+            if (linea.isBlank()) {
+                continue;
+            }
+
+            Matcher cabeceraMatcher = cabecera.matcher(linea);
+            if (cabeceraMatcher.matches()) {
+                if (gradoActual != null) {
+                    formaciones.add(crearFormacion(gradoActual, institucionActual, inicio, fin, detalles));
+                    detalles = new ArrayList<>();
+                }
+                gradoActual = cabeceraMatcher.group("grado").trim();
+                institucionActual = cabeceraMatcher.group("institucion").trim();
+                inicio = null;
+                fin = null;
+
+                if (i + 1 < lineas.length) {
+                    Matcher rangoMatcher = rangoAnios.matcher(lineas[i + 1].trim());
+                    if (rangoMatcher.find()) {
+                        inicio = parsearAnio(rangoMatcher.group("inicio"));
+                        fin = parsearAnio(rangoMatcher.group("fin"));
+                        i++;
+                    }
+                }
+                continue;
+            }
+
+            Matcher rangoEnLinea = rangoAnios.matcher(linea);
+            if (rangoEnLinea.find()) {
+                inicio = parsearAnio(rangoEnLinea.group("inicio"));
+                fin = parsearAnio(rangoEnLinea.group("fin"));
+                continue;
+            }
+
+            detalles.add(linea);
+        }
+
+        if (gradoActual != null) {
+            formaciones.add(crearFormacion(gradoActual, institucionActual, inicio, fin, detalles));
+        }
+
+        log.debug("Formaciones encontradas: {}", formaciones.size());
+        return formaciones;
+    }
+
+    private JsonNode crearFormacion(String grado, String institucion, LocalDate inicio, LocalDate fin, List<String> detalles) {
+        var node = objectMapper.createObjectNode();
+        node.put("nivel", inferirNivel(grado));
+        node.put("situacion", fin != null ? "CONCLUIDO" : "EN_CURSO");
+        node.put("carrera", grado != null ? grado : "Carrera no indicada");
+        node.put("institucion", institucion != null ? institucion : "Institución no identificada");
+        node.put("inicio", inicio != null ? inicio.toString() : null);
+        node.put("fin", fin != null ? fin.toString() : null);
+        node.put("cursos", String.join("; ", detalles));
+        node.put("observaciones", (String) null);
+        return node;
+    }
+
+    private String inferirNivel(String grado) {
+        if (grado == null) {
+            return "No especificado";
+        }
+        String lower = grado.toLowerCase();
+        if (lower.contains("técnic") || lower.contains("tecnic")) {
+            return "TECNICO";
+        }
+        if (lower.contains("bachiller")) {
+            return "BACHILLER";
+        }
+        if (lower.contains("licenc")) {
+            return "LICENCIADO";
+        }
+        if (lower.contains("maestr") || lower.contains("master")) {
+            return "MAESTRIA";
+        }
+        if (lower.contains("doctor") || lower.contains("phd")) {
+            return "DOCTORADO";
+        }
+        if (lower.contains("ingenier") || lower.contains("universit")) {
+            return "UNIVERSITARIO";
+        }
+        return "No especificado";
     }
 
     private List<String> extraerHabilidadesDesdeSeccion(String texto, String tituloSeccion) {
