@@ -33,9 +33,6 @@ public class PostulanteHabilidad {
     @Column(name = "nivel_dominio", length = 50)
     private String nivelDominio;
     
-    @Column(name = "anos_experiencia")
-    private Integer anosExperiencia;
-    
     @Column(name = "fecha_registro")
     private LocalDate fechaRegistro;
     
