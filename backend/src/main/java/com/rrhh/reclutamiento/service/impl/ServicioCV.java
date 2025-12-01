@@ -78,7 +78,7 @@ public class ServicioCV implements ICVService {
 
         String nombreNormalizado = nombreCompleto
             .replaceAll("\\s+", "_")
-            .replaceAll("[^A-Za-z0-9_\-]", "");
+            .replaceAll("[^A-Za-z0-9_-]", "");
 
         return PREFIJO_NOMBRE + nombreNormalizado + EXTENSION_PDF;
     }
