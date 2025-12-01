@@ -112,10 +112,10 @@ public class CandidatoController {
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cv.getNombreArchivo() + "\"")
                         .body(recurso));
                 } catch (IOException e) {
-                    return Optional.of(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                    return Optional.of(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Resource>build());
                 }
             })
-            .orElse(ResponseEntity.notFound().build());
+            .orElseGet(() -> ResponseEntity.notFound().<Resource>build());
     }
     
     @PostMapping("/buscar")

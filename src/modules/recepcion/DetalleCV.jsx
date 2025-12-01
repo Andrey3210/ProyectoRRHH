@@ -334,7 +334,6 @@ const DetalleCV = () => {
                   const meses = obtenerMeses(exp.fechaInicio, exp.fechaFin)
                   return (
                     <div key={exp.idExperiencia || idx} className="experiencia-item mb-3">
-                      <br />
                       <div className="row mb-3">
                         <div className="col-md-6">
                           <p className="mb-1">
