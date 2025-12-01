@@ -160,10 +160,13 @@ export class Experiencia {
     this.idExperiencia = data.idExperiencia || null
     this.idPostulante = data.idPostulante || null
     this.empresa = data.empresa || ''
-    this.puesto = data.puesto || ''
+    this.cargo = data.cargo || ''
+    this.funcionesPrincipales = data.funcionesPrincipales || ''
     this.fechaInicio = data.fechaInicio || null
     this.fechaFin = data.fechaFin || null
-    this.descripcion = data.descripcion || ''
+    this.referenciaContacto = data.referenciaContacto || ''
+    this.telefonoReferencia = data.telefonoReferencia || ''
+    this.fechaCreacion = data.fechaCreacion || null
   }
 }
 
