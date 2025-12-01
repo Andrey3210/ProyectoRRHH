@@ -1,7 +1,8 @@
 package com.rrhh.reclutamiento.controller;
 
-import com.rrhh.shared.domain.model.Vacante;
 import com.rrhh.shared.domain.enums.EstadoVacante;
+import com.rrhh.shared.domain.enums.EtapaProceso;
+import com.rrhh.shared.domain.model.Vacante;
 import com.rrhh.reclutamiento.service.IServicioVacante;
 import com.rrhh.reclutamiento.service.EstadisticasService;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +28,23 @@ public class VacanteController {
     public ResponseEntity<List<Vacante>> obtenerVacantes(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String departamento,
-            @RequestParam(required = false) String prioridad) {
-        
+            @RequestParam(required = false) String prioridad,
+            @RequestParam(required = false) String etapa) {
+
         if (estado != null && estado.equals("ABIERTA")) {
+            if (etapa != null) {
+                try {
+                    EtapaProceso etapaEnum = EtapaProceso.valueOf(etapa);
+                    return ResponseEntity.ok(
+                        servicioVacante.buscarVacantesPorEstadoYEtapa(
+                            EstadoVacante.ABIERTA,
+                            etapaEnum
+                        )
+                    );
+                } catch (IllegalArgumentException e) {
+                    log.warn("Etapa de proceso inválida recibida: {}", etapa);
+                }
+            }
             return ResponseEntity.ok(servicioVacante.buscarVacantesActivas());
         }
         
