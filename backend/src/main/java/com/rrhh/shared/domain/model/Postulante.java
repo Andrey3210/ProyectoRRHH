@@ -7,7 +7,11 @@ import com.rrhh.shared.domain.model.FormacionAcademica;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,6 +21,8 @@ import java.util.Set;
 @Entity
 @Table(name = "postulantes")
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(exclude = {"habilidades", "experiencias", "formacionesAcademicas", "cv", "procesos"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class Postulante {
@@ -24,6 +30,7 @@ public class Postulante {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_postulante")
+    @EqualsAndHashCode.Include
     private Integer idPostulante;
     
     @Column(name = "nombres", nullable = false, length = 100)
@@ -80,14 +87,17 @@ public class Postulante {
     // Relaciones
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
+    @Fetch(FetchMode.SUBSELECT)
     private Set<PostulanteHabilidad> habilidades = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = "postulante", allowSetters = true)
+    @Fetch(FetchMode.SUBSELECT)
     private Set<Experiencia> experiencias = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = "postulante", allowSetters = true)
+    @Fetch(FetchMode.SUBSELECT)
     private Set<FormacionAcademica> formacionesAcademicas = new LinkedHashSet<>();
 
     @OneToOne(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -96,6 +106,7 @@ public class Postulante {
 
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
+    @Fetch(FetchMode.SUBSELECT)
     private Set<PostulanteProceso> procesos = new LinkedHashSet<>();
     
     // Métodos de negocio

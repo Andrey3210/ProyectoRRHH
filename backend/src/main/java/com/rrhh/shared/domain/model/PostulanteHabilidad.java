@@ -3,13 +3,17 @@ package com.rrhh.shared.domain.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "postulantes_habilidades")
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(exclude = {"postulante", "habilidad"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostulanteHabilidad {
@@ -17,6 +21,7 @@ public class PostulanteHabilidad {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_postulante_habilidad")
+    @EqualsAndHashCode.Include
     private Integer idPostulanteHabilidad;
     
     @Column(name = "id_postulante")

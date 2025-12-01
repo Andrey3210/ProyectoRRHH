@@ -6,7 +6,9 @@ import com.rrhh.shared.domain.enums.EtapaProceso;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "postulantes_proceso")
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(exclude = {"postulante", "procesoSeleccion"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostulanteProceso {
@@ -21,6 +25,7 @@ public class PostulanteProceso {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_postulante_proceso")
+    @EqualsAndHashCode.Include
     private Integer idPostulanteProceso;
     
     @Column(name = "id_postulante")
