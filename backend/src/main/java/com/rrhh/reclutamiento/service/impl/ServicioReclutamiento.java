@@ -193,7 +193,11 @@ public class ServicioReclutamiento implements IServicioReclutamiento {
     
     @Override
     public List<PostulanteProceso> obtenerCandidatosPorEtapa(Integer idProceso, EtapaProceso etapa) {
-        return postulanteProcesoRepository.findByProcesoYEtapa(idProceso, etapa);
+        return postulanteProcesoRepository.findByProcesoYEtapa(
+            idProceso,
+            etapa,
+            EstadoPostulante.DESCARTADO
+        );
     }
     
     @Override
