@@ -90,21 +90,21 @@ const RecepcionCV = () => {
   return (
     <div className="rcv-page">
       <div className="rcv-toolbar">
-        <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-3 w-100">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
-            <h2 className="fw-bold mb-0">Recepción de CVs</h2>
-            <p className="text-muted mb-0">Inventario y logística &gt; Jefe de logística</p>
+            <h2>Recepción de CVs</h2>
+            <p className="text-muted">{areaActiva && puestoActivo ? `${areaActiva} > ${puestoActivo.nombrePuesto}` : 'No se puede determinar el puesto'}</p>
           </div>
 
-          <div className="ms-lg-auto d-flex flex-wrap gap-3 align-items-center">
-            <form className="rcv-search input-group shadow-sm" onSubmit={handleBuscar}>
-              <span className="input-group-text bg-white">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <form className="rcv-search" onSubmit={handleBuscar}>
+              <span className="input-group-text">
                 <img src={searchIcon} alt="buscar" style={{ width: 20, height: 20 }} />
               </span>
               <input
                 type="text"
                 className="form-control"
-                placeholder="Buscar postulante o puesto"
+                placeholder="Buscar postulante"
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
               />
@@ -113,28 +113,27 @@ const RecepcionCV = () => {
               </button>
             </form>
 
-            <div className="rcv-filter">
-              <select
-                className="form-select"
-                value={filtroGenero}
-                onChange={e => setFiltroGenero(e.target.value)}
-              >
-                <option value="">Todos los géneros</option>
-                {generosDisponibles.map(genero => (
-                  <option key={genero} value={genero}>
-                    {genero}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              className="form-select"
+              style={{ minWidth: '180px', borderRadius: '6px', border: '1px solid #d1d5db', padding: '8px 12px', fontSize: '14px', background: 'white' }}
+              value={filtroGenero}
+              onChange={e => setFiltroGenero(e.target.value)}
+            >
+              <option value="">Todos los géneros</option>
+              {generosDisponibles.map(genero => (
+                <option key={genero} value={genero}>
+                  {genero}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
 
       <div className="rcv-navbars">
-        <ul className="nav nav-tabs rcv-tabs border-0 mb-2 flex-nowrap overflow-auto">
+        <ul className="rcv-tabs">
           {areas.map(area => (
-            <li className="nav-item" key={area}>
+            <li key={area}>
               <button
                 className={'nav-link ' + (areaActiva === area ? 'active' : '')}
                 onClick={() => setAreaActiva(area)}
@@ -145,9 +144,9 @@ const RecepcionCV = () => {
           ))}
         </ul>
 
-        <ul className="nav nav-pills rcv-subtabs mb-3 flex-nowrap overflow-auto">
+        <ul className="rcv-subtabs">
           {puestosDeAreaActiva.map(puesto => (
-            <li className="nav-item" key={puesto.idPuesto}>
+            <li key={puesto.idPuesto}>
               <button
                 className={'nav-link ' + (puestoActivo?.idPuesto === puesto.idPuesto ? 'active' : '')}
                 onClick={() => setPuestoActivo(puesto)}
@@ -194,7 +193,11 @@ const RecepcionCV = () => {
                         className="btn btn-success btn-sm rounded-pill px-3"
                         onClick={() =>
                           navigate(`/postulantes/${p.idPostulante}/cv`, {
-                            state: { postulante: p, nombrePuesto: puestoActivo?.nombrePuesto }
+                            state: { 
+                              postulante: p, 
+                              nombrePuesto: puestoActivo?.nombrePuesto,
+                              area: areaActiva
+                            }
                           })
                         }
                       >

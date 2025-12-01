@@ -1,12 +1,13 @@
 /* Vista completa respetando el sidebar */
 .cv-full-view {
   position: relative;
-  margin-left: 70px;
-  width: calc(100% - 70px);
+  margin-left: 0;
+  margin-right: 0;
+  width: calc(100% - 12px);
   background: #f3f6fb;
   padding: 18px 22px 22px;
   border-radius: 12px;
-  min-height: calc(100vh - 32px);
+  min-height: 92vh;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 

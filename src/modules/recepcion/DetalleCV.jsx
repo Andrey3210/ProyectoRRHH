@@ -5,7 +5,7 @@ import './DetalleCV.css'
 const DetalleCV = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { postulante, nombrePuesto } = location.state || {}
+  const { postulante, nombrePuesto, area } = location.state || {}
 
   const [tabActiva, setTabActiva] = useState('info')
 
@@ -20,8 +20,8 @@ const DetalleCV = () => {
     )
   }
 
-  const nombreCompleto = `${postulante.nombres} ${postulante.apellidoPaterno} ${
-    postulante.apellidoMaterno || ''
+  const nombreCompleto = `${postulante.nombres} ${postulante.apellidoPaterno}${
+    postulante.apellidoMaterno ? ` ${postulante.apellidoMaterno}` : ''
   }`.trim()
 
   return (
@@ -29,7 +29,9 @@ const DetalleCV = () => {
       <div className="cv-header">
         <div>
           <h2 className="fw-bold mb-0">Recepción de CVs</h2>
-          <p className="text-muted mb-0">Inventario y logística &gt; Jefe de logística</p>
+          <p className="text-muted mb-0">
+            {area && nombrePuesto ? `${area} > ${nombrePuesto}` : 'No se pudo determinar el puesto'}
+          </p>
           <div className="cv-tabs">
             <button
               className={tabActiva === 'info' ? 'cv-tab-btn cv-tab-active' : 'cv-tab-btn'}
@@ -52,17 +54,12 @@ const DetalleCV = () => {
         </button>
       </div>
 
-      <div className="cv-rating-box">
-        <span className="me-2 fw-semibold">Calificación</span>
-        <span className="fs-4 text-warning">★ ★ ★</span>
-      </div>
-
       <div className="cv-body">
         <div className="cv-info-card">
           <h4 className="fw-bold mb-4">
-            {nombreCompleto} {nombrePuesto ? `- ${nombrePuesto}` : ''}
+            {nombreCompleto}{nombrePuesto ? ` - ${nombrePuesto}` : ''}
           </h4>
-
+          <br />
           {tabActiva === 'info' && (
             <>
               <div className="row mb-3">
