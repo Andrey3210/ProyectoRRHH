@@ -13,6 +13,9 @@ const DetalleCV = () => {
   const [detallePostulante, setDetallePostulante] = useState(postulante)
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
   const [errorCarga, setErrorCarga] = useState('')
+  const [cvUrl, setCvUrl] = useState('')
+  const [cargandoCV, setCargandoCV] = useState(false)
+  const [errorCV, setErrorCV] = useState('')
 
   const formatFecha = fecha => {
     if (!fecha) return ''
@@ -38,6 +41,53 @@ const DetalleCV = () => {
     }
 
     cargarDetalle()
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+
+    let cancelado = false
+    let objectUrl = ''
+
+    const cargarPDF = async () => {
+      setCargandoCV(true)
+      setErrorCV('')
+      setCvUrl('')
+
+      try {
+        const response = await fetch(`${apiClient.baseURL}/candidatos/${id}/cv/archivo`, {
+          headers: apiClient.getHeaders({ Accept: 'application/pdf' })
+        })
+
+        if (!response.ok) {
+          throw new Error('No se pudo obtener el archivo del CV.')
+        }
+
+        const blob = await response.blob()
+        if (cancelado) return
+
+        objectUrl = URL.createObjectURL(blob)
+        setCvUrl(objectUrl)
+      } catch (err) {
+        if (!cancelado) {
+          console.error('Error cargando CV en PDF:', err)
+          setErrorCV('No se pudo cargar el CV en PDF.')
+        }
+      } finally {
+        if (!cancelado) {
+          setCargandoCV(false)
+        }
+      }
+    }
+
+    cargarPDF()
+
+    return () => {
+      cancelado = true
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl)
+      }
+    }
   }, [id])
 
   const obtenerPeriodo = (inicio, fin) => {
@@ -338,7 +388,14 @@ const DetalleCV = () => {
 
         <div className="cv-preview-card">
           <div className="cv-pdf-box">
-            <div className="cv-pdf-placeholder">Visor PDF pendiente</div>
+            {cargandoCV && <div className="cv-pdf-placeholder">Cargando CV en PDF...</div>}
+            {!cargandoCV && errorCV && <div className="cv-pdf-placeholder text-danger">{errorCV}</div>}
+            {!cargandoCV && !errorCV && cvUrl && (
+              <iframe title="CV del postulante" src={cvUrl} className="cv-pdf-frame" />
+            )}
+            {!cargandoCV && !errorCV && !cvUrl && (
+              <div className="cv-pdf-placeholder">No hay CV disponible.</div>
+            )}
           </div>
 
           <button className="btn btn-success w-100 rounded-pill fw-semibold">
