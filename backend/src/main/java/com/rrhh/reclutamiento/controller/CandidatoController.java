@@ -96,12 +96,12 @@ public class CandidatoController {
             .map(postulante -> {
                 CV cv = postulante.getCv();
                 if (cv == null || cv.getRutaArchivo() == null) {
-                    return ResponseEntity.notFound().build();
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).<Resource>build();
                 }
 
                 Path rutaArchivo = Paths.get(cv.getRutaArchivo());
                 if (!Files.exists(rutaArchivo)) {
-                    return ResponseEntity.notFound().build();
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).<Resource>build();
                 }
 
                 try {
@@ -112,10 +112,10 @@ public class CandidatoController {
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cv.getNombreArchivo() + "\"")
                         .body(recurso);
                 } catch (IOException e) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Resource>build();
                 }
             })
-            .orElseGet(() -> ResponseEntity.notFound().build());
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Resource>build());
     }
     
     @PostMapping("/buscar")
