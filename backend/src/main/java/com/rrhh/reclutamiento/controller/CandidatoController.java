@@ -205,6 +205,36 @@ public class CandidatoController {
 
         return Optional.empty();
     }
+
+    private MediaType determinarContentType(CV cv, Path rutaArchivo) {
+        try {
+            String tipoDetectado = Files.probeContentType(rutaArchivo);
+            if (tipoDetectado != null) {
+                return MediaType.parseMediaType(tipoDetectado);
+            }
+        } catch (IOException | InvalidMediaTypeException ignored) {
+        }
+
+        if (cv.getTipoArchivo() != null) {
+            try {
+                return MediaType.parseMediaType(cv.getTipoArchivo());
+            } catch (InvalidMediaTypeException ignored) {
+            }
+        }
+
+        String nombreArchivo = cv.getNombreArchivo();
+        if (nombreArchivo != null && nombreArchivo.contains(".")) {
+            String extension = nombreArchivo.substring(nombreArchivo.lastIndexOf('.') + 1).toLowerCase();
+            return switch (extension) {
+                case "pdf" -> MediaType.APPLICATION_PDF;
+                case "doc" -> MediaType.parseMediaType("application/msword");
+                case "docx" -> MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+                default -> MediaType.APPLICATION_OCTET_STREAM;
+            };
+        }
+
+        return MediaType.APPLICATION_OCTET_STREAM;
+    }
     
     @PostMapping("/buscar")
     public ResponseEntity<List<Postulante>> buscarCandidatos(@RequestBody Map<String, Object> criterios) {
