@@ -110,7 +110,7 @@ public class CandidatoController {
                     return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cv.getNombreArchivo() + "\"")
-                        .body(recurso);
+                        .body((Resource) recurso);
                 } catch (IOException e) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Resource>build();
                 }
