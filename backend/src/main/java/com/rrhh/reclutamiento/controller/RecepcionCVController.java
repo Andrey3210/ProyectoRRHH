@@ -1,6 +1,7 @@
 package com.rrhh.reclutamiento.controller;
 
 import com.rrhh.reclutamiento.dto.PostulanteRevisionDTO;
+import com.rrhh.reclutamiento.dto.ResumenProcesamientoCV;
 import com.rrhh.reclutamiento.service.IRecepcionCVService;
 import com.rrhh.shared.domain.model.Postulante;
 import com.rrhh.shared.domain.model.Puesto;
@@ -30,6 +31,12 @@ public class RecepcionCVController {
         List<PostulanteRevisionDTO> postulantes = recepcionCVService
                 .obtenerPostulantesRevisionPorPuesto(idPuesto);
         return ResponseEntity.ok(postulantes);
+    }
+
+    @PostMapping("/puestos/{idPuesto}/procesar-cv")
+    public ResponseEntity<List<ResumenProcesamientoCV>> procesarCVs(@PathVariable Integer idPuesto) {
+        List<ResumenProcesamientoCV> resumenes = recepcionCVService.procesarCVsPorPuesto(idPuesto);
+        return ResponseEntity.ok(resumenes);
     }
 
     @GetMapping("/postulantes/{id}")
