@@ -329,16 +329,35 @@ CREATE TABLE experiencias (
     id_experiencia INT AUTO_INCREMENT PRIMARY KEY,
     id_postulante INT NOT NULL,
     empresa VARCHAR(200) NOT NULL,
-    puesto VARCHAR(200) NOT NULL,
+    cargo VARCHAR(200) NOT NULL,
+    funciones_principales TEXT,
     fecha_inicio DATE NOT NULL,
-    fecha_fin DATE NULL,
-    descripcion TEXT,
-    referencia_contacto VARCHAR(200),
-    telefono_referencia VARCHAR(20),
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_fin DATE DEFAULT NULL,
+    referencia_contacto VARCHAR(200) DEFAULT NULL,
+    telefono_referencia VARCHAR(20) DEFAULT NULL,
+    fecha_creacion TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_postulante) REFERENCES postulantes(id_postulante) ON DELETE CASCADE,
     INDEX idx_postulante (id_postulante),
     INDEX idx_empresa (empresa)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de formación académica
+CREATE TABLE formacion_academica (
+    id_formacion INT NOT NULL AUTO_INCREMENT,
+    id_postulante INT NOT NULL,
+    nivel_estudios VARCHAR(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+    situacion VARCHAR(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+    carrera VARCHAR(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    institucion VARCHAR(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE DEFAULT NULL,
+    cursos_relevantes TEXT COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    observaciones TEXT COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    fecha_creacion TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_formacion),
+    KEY idx_formacion_postulante (id_postulante),
+    CONSTRAINT fk_formacion_postulante FOREIGN KEY (id_postulante)
+        REFERENCES postulantes (id_postulante) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabla de certificaciones

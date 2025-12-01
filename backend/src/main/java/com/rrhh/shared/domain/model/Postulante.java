@@ -1,7 +1,9 @@
 package com.rrhh.shared.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.rrhh.shared.domain.enums.EstadoPostulante;
+import com.rrhh.shared.domain.model.FormacionAcademica;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,8 +11,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "postulantes")
@@ -78,19 +80,23 @@ public class Postulante {
     // Relaciones
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<PostulanteHabilidad> habilidades = new ArrayList<>();
-    
+    private Set<PostulanteHabilidad> habilidades = new LinkedHashSet<>();
+
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Experiencia> experiencias = new ArrayList<>();
-    
+    @JsonIgnoreProperties(value = "postulante", allowSetters = true)
+    private Set<Experiencia> experiencias = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = "postulante", allowSetters = true)
+    private Set<FormacionAcademica> formacionesAcademicas = new LinkedHashSet<>();
+
     @OneToOne(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private CV cv;
-    
+
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<PostulanteProceso> procesos = new ArrayList<>();
+    private Set<PostulanteProceso> procesos = new LinkedHashSet<>();
     
     // Métodos de negocio
     public String getNombreCompleto() {
