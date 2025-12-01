@@ -7,7 +7,7 @@ const DetalleCV = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const { id } = useParams()
-  const { postulante, nombrePuesto, area } = location.state || {}
+  const { postulante, nombrePuesto, area, idPuesto } = location.state || {}
 
   const [tabActiva, setTabActiva] = useState('info')
   const [detallePostulante, setDetallePostulante] = useState(postulante)
@@ -67,7 +67,8 @@ const DetalleCV = () => {
         if (cancelado) return
 
         objectUrl = URL.createObjectURL(blob)
-        setCvUrl(objectUrl)
+        // Agregar zoom al 80% al PDF
+        setCvUrl(objectUrl + '#zoom=80')
       } catch (err) {
         if (!cancelado) {
           console.error('Error cargando CV en PDF:', err)
@@ -141,7 +142,9 @@ const DetalleCV = () => {
     return (
       <div className="cv-full-view d-flex flex-column justify-content-center align-items-center">
         <p className="fs-4 text-danger">{errorCarga || 'No se encontró información del postulante.'}</p>
-        <button className="btn btn-dark mt-3" onClick={() => navigate(-1)}>
+        <button className="btn btn-dark mt-3" onClick={() => navigate('/recepcion-cv', { 
+          state: { area, idPuesto } 
+        })}>
           Volver
         </button>
       </div>
@@ -177,7 +180,9 @@ const DetalleCV = () => {
           </div>
         </div>
 
-        <button className="btn btn-dark" onClick={() => navigate(-1)}>
+        <button className="btn btn-dark" onClick={() => navigate('/recepcion-cv', { 
+          state: { area, idPuesto } 
+        })}>
           VOLVER
         </button>
       </div>
@@ -334,6 +339,7 @@ const DetalleCV = () => {
                   const meses = obtenerMeses(exp.fechaInicio, exp.fechaFin)
                   return (
                     <div key={exp.idExperiencia || idx} className="experiencia-item mb-3">
+                      <br />
                       <div className="row mb-3">
                         <div className="col-md-6">
                           <p className="mb-1">

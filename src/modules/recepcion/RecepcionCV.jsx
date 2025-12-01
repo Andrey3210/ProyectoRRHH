@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import apiClient from '../../services/api/client'
 import './RecepcionCV.css'
 import searchIcon from './assets/search.svg'
 import cvIcon from './assets/curriculum.svg'
 
 const RecepcionCV = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
+  
   const [areas, setAreas] = useState([])
   const [puestos, setPuestos] = useState([])
   const [areaActiva, setAreaActiva] = useState('')
@@ -15,8 +18,6 @@ const RecepcionCV = () => {
   const [busqueda, setBusqueda] = useState('')
   const [filtroGenero, setFiltroGenero] = useState('')
 
-  const navigate = useNavigate()
-
   useEffect(() => {
     const cargarPuestos = async () => {
       try {
@@ -24,7 +25,19 @@ const RecepcionCV = () => {
         setPuestos(data)
         const uniqueAreas = [...new Set(data.map(p => p.area))]
         setAreas(uniqueAreas)
-        if (uniqueAreas.length > 0) setAreaActiva(uniqueAreas[0])
+        
+        // Si viene del state, restaurar la posición
+        if (location.state?.area && location.state?.idPuesto) {
+          setAreaActiva(location.state.area)
+          const puestoRestaurado = data.find(p => p.idPuesto === location.state.idPuesto)
+          if (puestoRestaurado) {
+            setPuestoActivo(puestoRestaurado)
+          }
+          // Limpiar el state para que no interfiera con futuras selecciones
+          window.history.replaceState({}, document.title)
+        } else if (uniqueAreas.length > 0) {
+          setAreaActiva(uniqueAreas[0])
+        }
       } catch (err) {
         console.error('Error cargando puestos:', err)
       }
@@ -35,8 +48,11 @@ const RecepcionCV = () => {
 
   useEffect(() => {
     if (!areaActiva) return
+    
     const pArea = puestos.filter(p => p.area === areaActiva)
-    if (pArea.length > 0) setPuestoActivo(pArea[0])
+    if (pArea.length > 0 && !puestoActivo) {
+      setPuestoActivo(pArea[0])
+    }
   }, [areaActiva, puestos])
 
   useEffect(() => {
@@ -196,7 +212,8 @@ const RecepcionCV = () => {
                             state: { 
                               postulante: p, 
                               nombrePuesto: puestoActivo?.nombrePuesto,
-                              area: areaActiva
+                              area: areaActiva,
+                              idPuesto: puestoActivo?.idPuesto
                             }
                           })
                         }
