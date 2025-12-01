@@ -98,9 +98,10 @@ public class ServicioReclutamiento implements IServicioReclutamiento {
         if (idVacante != null && etapa != null) {
             ProcesoSeleccion proceso = procesoSeleccionRepository.findByIdVacante(idVacante)
                 .orElseThrow(() -> new ResourceNotFoundException("Proceso no encontrado"));
-            resultados = postulanteProcesoRepository.findByProcesoYEtapa(proceso.getIdProceso(), etapa);
+            resultados = postulanteProcesoRepository.findByProcesoYEtapa(
+                proceso.getIdProceso(), etapa, EstadoPostulante.DESCARTADO);
         } else if (idVacante != null) {
-            resultados = postulanteProcesoRepository.findByVacante(idVacante);
+            resultados = postulanteProcesoRepository.findByVacante(idVacante, EstadoPostulante.DESCARTADO);
         } else {
             resultados = postulanteProcesoRepository.findAll();
         }
@@ -192,7 +193,11 @@ public class ServicioReclutamiento implements IServicioReclutamiento {
     
     @Override
     public List<PostulanteProceso> obtenerCandidatosPorEtapa(Integer idProceso, EtapaProceso etapa) {
-        return postulanteProcesoRepository.findByProcesoYEtapa(idProceso, etapa);
+        return postulanteProcesoRepository.findByProcesoYEtapa(
+            idProceso,
+            etapa,
+            EstadoPostulante.DESCARTADO
+        );
     }
     
     @Override

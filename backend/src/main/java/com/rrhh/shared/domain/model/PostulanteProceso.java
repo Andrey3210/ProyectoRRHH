@@ -1,5 +1,6 @@
 package com.rrhh.shared.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.rrhh.shared.domain.enums.EstadoPostulante;
 import com.rrhh.shared.domain.enums.EtapaProceso;
 import jakarta.persistence.*;
@@ -68,6 +69,7 @@ public class PostulanteProceso {
     // Relaciones
     @ManyToOne
     @JoinColumn(name = "id_postulante", insertable = false, updatable = false)
+    @JsonIgnoreProperties({"experiencias", "habilidades", "cv", "procesos", "formacionesAcademicas"})
     private Postulante postulante;
     
     @ManyToOne
