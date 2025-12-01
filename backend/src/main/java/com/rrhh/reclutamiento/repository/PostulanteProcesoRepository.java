@@ -20,16 +20,26 @@ public interface PostulanteProcesoRepository extends JpaRepository<PostulantePro
     
     List<PostulanteProceso> findByEstado(EstadoPostulante estado);
     
-    @Query("SELECT pp FROM PostulanteProceso pp WHERE " +
-           "pp.idProcesoActual = :idProceso AND pp.etapaActual = :etapa")
+    @Query("SELECT DISTINCT pp FROM PostulanteProceso pp " +
+           "JOIN FETCH pp.postulante p " +
+           "LEFT JOIN FETCH p.experiencias " +
+           "WHERE pp.idProcesoActual = :idProceso " +
+           "AND pp.etapaActual = :etapa " +
+           "AND p.estadoPostulacion <> :estadoExcluido")
     List<PostulanteProceso> findByProcesoYEtapa(
         @Param("idProceso") Integer idProceso,
-        @Param("etapa") EtapaProceso etapa
+        @Param("etapa") EtapaProceso etapa,
+        @Param("estadoExcluido") EstadoPostulante estadoExcluido
     );
     
-    @Query("SELECT pp FROM PostulanteProceso pp WHERE " +
-           "pp.idProcesoActual IN (SELECT ps.idProceso FROM ProcesoSeleccion ps WHERE ps.idVacante = :idVacante)")
-    List<PostulanteProceso> findByVacante(@Param("idVacante") Integer idVacante);
+    @Query("SELECT DISTINCT pp FROM PostulanteProceso pp " +
+           "JOIN FETCH pp.postulante p " +
+           "LEFT JOIN FETCH p.experiencias " +
+           "JOIN ProcesoSeleccion ps ON pp.idProcesoActual = ps.idProceso " +
+           "WHERE ps.idVacante = :idVacante " +
+           "AND p.estadoPostulacion <> :estadoExcluido")
+    List<PostulanteProceso> findByVacante(@Param("idVacante") Integer idVacante,
+                                          @Param("estadoExcluido") EstadoPostulante estadoExcluido);
 
     @Query("SELECT pp FROM PostulanteProceso pp " +
            "JOIN FETCH pp.postulante p " +
