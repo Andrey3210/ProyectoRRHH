@@ -93,29 +93,29 @@ public class CandidatoController {
     @GetMapping("/{id}/cv/archivo")
     public ResponseEntity<Resource> obtenerArchivoCV(@PathVariable Integer id) {
         return postulanteRepository.findByIdWithCV(id)
-            .flatMap(postulante -> {
+            .map(postulante -> {
                 CV cv = postulante.getCv();
                 if (cv == null || cv.getRutaArchivo() == null) {
-                    return Optional.empty();
+                    return ResponseEntity.notFound().build();
                 }
 
                 Path rutaArchivo = Paths.get(cv.getRutaArchivo());
                 if (!Files.exists(rutaArchivo)) {
-                    return Optional.empty();
+                    return ResponseEntity.notFound().build();
                 }
 
                 try {
                     ByteArrayResource recurso = new ByteArrayResource(Files.readAllBytes(rutaArchivo));
                     String contentType = cv.getTipoArchivo() != null ? cv.getTipoArchivo() : MediaType.APPLICATION_PDF_VALUE;
-                    return Optional.of(ResponseEntity.ok()
+                    return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cv.getNombreArchivo() + "\"")
-                        .body(recurso));
+                        .body(recurso);
                 } catch (IOException e) {
-                    return Optional.of(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Resource>build());
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
                 }
             })
-            .orElseGet(() -> ResponseEntity.notFound().<Resource>build());
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
     
     @PostMapping("/buscar")
