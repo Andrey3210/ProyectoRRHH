@@ -1,6 +1,9 @@
 package com.rrhh.reclutamiento.service;
 
 import com.rrhh.reclutamiento.repository.*;
+import com.rrhh.shared.domain.enums.EstadoPostulante;
+import com.rrhh.shared.domain.model.PostulanteProceso;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +22,14 @@ public class EstadisticasService {
     public Map<String, Object> obtenerEstadisticasVacante(Integer idVacante) {
         Map<String, Object> estadisticas = new HashMap<>();
         
-        // Total de candidatos vinculados
-        long totalCandidatos = postulanteProcesoRepository.findByVacante(idVacante).size();
+        // Total de candidatos vinculados (excluyendo DESCARTADO)
+        List<PostulanteProceso> candidatos = postulanteProcesoRepository
+            .findByVacante(idVacante, EstadoPostulante.DESCARTADO);
+        long totalCandidatos = candidatos.size();
         estadisticas.put("totalCandidatos", totalCandidatos);
-        
+
         // Candidatos seleccionados (en etapa OFERTA o CONTRATACION)
-        long candidatosSeleccionados = postulanteProcesoRepository.findByVacante(idVacante).stream()
+        long candidatosSeleccionados = candidatos.stream()
             .filter(pp -> pp.getEtapaActual().toString().equals("OFERTA") || 
                          pp.getEtapaActual().toString().equals("CONTRATACION"))
             .count();
