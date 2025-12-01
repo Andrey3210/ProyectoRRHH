@@ -43,4 +43,5 @@ uploads/
 *.pdf
 *.doc
 *.docx
+!src/main/resources/cv/*.pdf
 
