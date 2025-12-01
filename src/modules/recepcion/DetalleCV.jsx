@@ -185,56 +185,73 @@ const DetalleCV = () => {
               </div>
 
               <hr className="my-3" />
-              <h5 className="mt-4 mb-2"><strong>Formación Académica</strong></h5>
+              <h5 className="mt-4 mb-2">
+                <strong>Formación académica</strong>
+              </h5>
               <br />
 
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <p className="mb-1">
-                    <strong>Nivel de estudios</strong>
-                    <span className="ms-2">{detallePostulante.nivelEstudios || ''}</span>
-                  </p>
-                </div>
-                <div className="col-md-6">
-                  <p className="mb-1">
-                    <strong>Situación</strong>
-                    <span className="ms-2">{detallePostulante.situacionAcademica || ''}</span>
-                  </p>
-                </div>
-              </div>
+              {Array.isArray(detallePostulante.formacionesAcademicas) &&
+              detallePostulante.formacionesAcademicas.length > 0 ? (
+                detallePostulante.formacionesAcademicas.map((formacion, idx) => (
+                  <div key={formacion.idFormacion || idx} className="mb-3">
+                    <div className="row mb-3">
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Nivel de estudios</strong>
+                          <span className="ms-2">{formacion.nivelEstudios || ''}</span>
+                        </p>
+                      </div>
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Situación</strong>
+                          <span className="ms-2">{formacion.situacion || ''}</span>
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <p className="mb-1">
-                    <strong>Carrera</strong>
-                    <span className="ms-2">{detallePostulante.carrera || ''}</span>
-                  </p>
-                </div>
-                <div className="col-md-6">
-                  <p className="mb-1">
-                    <strong>Fechas</strong>
-                    <span className="ms-2">{detallePostulante.periodoCarrera || ''}</span>
-                  </p>
-                </div>
-              </div>
+                    <div className="row mb-3">
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Carrera</strong>
+                          <span className="ms-2">{formacion.carrera || ''}</span>
+                        </p>
+                      </div>
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Institución</strong>
+                          <span className="ms-2">{formacion.institucion || ''}</span>
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="row mb-3">
-                <div className="col-md-12">
-                  <p className="mb-1">
-                    <strong>Institución</strong>
-                    <span className="ms-2">{detallePostulante.institucion || ''}</span>
-                  </p>
-                </div>
-              </div>
+                    <div className="row mb-3">
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Periodo</strong>
+                          <span className="ms-2">{obtenerPeriodo(formacion.fechaInicio, formacion.fechaFin)}</span>
+                        </p>
+                      </div>
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Cursos / diplomados relevantes</strong>
+                          <span className="ms-2">{formacion.cursosRelevantes || ''}</span>
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="row mb-4">
-                <div className="col-md-12">
-                  <p className="mb-1">
-                    <strong>Cursos / diplomados relevantes</strong>
-                    <span className="ms-2">{detallePostulante.cursosRelevantes || ''}</span>
-                  </p>
-                </div>
-              </div>
+                    <div className="row mb-4">
+                      <div className="col-md-12">
+                        <p className="mb-1">
+                          <strong>Observaciones</strong>
+                          <span className="ms-2">{formacion.observaciones || ''}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted">Sin formación académica registrada.</p>
+              )}
 
               <hr className="my-3" />
               <h5 className="mt-4 mb-2">

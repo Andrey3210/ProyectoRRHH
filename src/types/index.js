@@ -42,6 +42,7 @@ export class Postulante {
     this.estadoPostulacion = data.estadoPostulacion || EstadoPostulante.ACTIVO
     this.habilidades = data.habilidades || []
     this.experiencias = data.experiencias || []
+    this.formacionesAcademicas = data.formacionesAcademicas || []
     this.cv = data.cv || null
   }
 
@@ -166,6 +167,22 @@ export class Experiencia {
     this.fechaFin = data.fechaFin || null
     this.referenciaContacto = data.referenciaContacto || ''
     this.telefonoReferencia = data.telefonoReferencia || ''
+    this.fechaCreacion = data.fechaCreacion || null
+  }
+}
+
+export class FormacionAcademica {
+  constructor(data = {}) {
+    this.idFormacion = data.idFormacion || null
+    this.idPostulante = data.idPostulante || null
+    this.nivelEstudios = data.nivelEstudios || ''
+    this.situacion = data.situacion || ''
+    this.carrera = data.carrera || ''
+    this.institucion = data.institucion || ''
+    this.fechaInicio = data.fechaInicio || null
+    this.fechaFin = data.fechaFin || null
+    this.cursosRelevantes = data.cursosRelevantes || ''
+    this.observaciones = data.observaciones || ''
     this.fechaCreacion = data.fechaCreacion || null
   }
 }

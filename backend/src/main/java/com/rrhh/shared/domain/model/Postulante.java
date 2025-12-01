@@ -3,6 +3,7 @@ package com.rrhh.shared.domain.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.rrhh.shared.domain.enums.EstadoPostulante;
+import com.rrhh.shared.domain.model.FormacionAcademica;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -84,6 +85,10 @@ public class Postulante {
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = "postulante", allowSetters = true)
     private List<Experiencia> experiencias = new ArrayList<>();
+
+    @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = "postulante", allowSetters = true)
+    private List<FormacionAcademica> formacionesAcademicas = new ArrayList<>();
 
     @OneToOne(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore

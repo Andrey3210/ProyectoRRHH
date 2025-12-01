@@ -69,7 +69,7 @@ public class PostulanteProceso {
     // Relaciones
     @ManyToOne
     @JoinColumn(name = "id_postulante", insertable = false, updatable = false)
-    @JsonIgnoreProperties({"experiencias", "habilidades", "cv", "procesos"})
+    @JsonIgnoreProperties({"experiencias", "habilidades", "cv", "procesos", "formacionesAcademicas"})
     private Postulante postulante;
     
     @ManyToOne
