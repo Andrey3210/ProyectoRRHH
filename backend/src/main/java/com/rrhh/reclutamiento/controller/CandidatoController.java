@@ -61,12 +61,30 @@ public class CandidatoController {
     }
     
     @PostMapping
-    public ResponseEntity<Postulante> crearCandidato(@RequestBody Postulante postulante) {
+    public ResponseEntity<?> crearCandidato(@RequestBody Postulante postulante) {
         try {
+            Optional<Postulante> existenteOpt = postulanteRepository.findByEmail(postulante.getEmail());
+
+            if (existenteOpt.isPresent()) {
+                Postulante existente = existenteOpt.get();
+                existente.setNombres(postulante.getNombres());
+                existente.setApellidoPaterno(postulante.getApellidoPaterno());
+                existente.setApellidoMaterno(postulante.getApellidoMaterno());
+                existente.setTelefono(postulante.getTelefono());
+                existente.setDireccion(postulante.getDireccion());
+                existente.setFechaNacimiento(postulante.getFechaNacimiento());
+                existente.setGenero(postulante.getGenero());
+                existente.setEstadoCivil(postulante.getEstadoCivil());
+
+                Postulante actualizado = postulanteRepository.save(existente);
+                return ResponseEntity.ok(actualizado);
+            }
+
             Postulante nuevoPostulante = postulanteRepository.save(postulante);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevoPostulante);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "No se pudo registrar el postulante: " + e.getMessage()));
         }
     }
     
