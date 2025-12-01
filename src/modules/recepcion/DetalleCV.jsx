@@ -47,6 +47,24 @@ const DetalleCV = () => {
     return inicioFmt || finFmt || ''
   }
 
+  const obtenerMeses = (inicio, fin) => {
+    if (!inicio) return null
+
+    const fechaInicio = new Date(inicio)
+    const fechaFin = fin ? new Date(fin) : new Date()
+
+    if (isNaN(fechaInicio) || isNaN(fechaFin)) return null
+
+    let meses = (fechaFin.getFullYear() - fechaInicio.getFullYear()) * 12
+    meses += fechaFin.getMonth() - fechaInicio.getMonth()
+
+    if (fechaFin.getDate() < fechaInicio.getDate()) {
+      meses -= 1
+    }
+
+    return Math.max(meses, 0)
+  }
+
   const obtenerEdad = fechaNacimiento => {
     if (!fechaNacimiento) return null
     const fecha = new Date(fechaNacimiento)
@@ -260,39 +278,45 @@ const DetalleCV = () => {
               <br />
 
               {Array.isArray(detallePostulante.experiencias) && detallePostulante.experiencias.length > 0 ? (
-                detallePostulante.experiencias.map((exp, idx) => (
-                  <div key={exp.idExperiencia || idx} className="mb-3">
-                    <div className="row mb-3">
-                      <div className="col-md-6">
-                        <p className="mb-1">
-                          <strong>Empresa</strong>
-                          <span className="ms-2">{exp.empresa || ''}</span>
-                        </p>
+                detallePostulante.experiencias.map((exp, idx) => {
+                  const meses = obtenerMeses(exp.fechaInicio, exp.fechaFin)
+                  return (
+                    <div key={exp.idExperiencia || idx} className="experiencia-item mb-3">
+                      <div className="row mb-3">
+                        <div className="col-md-6">
+                          <p className="mb-1">
+                            <strong>Empresa</strong>
+                            <span className="ms-2">{exp.empresa || ''}</span>
+                          </p>
+                        </div>
+                        <div className="col-md-6">
+                          <p className="mb-1">
+                            <strong>Funciones principales</strong>
+                            <span className="ms-2">{exp.funcionesPrincipales || ''}</span>
+                          </p>
+                        </div>
                       </div>
-                      <div className="col-md-6">
-                        <p className="mb-1">
-                          <strong>Funciones principales</strong>
-                          <span className="ms-2">{exp.funcionesPrincipales || ''}</span>
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="row mb-2">
-                      <div className="col-md-6">
-                        <p className="mb-1">
-                          <strong>Cargo</strong>
-                          <span className="ms-2">{exp.cargo || ''}</span>
-                        </p>
-                      </div>
-                      <div className="col-md-6">
-                        <p className="mb-1">
-                          <strong>Periodo</strong>
-                          <span className="ms-2">{obtenerPeriodo(exp.fechaInicio, exp.fechaFin)}</span>
-                        </p>
+                      <div className="row mb-2">
+                        <div className="col-md-6">
+                          <p className="mb-1">
+                            <strong>Cargo</strong>
+                            <span className="ms-2">{exp.cargo || ''}</span>
+                          </p>
+                        </div>
+                        <div className="col-md-6">
+                          <p className="mb-1">
+                            <strong>Periodo</strong>
+                            <span className="ms-2">
+                              {obtenerPeriodo(exp.fechaInicio, exp.fechaFin)}
+                              {meses !== null && <span className="ms-2 text-muted">({meses} meses)</span>}
+                            </span>
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <p className="text-muted">Sin experiencias registradas.</p>
               )}
