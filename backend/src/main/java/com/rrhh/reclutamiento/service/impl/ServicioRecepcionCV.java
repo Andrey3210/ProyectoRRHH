@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -211,7 +213,10 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
                 continue;
             }
 
-            for (String nombreNormalizado : normalizarHabilidades(habilidadLibre)) {
+            String nivelDetectado = detectarNivelHabilidad(habilidadLibre);
+            String habilidadLimpia = limpiarHabilidad(habilidadLibre);
+
+            for (String nombreNormalizado : normalizarHabilidades(habilidadLimpia)) {
                 Optional<Habilidad> habilidad = habilidadRepository.findByNombreIgnoreCase(nombreNormalizado);
                 if (habilidad.isEmpty()) {
                     continue;
@@ -233,7 +238,7 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
                 PostulanteHabilidad postulanteHabilidad = new PostulanteHabilidad();
                 postulanteHabilidad.setIdPostulante(postulante.getIdPostulante());
                 postulanteHabilidad.setIdHabilidad(idHabilidad);
-                postulanteHabilidad.setNivelDominio("AUTOMATICO");
+                postulanteHabilidad.setNivelDominio(nivelDetectado);
                 postulanteHabilidad.setFechaRegistro(LocalDate.now());
 
                 postulanteHabilidadRepository.save(postulanteHabilidad);
@@ -244,8 +249,47 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
         return nuevas;
     }
 
+    private String limpiarHabilidad(String habilidadLibre) {
+        String texto = habilidadLibre.replaceAll("\\((?i)[^)]*(basico|básico|intermedio|avanzado|experto|junior|jr|senior|sr)[^)]*\\)", "");
+        texto = texto.replaceAll("(?i)\\b(nivel\\s+)?(basico|básico|intermedio|avanzado|experto|junior|jr|senior|sr)\\b", "");
+        texto = texto.replaceAll("[-–—]\s*$", "");
+        return texto.replaceAll("\\s{2,}", " ").trim();
+    }
+
+    private String detectarNivelHabilidad(String habilidadLibre) {
+        if (habilidadLibre == null) {
+            return null;
+        }
+        String sinAcentos = Normalizer.normalize(habilidadLibre, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        String lower = sinAcentos.toLowerCase();
+
+        if (lower.contains("basico")) {
+            return "BASICO";
+        }
+        if (lower.contains("intermedio")) {
+            return "INTERMEDIO";
+        }
+        if (lower.contains("avanzado")) {
+            return "AVANZADO";
+        }
+        if (lower.contains("experto")) {
+            return "EXPERTO";
+        }
+        if (Pattern.compile("\\b(junior|jr)\\b", Pattern.CASE_INSENSITIVE).matcher(lower).find()) {
+            return "JUNIOR";
+        }
+        if (Pattern.compile("\\b(senior|sr)\\b", Pattern.CASE_INSENSITIVE).matcher(lower).find()) {
+            return "SENIOR";
+        }
+        return null;
+    }
+
     private Set<String> normalizarHabilidades(String habilidadLibre) {
         String base = habilidadLibre.trim();
+        if (base.isBlank()) {
+            return Set.of();
+        }
         String lower = base.toLowerCase();
 
         Set<String> posibles = new LinkedHashSet<>();
