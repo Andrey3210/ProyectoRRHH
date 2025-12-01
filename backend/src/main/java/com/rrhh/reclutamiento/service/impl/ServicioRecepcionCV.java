@@ -10,6 +10,7 @@ import com.rrhh.shared.domain.enums.EtapaProceso;
 import com.rrhh.shared.domain.enums.EstadoPostulante;
 import com.rrhh.shared.domain.model.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ServicioRecepcionCV implements IRecepcionCVService {
 
     private final PuestoRepository puestoRepository;
@@ -60,6 +62,7 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
     @Override
     @Transactional
     public List<ResumenProcesamientoCV> procesarCVsPorPuesto(Integer idPuesto) {
+        log.info("Iniciando procesamiento de CVs para el puesto {}", idPuesto);
         List<PostulanteProceso> postulantesProceso = postulanteProcesoRepository
                 .findByPuestoYEtapa(idPuesto, EtapaProceso.REVISION_CV, EstadoPostulante.DESCARTADO);
 
@@ -67,10 +70,25 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
 
         for (PostulanteProceso postulanteProceso : postulantesProceso) {
             Integer idPostulante = postulanteProceso.getPostulante().getIdPostulante();
+            log.debug("Evaluando postulante {} en etapa REVISION_CV", idPostulante);
+
+            if (tieneInformacionRegistrada(idPostulante)) {
+                log.info("Omitiendo postulante {}: ya tiene registros en formación, experiencia o habilidades", idPostulante);
+                resumenes.add(ResumenProcesamientoCV.builder()
+                        .idPostulante(idPostulante)
+                        .formacionesAgregadas(0)
+                        .experienciasAgregadas(0)
+                        .habilidadesAgregadas(0)
+                        .mensaje("Postulante ya procesado previamente; se omite")
+                        .build());
+                continue;
+            }
+
             Optional<Postulante> postulanteOpt = postulanteRepository.findByIdWithDetalles(idPostulante)
                     .or(() -> postulanteRepository.findById(idPostulante));
 
             if (postulanteOpt.isEmpty() || postulanteOpt.get().getCv() == null) {
+                log.warn("Postulante {} sin CV asociado; no se procesa", idPostulante);
                 resumenes.add(ResumenProcesamientoCV.builder()
                         .idPostulante(idPostulante)
                         .formacionesAgregadas(0)
@@ -84,10 +102,13 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
             Postulante postulante = postulanteOpt.get();
             CV cv = postulante.getCv();
 
+            log.info("Extrayendo información del CV {} para postulante {}", cv.getIdCV(), postulante.getIdPostulante());
             CVParsedData datos = cvDataExtractionAdapter.extraerDatos(cv);
             int nuevasFormaciones = registrarFormaciones(postulante, datos.formaciones());
             int nuevasExperiencias = registrarExperiencias(postulante, datos.experiencias());
             int nuevasHabilidades = registrarHabilidades(postulante, datos.habilidades());
+
+            log.info("Postulante {} procesado: formaciones {}, experiencias {}, habilidades {}", postulante.getIdPostulante(), nuevasFormaciones, nuevasExperiencias, nuevasHabilidades);
 
             resumenes.add(ResumenProcesamientoCV.builder()
                     .idPostulante(postulante.getIdPostulante())
@@ -100,6 +121,16 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
         }
 
         return resumenes;
+    }
+
+    private boolean tieneInformacionRegistrada(Integer idPostulante) {
+        boolean tieneFormacion = formacionAcademicaRepository.existsByIdPostulante(idPostulante);
+        boolean tieneExperiencia = experienciaRepository.existsByIdPostulante(idPostulante);
+        boolean tieneHabilidades = postulanteHabilidadRepository.existsByIdPostulante(idPostulante);
+
+        log.debug("Postulante {} - formacion: {}, experiencia: {}, habilidades: {}", idPostulante, tieneFormacion, tieneExperiencia, tieneHabilidades);
+
+        return tieneFormacion || tieneExperiencia || tieneHabilidades;
     }
 
     private int registrarFormaciones(Postulante postulante, List<CVParsedData.ParsedEducation> formaciones) {

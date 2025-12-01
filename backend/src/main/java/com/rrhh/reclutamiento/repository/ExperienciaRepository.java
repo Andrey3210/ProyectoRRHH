@@ -12,4 +12,6 @@ public interface ExperienciaRepository extends JpaRepository<Experiencia, Intege
             String cargo,
             LocalDate fechaInicio
     );
+
+    boolean existsByIdPostulante(Integer idPostulante);
 }

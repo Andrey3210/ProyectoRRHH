@@ -11,4 +11,6 @@ public interface FormacionAcademicaRepository extends JpaRepository<FormacionAca
             String nivelEstudios,
             String situacion
     );
+
+    boolean existsByIdPostulante(Integer idPostulante);
 }
