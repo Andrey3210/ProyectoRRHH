@@ -242,11 +242,11 @@ const DetalleCV = () => {
           <h4 className="fw-bold mb-4">
             {nombreCompleto}{nombrePuesto ? ` - ${nombrePuesto}` : ''}
           </h4>
-          <br />
-          <h5 className="mt-4 mb-2"><strong>Información personal</strong></h5>
-          <br />
           {tabActiva === 'info' && (
             <>
+              <br />
+              <h5 className="mt-4 mb-2"><strong>Información personal</strong></h5>
+              <br />
               <div className="row mb-3">
                 <br />
                 <div className="col-md-6">

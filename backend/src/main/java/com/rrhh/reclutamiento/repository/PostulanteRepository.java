@@ -40,5 +40,11 @@ public interface PostulanteRepository extends JpaRepository<Postulante, Integer>
            "LEFT JOIN FETCH p.experiencias " +
            "WHERE p.idPostulante = :id")
     Optional<Postulante> findByIdWithCV(@Param("id") Integer id);
+
+    @Query("SELECT DISTINCT p FROM Postulante p " +
+           "LEFT JOIN FETCH p.habilidades ph " +
+           "LEFT JOIN FETCH ph.habilidad " +
+           "WHERE p.idPostulante = :id")
+    Optional<Postulante> findByIdWithHabilidades(@Param("id") Integer id);
 }
 
