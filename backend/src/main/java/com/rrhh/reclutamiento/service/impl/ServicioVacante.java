@@ -1,7 +1,8 @@
 package com.rrhh.reclutamiento.service.impl;
 
-import com.rrhh.shared.domain.model.Vacante;
+import com.rrhh.shared.domain.enums.EtapaProceso;
 import com.rrhh.shared.domain.enums.EstadoVacante;
+import com.rrhh.shared.domain.model.Vacante;
 import com.rrhh.shared.exception.BusinessException;
 import com.rrhh.shared.exception.ResourceNotFoundException;
 import com.rrhh.reclutamiento.repository.VacanteRepository;
@@ -72,6 +73,11 @@ public class ServicioVacante implements IServicioVacante {
     @Override
     public List<Vacante> buscarVacantesActivas() {
         return vacanteRepository.findByEstado(EstadoVacante.ABIERTA);
+    }
+
+    @Override
+    public List<Vacante> buscarVacantesPorEstadoYEtapa(EstadoVacante estado, EtapaProceso etapa) {
+        return vacanteRepository.findByEstadoAndEtapa(estado, etapa);
     }
     
     @Override

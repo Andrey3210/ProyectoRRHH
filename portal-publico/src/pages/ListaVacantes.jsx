@@ -19,7 +19,10 @@ const ListaVacantes = () => {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiClient.get('/vacantes', { estado: 'ABIERTA' })
+      const data = await apiClient.get('/vacantes', {
+        estado: 'ABIERTA',
+        etapa: 'REVISION_CV'
+      })
       setVacantes(data || [])
     } catch (err) {
       console.error('Error al cargar vacantes:', err)
