@@ -1,15 +1,25 @@
 package com.rrhh.reclutamiento.controller;
 
+import com.rrhh.shared.domain.model.CV;
 import com.rrhh.shared.domain.model.Postulante;
 import com.rrhh.reclutamiento.repository.PostulanteRepository;
 import com.rrhh.shared.domain.enums.EstadoPostulante;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/candidatos")
@@ -78,6 +88,34 @@ public class CandidatoController {
         return postulanteRepository.findById(id)
             .map(postulante -> ResponseEntity.ok(postulante.getCv()))
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/cv/archivo")
+    public ResponseEntity<Resource> obtenerArchivoCV(@PathVariable Integer id) {
+        return postulanteRepository.findByIdWithCV(id)
+            .flatMap(postulante -> {
+                CV cv = postulante.getCv();
+                if (cv == null || cv.getRutaArchivo() == null) {
+                    return Optional.empty();
+                }
+
+                Path rutaArchivo = Paths.get(cv.getRutaArchivo());
+                if (!Files.exists(rutaArchivo)) {
+                    return Optional.empty();
+                }
+
+                try {
+                    ByteArrayResource recurso = new ByteArrayResource(Files.readAllBytes(rutaArchivo));
+                    String contentType = cv.getTipoArchivo() != null ? cv.getTipoArchivo() : MediaType.APPLICATION_PDF_VALUE;
+                    return Optional.of(ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + cv.getNombreArchivo() + "\"")
+                        .body(recurso));
+                } catch (IOException e) {
+                    return Optional.of(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Resource>build());
+                }
+            })
+            .orElseGet(() -> ResponseEntity.notFound().<Resource>build());
     }
     
     @PostMapping("/buscar")
