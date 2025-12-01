@@ -17,10 +17,16 @@ public interface PostulanteRepository extends JpaRepository<Postulante, Integer>
 
     List<Postulante> findByEstadoPostulacion(EstadoPostulante estado);
 
-    List<Postulante> findByEstadoPostulacionNot(EstadoPostulante estado);
+    @Query("SELECT DISTINCT p FROM Postulante p " +
+           "LEFT JOIN FETCH p.experiencias " +
+           "LEFT JOIN FETCH p.formacionesAcademicas " +
+           "WHERE p.estadoPostulacion <> :estado")
+    List<Postulante> findByEstadoPostulacionNot(@Param("estado") EstadoPostulante estado);
 
-    @Query("SELECT p FROM Postulante p WHERE " +
-           "p.estadoPostulacion <> :estadoExcluido AND (" +
+    @Query("SELECT DISTINCT p FROM Postulante p " +
+           "LEFT JOIN FETCH p.experiencias " +
+           "LEFT JOIN FETCH p.formacionesAcademicas " +
+           "WHERE p.estadoPostulacion <> :estadoExcluido AND (" +
            "LOWER(p.nombres) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(p.apellidoPaterno) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(p.email) LIKE LOWER(CONCAT('%', :search, '%')))")

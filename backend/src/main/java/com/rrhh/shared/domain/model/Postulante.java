@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "postulantes")
@@ -80,15 +80,15 @@ public class Postulante {
     // Relaciones
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<PostulanteHabilidad> habilidades = new ArrayList<>();
+    private Set<PostulanteHabilidad> habilidades = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = "postulante", allowSetters = true)
-    private List<Experiencia> experiencias = new ArrayList<>();
+    private Set<Experiencia> experiencias = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = "postulante", allowSetters = true)
-    private List<FormacionAcademica> formacionesAcademicas = new ArrayList<>();
+    private Set<FormacionAcademica> formacionesAcademicas = new LinkedHashSet<>();
 
     @OneToOne(mappedBy = "postulante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
@@ -96,7 +96,7 @@ public class Postulante {
 
     @OneToMany(mappedBy = "postulante", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<PostulanteProceso> procesos = new ArrayList<>();
+    private Set<PostulanteProceso> procesos = new LinkedHashSet<>();
     
     // Métodos de negocio
     public String getNombreCompleto() {
