@@ -78,7 +78,7 @@ public class CandidatoController {
     
     @GetMapping("/{id}/habilidades")
     public ResponseEntity<?> obtenerHabilidades(@PathVariable Integer id) {
-        return postulanteRepository.findById(id)
+        return postulanteRepository.findByIdWithHabilidades(id)
             .map(postulante -> ResponseEntity.ok(postulante.getHabilidades()))
             .orElse(ResponseEntity.notFound().build());
     }

@@ -315,7 +315,6 @@ CREATE TABLE postulantes_habilidades (
     id_postulante INT NOT NULL,
     id_habilidad INT NOT NULL,
     nivel_dominio VARCHAR(50),
-    anos_experiencia INT DEFAULT 0,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_postulante) REFERENCES postulantes(id_postulante) ON DELETE CASCADE,
     FOREIGN KEY (id_habilidad) REFERENCES habilidades(id_habilidad) ON DELETE CASCADE,

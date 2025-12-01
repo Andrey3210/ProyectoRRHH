@@ -30,7 +30,10 @@ public abstract class Habilidad {
 
     @Column(name = "activo")
     private Boolean activo;
-    
+
+    @Column(name = "tipo_habilidad", insertable = false, updatable = false)
+    private String tipoHabilidad;
+
     public abstract String describirHabilidad();
 }
 

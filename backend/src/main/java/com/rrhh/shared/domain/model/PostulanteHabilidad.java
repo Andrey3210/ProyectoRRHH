@@ -1,5 +1,6 @@
 package com.rrhh.shared.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,18 +34,16 @@ public class PostulanteHabilidad {
     @Column(name = "nivel_dominio", length = 50)
     private String nivelDominio;
     
-    @Column(name = "anos_experiencia")
-    private Integer anosExperiencia;
-    
     @Column(name = "fecha_registro")
     private LocalDate fechaRegistro;
     
     // Relaciones
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_postulante", insertable = false, updatable = false)
+    @JsonIgnore
     private Postulante postulante;
-    
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_habilidad", insertable = false, updatable = false)
     private Habilidad habilidad;
 }
