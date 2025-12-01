@@ -9,6 +9,19 @@ const DetalleCV = () => {
 
   const [tabActiva, setTabActiva] = useState('info')
 
+  const formatFecha = fecha => {
+    if (!fecha) return ''
+    const date = new Date(fecha)
+    return isNaN(date) ? fecha : date.toLocaleDateString()
+  }
+
+  const obtenerPeriodo = (inicio, fin) => {
+    const inicioFmt = formatFecha(inicio)
+    const finFmt = fin ? formatFecha(fin) : 'Actualidad'
+    if (inicioFmt && finFmt) return `${inicioFmt} - ${finFmt}`
+    return inicioFmt || finFmt || ''
+  }
+
   if (!postulante) {
     return (
       <div className="cv-full-view d-flex flex-column justify-content-center align-items-center">
@@ -171,38 +184,48 @@ const DetalleCV = () => {
               </div>
 
               <hr className="my-3" />
-              <h5 className="mt-4 mb-2"><strong>Experiencia</strong></h5>
+              <h5 className="mt-4 mb-2">
+                <strong>Experiencia</strong>
+              </h5>
               <br />
 
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <p className="mb-1">
-                    <strong>Empresa</strong>
-                    <span className="ms-2"></span>
-                  </p>
-                </div>
-                <div className="col-md-6">
-                  <p className="mb-1">
-                    <strong>Funciones principales</strong>
-                    <span className="ms-2"></span>
-                  </p>
-                </div>
-              </div>
+              {Array.isArray(postulante.experiencias) && postulante.experiencias.length > 0 ? (
+                postulante.experiencias.map((exp, idx) => (
+                  <div key={exp.idExperiencia || idx} className="mb-3">
+                    <div className="row mb-3">
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Empresa</strong>
+                          <span className="ms-2">{exp.empresa || ''}</span>
+                        </p>
+                      </div>
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Funciones principales</strong>
+                          <span className="ms-2">{exp.funcionesPrincipales || ''}</span>
+                        </p>
+                      </div>
+                    </div>
 
-              <div className="row mb-2">
-                <div className="col-md-6">
-                  <p className="mb-1">
-                    <strong>Cargo</strong>
-                    <span className="ms-2"></span>
-                  </p>
-                </div>
-                <div className="col-md-6">
-                  <p className="mb-1">
-                    <strong>Periodo</strong>
-                    <span className="ms-2"></span>
-                  </p>
-                </div>
-              </div>
+                    <div className="row mb-2">
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Cargo</strong>
+                          <span className="ms-2">{exp.cargo || ''}</span>
+                        </p>
+                      </div>
+                      <div className="col-md-6">
+                        <p className="mb-1">
+                          <strong>Periodo</strong>
+                          <span className="ms-2">{obtenerPeriodo(exp.fechaInicio, exp.fechaFin)}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted">Sin experiencias registradas.</p>
+              )}
             </>
           )}
 
