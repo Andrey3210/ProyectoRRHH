@@ -1,5 +1,6 @@
 package com.rrhh.shared.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,8 +49,9 @@ public class Experiencia {
     private LocalDateTime fechaCreacion;
     
     // Relaciones
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_postulante", insertable = false, updatable = false)
+    @JsonIgnoreProperties(value = {"experiencias", "habilidades", "cv", "procesos"}, allowSetters = true)
     private Postulante postulante;
 
     public String describirExperiencia() {
