@@ -13,6 +13,9 @@ const DetalleCV = () => {
   const [detallePostulante, setDetallePostulante] = useState(postulante)
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
   const [errorCarga, setErrorCarga] = useState('')
+  const [cvUrl, setCvUrl] = useState('')
+  const [cargandoCV, setCargandoCV] = useState(false)
+  const [errorCV, setErrorCV] = useState('')
 
   const formatFecha = fecha => {
     if (!fecha) return ''
@@ -40,11 +43,76 @@ const DetalleCV = () => {
     cargarDetalle()
   }, [id])
 
+  useEffect(() => {
+    if (!id) return
+
+    let cancelado = false
+    let objectUrl = ''
+
+    const cargarPDF = async () => {
+      setCargandoCV(true)
+      setErrorCV('')
+      setCvUrl('')
+
+      try {
+        const response = await fetch(`${apiClient.baseURL}/candidatos/${id}/cv/archivo`, {
+          headers: apiClient.getHeaders({ Accept: 'application/pdf' })
+        })
+
+        if (!response.ok) {
+          throw new Error('No se pudo obtener el archivo del CV.')
+        }
+
+        const blob = await response.blob()
+        if (cancelado) return
+
+        objectUrl = URL.createObjectURL(blob)
+        setCvUrl(objectUrl)
+      } catch (err) {
+        if (!cancelado) {
+          console.error('Error cargando CV en PDF:', err)
+          setErrorCV('No se pudo cargar el CV en PDF.')
+        }
+      } finally {
+        if (!cancelado) {
+          setCargandoCV(false)
+        }
+      }
+    }
+
+    cargarPDF()
+
+    return () => {
+      cancelado = true
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl)
+      }
+    }
+  }, [id])
+
   const obtenerPeriodo = (inicio, fin) => {
     const inicioFmt = formatFecha(inicio)
     const finFmt = fin ? formatFecha(fin) : 'Actualidad'
     if (inicioFmt && finFmt) return `${inicioFmt} - ${finFmt}`
     return inicioFmt || finFmt || ''
+  }
+
+  const obtenerMeses = (inicio, fin) => {
+    if (!inicio) return null
+
+    const fechaInicio = new Date(inicio)
+    const fechaFin = fin ? new Date(fin) : new Date()
+
+    if (isNaN(fechaInicio) || isNaN(fechaFin)) return null
+
+    let meses = (fechaFin.getFullYear() - fechaInicio.getFullYear()) * 12
+    meses += fechaFin.getMonth() - fechaInicio.getMonth()
+
+    if (fechaFin.getDate() < fechaInicio.getDate()) {
+      meses -= 1
+    }
+
+    return Math.max(meses, 0)
   }
 
   const obtenerEdad = fechaNacimiento => {
@@ -260,39 +328,45 @@ const DetalleCV = () => {
               <br />
 
               {Array.isArray(detallePostulante.experiencias) && detallePostulante.experiencias.length > 0 ? (
-                detallePostulante.experiencias.map((exp, idx) => (
-                  <div key={exp.idExperiencia || idx} className="mb-3">
-                    <div className="row mb-3">
-                      <div className="col-md-6">
-                        <p className="mb-1">
-                          <strong>Empresa</strong>
-                          <span className="ms-2">{exp.empresa || ''}</span>
-                        </p>
+                detallePostulante.experiencias.map((exp, idx) => {
+                  const meses = obtenerMeses(exp.fechaInicio, exp.fechaFin)
+                  return (
+                    <div key={exp.idExperiencia || idx} className="experiencia-item mb-3">
+                      <div className="row mb-3">
+                        <div className="col-md-6">
+                          <p className="mb-1">
+                            <strong>Empresa</strong>
+                            <span className="ms-2">{exp.empresa || ''}</span>
+                          </p>
+                        </div>
+                        <div className="col-md-6">
+                          <p className="mb-1">
+                            <strong>Funciones principales</strong>
+                            <span className="ms-2">{exp.funcionesPrincipales || ''}</span>
+                          </p>
+                        </div>
                       </div>
-                      <div className="col-md-6">
-                        <p className="mb-1">
-                          <strong>Funciones principales</strong>
-                          <span className="ms-2">{exp.funcionesPrincipales || ''}</span>
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="row mb-2">
-                      <div className="col-md-6">
-                        <p className="mb-1">
-                          <strong>Cargo</strong>
-                          <span className="ms-2">{exp.cargo || ''}</span>
-                        </p>
-                      </div>
-                      <div className="col-md-6">
-                        <p className="mb-1">
-                          <strong>Periodo</strong>
-                          <span className="ms-2">{obtenerPeriodo(exp.fechaInicio, exp.fechaFin)}</span>
-                        </p>
+                      <div className="row mb-2">
+                        <div className="col-md-6">
+                          <p className="mb-1">
+                            <strong>Cargo</strong>
+                            <span className="ms-2">{exp.cargo || ''}</span>
+                          </p>
+                        </div>
+                        <div className="col-md-6">
+                          <p className="mb-1">
+                            <strong>Periodo</strong>
+                            <span className="ms-2">
+                              {obtenerPeriodo(exp.fechaInicio, exp.fechaFin)}
+                              {meses !== null && <span className="ms-2 text-muted">({meses} meses)</span>}
+                            </span>
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <p className="text-muted">Sin experiencias registradas.</p>
               )}
@@ -311,7 +385,14 @@ const DetalleCV = () => {
 
         <div className="cv-preview-card">
           <div className="cv-pdf-box">
-            <div className="cv-pdf-placeholder">Visor PDF pendiente</div>
+            {cargandoCV && <div className="cv-pdf-placeholder">Cargando CV en PDF...</div>}
+            {!cargandoCV && errorCV && <div className="cv-pdf-placeholder text-danger">{errorCV}</div>}
+            {!cargandoCV && !errorCV && cvUrl && (
+              <iframe title="CV del postulante" src={cvUrl} className="cv-pdf-frame" />
+            )}
+            {!cargandoCV && !errorCV && !cvUrl && (
+              <div className="cv-pdf-placeholder">No hay CV disponible.</div>
+            )}
           </div>
 
           <button className="btn btn-success w-100 rounded-pill fw-semibold">
