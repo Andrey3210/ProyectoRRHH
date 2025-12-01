@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import apiClient from '../../services/api/client'
 import './RecepcionCV.css'
@@ -15,6 +15,7 @@ const RecepcionCV = () => {
   const [puestoActivo, setPuestoActivo] = useState(null)
   const [postulantes, setPostulantes] = useState([])
   const [loading, setLoading] = useState(false)
+  const [procesando, setProcesando] = useState(false)
   const [busqueda, setBusqueda] = useState('')
   const [ordenarPor, setOrdenarPor] = useState('')
 
@@ -55,25 +56,25 @@ const RecepcionCV = () => {
     }
   }, [areaActiva, puestos])
 
+  const cargarPostulantes = useCallback(async idPuesto => {
+    if (!idPuesto) return
+    setLoading(true)
+    try {
+      const data = await apiClient.get(
+        `/rrhh/postulantes-proceso/puesto/${idPuesto}/revision-cv`
+      )
+      setPostulantes(data)
+    } catch (err) {
+      console.error('Error cargando postulantes:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (!puestoActivo) return
-
-    const cargarPostulantes = async () => {
-      setLoading(true)
-      try {
-        const data = await apiClient.get(
-          `/rrhh/postulantes-proceso/puesto/${puestoActivo.idPuesto}/revision-cv`
-        )
-        setPostulantes(data)
-      } catch (err) {
-        console.error('Error cargando postulantes:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    cargarPostulantes()
-  }, [puestoActivo])
+    cargarPostulantes(puestoActivo.idPuesto)
+  }, [puestoActivo, cargarPostulantes])
 
   const puestosDeAreaActiva = useMemo(
     () => puestos.filter(p => p.area === areaActiva),
@@ -125,6 +126,38 @@ const RecepcionCV = () => {
     setBusqueda(busqueda.trim())
   }
 
+  const handleProcesarCVs = async () => {
+    if (!puestoActivo || procesando) return
+
+    setProcesando(true)
+    try {
+      const resumen = await apiClient.post(
+        `/rrhh/puestos/${puestoActivo.idPuesto}/procesar-cv`
+      )
+
+      const totalNuevas = resumen.reduce(
+        (acc, item) => {
+          acc.formaciones += item.formacionesAgregadas || 0
+          acc.experiencias += item.experienciasAgregadas || 0
+          acc.habilidades += item.habilidadesAgregadas || 0
+          return acc
+        },
+        { formaciones: 0, experiencias: 0, habilidades: 0 }
+      )
+
+      alert(
+        `CVs procesados. Nuevas formaciones: ${totalNuevas.formaciones}, experiencias: ${totalNuevas.experiencias}, habilidades: ${totalNuevas.habilidades}`
+      )
+
+      await cargarPostulantes(puestoActivo.idPuesto)
+    } catch (err) {
+      console.error('Error procesando CVs:', err)
+      alert('No se pudieron procesar los CVs. Intente nuevamente.')
+    } finally {
+      setProcesando(false)
+    }
+  }
+
   const obtenerEdad = fechaNacimiento => {
     if (!fechaNacimiento) return null
     const fecha = new Date(fechaNacimiento)
@@ -153,13 +186,17 @@ const RecepcionCV = () => {
         </div>
 
         <div className="rcv-header-actions">
-          <button className="rcv-upload-btn" onClick={() => {}}>
+          <button
+            className="rcv-upload-btn"
+            onClick={handleProcesarCVs}
+            disabled={!puestoActivo || procesando}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            Cargar CV
+            {procesando ? 'Procesando...' : 'Cargar CV'}
           </button>
 
           <form className="rcv-search" onSubmit={handleBuscar}>
