@@ -24,7 +24,7 @@ import java.util.stream.StreamSupport;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ExternalCVJsonTool {
+public class ApachePDFBoxAdaptee {
 
     private final ObjectMapper objectMapper;
 

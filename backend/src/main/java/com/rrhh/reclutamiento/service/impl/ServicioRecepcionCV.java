@@ -1,7 +1,7 @@
 package com.rrhh.reclutamiento.service.impl;
 
-import com.rrhh.reclutamiento.adapter.CVDataExtractionAdapter;
-import com.rrhh.reclutamiento.adapter.model.CVParsedData;
+import com.rrhh.reclutamiento.adapter.CargaCV;
+import com.rrhh.reclutamiento.adapter.model.CV;
 import com.rrhh.reclutamiento.dto.PostulanteRevisionDTO;
 import com.rrhh.reclutamiento.dto.ResumenProcesamientoCV;
 import com.rrhh.reclutamiento.repository.*;
@@ -38,7 +38,7 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
     private final ExperienciaRepository experienciaRepository;
     private final HabilidadRepository habilidadRepository;
     private final PostulanteHabilidadRepository postulanteHabilidadRepository;
-    private final CVDataExtractionAdapter cvDataExtractionAdapter;
+    private final CargaCV cargaCv;
 
     @Override
     @Transactional(readOnly = true)
@@ -105,10 +105,10 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
             }
 
             Postulante postulante = postulanteOpt.get();
-            CV cv = postulante.getCv();
+            com.rrhh.shared.domain.model.CV cv = postulante.getCv();
 
             log.info("Extrayendo información del CV {} para postulante {}", cv.getIdCV(), postulante.getIdPostulante());
-            CVParsedData datos = cvDataExtractionAdapter.extraerDatos(cv);
+            CV datos = cargaCv.extraerDatos(cv);
             int nuevasFormaciones = registrarFormaciones(postulante, datos.formaciones());
             int nuevasExperiencias = registrarExperiencias(postulante, datos.experiencias());
             int nuevasHabilidades = registrarHabilidades(postulante, datos.habilidades());
@@ -138,9 +138,9 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
         return tieneFormacion || tieneExperiencia || tieneHabilidades;
     }
 
-    private int registrarFormaciones(Postulante postulante, List<CVParsedData.ParsedEducation> formaciones) {
+    private int registrarFormaciones(Postulante postulante, List<CV.ParsedEducation> formaciones) {
         int nuevas = 0;
-        for (CVParsedData.ParsedEducation formacion : formaciones) {
+        for (CV.ParsedEducation formacion : formaciones) {
             String institucion = formacion.institucion() != null ? formacion.institucion() : "Institución no identificada";
             String carrera = formacion.carrera();
             String nivel = formacion.nivelEstudios() != null ? formacion.nivelEstudios() : "No especificado";
@@ -173,9 +173,9 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
         return nuevas;
     }
 
-    private int registrarExperiencias(Postulante postulante, List<CVParsedData.ParsedExperience> experiencias) {
+    private int registrarExperiencias(Postulante postulante, List<CV.ParsedExperience> experiencias) {
         int nuevas = 0;
-        for (CVParsedData.ParsedExperience experiencia : experiencias) {
+        for (CV.ParsedExperience experiencia : experiencias) {
             String empresa = experiencia.empresa() != null ? experiencia.empresa() : "Empresa no indicada";
             String cargo = experiencia.cargo() != null ? experiencia.cargo() : "Cargo no indicado";
             LocalDate inicio = experiencia.fechaInicio() != null ? experiencia.fechaInicio() : LocalDate.now();

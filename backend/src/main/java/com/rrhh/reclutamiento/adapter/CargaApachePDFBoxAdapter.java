@@ -1,9 +1,8 @@
 package com.rrhh.reclutamiento.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.rrhh.reclutamiento.adapter.external.ExternalCVJsonTool;
-import com.rrhh.reclutamiento.adapter.model.CVParsedData;
-import com.rrhh.shared.domain.model.CV;
+import com.rrhh.reclutamiento.adapter.external.ApachePDFBoxAdaptee;
+import com.rrhh.reclutamiento.adapter.model.CV;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,30 +16,30 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ExternalToolCVAdapter implements CVDataExtractionAdapter {
+public class CargaApachePDFBoxAdapter implements CargaCV {
 
-    private final ExternalCVJsonTool externalTool;
+    private final ApachePDFBoxAdaptee externalTool;
 
     @Override
-    public CVParsedData extraerDatos(CV cv) {
+    public CV extraerDatos(com.rrhh.shared.domain.model.CV cv) {
         if (cv == null || cv.getRutaArchivo() == null || cv.getRutaArchivo().isBlank()) {
             log.warn("CV sin ruta de archivo; se devuelve respuesta vacía");
-            return CVParsedData.vacio();
+            return CV.vacio();
         }
 
-        ExternalCVJsonTool.ExternalProfile perfil;
+        ApachePDFBoxAdaptee.ExternalProfile perfil;
         try {
             perfil = externalTool.leerPerfilDesdeArchivo(Paths.get(cv.getRutaArchivo()));
         } catch (Exception e) {
             log.error("Error leyendo CV {}: {}", cv.getRutaArchivo(), e.getMessage(), e);
-            return CVParsedData.vacio();
+            return CV.vacio();
         }
 
         log.debug("Perfil extraído: formaciones {}, experiencias {}, habilidades {}", perfil.formacion().size(), perfil.experiencias().size(), perfil.habilidades().size());
 
-        List<CVParsedData.ParsedEducation> formaciones = new ArrayList<>();
+        List<CV.ParsedEducation> formaciones = new ArrayList<>();
         for (JsonNode node : perfil.formacion()) {
-            formaciones.add(new CVParsedData.ParsedEducation(
+            formaciones.add(new CV.ParsedEducation(
                     node.path("nivel").asText("No especificado"),
                     node.path("situacion").asText("EN_CURSO"),
                     node.path("carrera").asText(null),
@@ -52,9 +51,9 @@ public class ExternalToolCVAdapter implements CVDataExtractionAdapter {
             ));
         }
 
-        List<CVParsedData.ParsedExperience> experiencias = new ArrayList<>();
+        List<CV.ParsedExperience> experiencias = new ArrayList<>();
         for (JsonNode node : perfil.experiencias()) {
-            experiencias.add(new CVParsedData.ParsedExperience(
+            experiencias.add(new CV.ParsedExperience(
                     node.path("empresa").asText("Empresa no indicada"),
                     node.path("cargo").asText("Cargo no indicado"),
                     node.path("funciones").asText(null),
@@ -67,7 +66,7 @@ public class ExternalToolCVAdapter implements CVDataExtractionAdapter {
 
         log.info("Datos parseados desde CV {}: formaciones {}, experiencias {}, habilidades {}", cv.getRutaArchivo(), formaciones.size(), experiencias.size(), perfil.habilidades().size());
 
-        return new CVParsedData(formaciones, experiencias, perfil.habilidades());
+        return new CV(formaciones, experiencias, perfil.habilidades());
     }
 
     private LocalDate parseFecha(String fecha) {

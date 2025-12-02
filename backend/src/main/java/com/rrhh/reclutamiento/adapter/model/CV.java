@@ -4,18 +4,18 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-public record CVParsedData(List<ParsedEducation> formaciones,
-                           List<ParsedExperience> experiencias,
-                           List<String> habilidades) {
+public record CV(List<ParsedEducation> formaciones,
+                 List<ParsedExperience> experiencias,
+                 List<String> habilidades) {
 
-    public CVParsedData {
+    public CV {
         formaciones = formaciones != null ? formaciones : Collections.emptyList();
         experiencias = experiencias != null ? experiencias : Collections.emptyList();
         habilidades = habilidades != null ? habilidades : Collections.emptyList();
     }
 
-    public static CVParsedData vacio() {
-        return new CVParsedData(Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+    public static CV vacio() {
+        return new CV(Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }
 
     public record ParsedEducation(String nivelEstudios,
