@@ -11,7 +11,11 @@ import Pipeline from '../modules/reclutamiento/Pipeline'
 import RecepcionCV from '../modules/recepcion/RecepcionCV'
 import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
-
+import DashboardIncentivos from '../modules/incentivos/DashboardIncentivos'  
+import ReglasIncentivos from '../modules/incentivos/admin/ReglasIncentivos' 
+import MetasPeriodo from '../modules/incentivos/admin/metasPeriodo'
+import AprobacionesBonos from '../modules/incentivos/admin/AprobacionesBonos'
+import ReportesIncentivos from '../modules/incentivos/admin/ReportesIncentivos'
 const Routes = () => {
   return (
     <RouterRoutes>
@@ -35,14 +39,60 @@ const Routes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/incentivos-reconocimientos" 
-        element={
-          <ProtectedRoute>
-            <ComingSoon title="Gestión de Incentivos y Reconocimientos" />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/incentivos-reconocimientos">
+
+          <Route index element={<Navigate to="admin/dashboard" replace />} />
+
+          <Route 
+            path="admin/dashboard" 
+            element={
+              <ProtectedRoute>
+                <DashboardIncentivos />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="admin/reglas" 
+            element={
+              <ProtectedRoute>
+                <ReglasIncentivos />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="admin/metas" 
+            element={
+              <ProtectedRoute>
+                <MetasPeriodo />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="admin/metas" 
+            element={
+              <ProtectedRoute>
+                <MetasPeriodo />
+              </ProtectedRoute>
+            } 
+          />
+                    <Route 
+            path="admin/aprobaciones" 
+            element={
+              <ProtectedRoute>
+                <AprobacionesBonos />
+              </ProtectedRoute>
+            } 
+          />
+                              <Route 
+            path="admin/reportes" 
+            element={
+              <ProtectedRoute>
+                <ReportesIncentivos />
+              </ProtectedRoute>
+            } 
+          />
+      </Route>
       <Route 
         path="/vacaciones-permisos" 
         element={
