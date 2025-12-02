@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import apiClient from '../../services/api/client'
+import reclutamientoService from '../../services/api/reclutamientoService'
+import { EtapaProceso } from '../../types'
 import './DetalleCV.css'
 
 const DetalleCV = () => {
@@ -13,6 +15,8 @@ const DetalleCV = () => {
   const [detallePostulante, setDetallePostulante] = useState(postulante)
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
   const [errorCarga, setErrorCarga] = useState('')
+  const [procesandoAccion, setProcesandoAccion] = useState(false)
+  const [errorAccion, setErrorAccion] = useState('')
   const [cvUrl, setCvUrl] = useState('')
   const [cargandoCV, setCargandoCV] = useState(false)
   const [errorCV, setErrorCV] = useState('')
@@ -180,6 +184,64 @@ const DetalleCV = () => {
     return edad
   }
 
+  const idPostulanteProceso = useMemo(() => {
+    return (
+      detallePostulante?.idPostulanteProceso ||
+      detallePostulante?.id_postulante_proceso ||
+      postulante?.idPostulanteProceso ||
+      postulante?.id_postulante_proceso ||
+      null
+    )
+  }, [detallePostulante, postulante])
+
+  const volverARecepcion = () => {
+    navigate('/recepcion-cv', {
+      state: { area, idPuesto }
+    })
+  }
+
+  const handleAprobar = async () => {
+    if (!idPostulanteProceso || procesandoAccion) return
+
+    setProcesandoAccion(true)
+    setErrorAccion('')
+
+    try {
+      await reclutamientoService.moverCandidatoEtapa(
+        idPostulanteProceso,
+        EtapaProceso.ENTREVISTA
+      )
+      alert('Postulante movido a ENTREVISTA correctamente.')
+      volverARecepcion()
+    } catch (err) {
+      console.error('Error al mover a entrevista:', err)
+      setErrorAccion('No se pudo mover al postulante a entrevista. Intente nuevamente.')
+    } finally {
+      setProcesandoAccion(false)
+    }
+  }
+
+  const handleRechazar = async () => {
+    if (!idPostulanteProceso || procesandoAccion) return
+
+    setProcesandoAccion(true)
+    setErrorAccion('')
+
+    try {
+      await reclutamientoService.rechazarCandidato(
+        idPostulanteProceso,
+        'Rechazado durante revisión de CV'
+      )
+      alert('Postulante marcado como DESCARTADO.')
+      volverARecepcion()
+    } catch (err) {
+      console.error('Error al descartar postulante:', err)
+      setErrorAccion('No se pudo descartar al postulante. Intente nuevamente.')
+    } finally {
+      setProcesandoAccion(false)
+    }
+  }
+
   if (cargandoDetalle) {
     return (
       <div className="cv-full-view d-flex flex-column justify-content-center align-items-center">
@@ -192,9 +254,7 @@ const DetalleCV = () => {
     return (
       <div className="cv-full-view d-flex flex-column justify-content-center align-items-center">
         <p className="fs-4 text-danger">{errorCarga || 'No se encontró información del postulante.'}</p>
-        <button className="btn btn-dark mt-3" onClick={() => navigate('/recepcion-cv', { 
-          state: { area, idPuesto } 
-        })}>
+        <button className="btn btn-dark mt-3" onClick={volverARecepcion}>
           Volver
         </button>
       </div>
@@ -230,9 +290,7 @@ const DetalleCV = () => {
           </div>
         </div>
 
-        <button className="btn btn-dark" onClick={() => navigate('/recepcion-cv', { 
-          state: { area, idPuesto } 
-        })}>
+        <button className="btn btn-dark" onClick={volverARecepcion}>
           VOLVER
         </button>
       </div>
@@ -553,9 +611,25 @@ const DetalleCV = () => {
             )}
           </div>
 
-          <button className="btn btn-success w-100 rounded-pill fw-semibold">
-            Aprobar y continuar
-          </button>
+          {errorAccion && <div className="alert alert-danger">{errorAccion}</div>}
+
+          <div className="cv-preview-actions">
+            <button
+              className="btn btn-success rounded-pill fw-semibold"
+              onClick={handleAprobar}
+              disabled={procesandoAccion || !idPostulanteProceso}
+            >
+              {procesandoAccion ? 'Procesando...' : 'Aprobar y continuar'}
+            </button>
+
+            <button
+              className="btn btn-outline-danger rounded-pill fw-semibold"
+              onClick={handleRechazar}
+              disabled={procesandoAccion || !idPostulanteProceso}
+            >
+              {procesandoAccion ? 'Procesando...' : 'Rechazar'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
