@@ -23,6 +23,7 @@ const DetalleCV = () => {
   const [habilidades, setHabilidades] = useState([])
   const [cargandoHabilidades, setCargandoHabilidades] = useState(false)
   const [errorHabilidades, setErrorHabilidades] = useState('')
+  const [idProcesoEncontrado, setIdProcesoEncontrado] = useState(null)
 
   const formatFecha = fecha => {
     if (!fecha) return ''
@@ -186,13 +187,39 @@ const DetalleCV = () => {
 
   const idPostulanteProceso = useMemo(() => {
     return (
+      idProcesoEncontrado ||
       detallePostulante?.idPostulanteProceso ||
       detallePostulante?.id_postulante_proceso ||
       postulante?.idPostulanteProceso ||
       postulante?.id_postulante_proceso ||
       null
     )
-  }, [detallePostulante, postulante])
+  }, [detallePostulante, postulante, idProcesoEncontrado])
+
+  useEffect(() => {
+    if (!id || !idPuesto || idPostulanteProceso) return
+
+    let cancelado = false
+
+    const buscarProceso = async () => {
+      try {
+        const procesos = await reclutamientoService.obtenerCandidatosPorVacante(idPuesto)
+        const proceso = procesos.find(p => String(p.idPostulante) === String(id))
+
+        if (!cancelado && proceso?.idPostulanteProceso) {
+          setIdProcesoEncontrado(proceso.idPostulanteProceso)
+        }
+      } catch (err) {
+        console.error('No se pudo obtener el proceso del postulante:', err)
+      }
+    }
+
+    buscarProceso()
+
+    return () => {
+      cancelado = true
+    }
+  }, [id, idPuesto, idPostulanteProceso])
 
   const volverARecepcion = () => {
     navigate('/recepcion-cv', {
