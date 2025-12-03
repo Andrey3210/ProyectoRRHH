@@ -13,9 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.Base64;
 
@@ -26,6 +30,8 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
     
     private final UsuarioRepository usuarioRepository;
     private final ReclutadorRepository reclutadorRepository;
+    // Inyectamos DataSource para poder ejecutar la consulta SQL manual
+    private final DataSource dataSource; 
     
     // En producción, usar JWT o Spring Security
     // Por ahora, usamos un token simple basado en UUID
@@ -53,10 +59,6 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
         
         // Verificar contraseña (hash simple - en producción usar BCrypt)
         String passwordHash = hashPassword(request.getPassword());
-        log.info("Contraseña recibida (longitud): {}", request.getPassword() != null ? request.getPassword().length() : "null");
-        log.info("Hash calculado: {}", passwordHash);
-        log.info("Hash en BD: {}", usuario.getPasswordHash());
-        log.info("¿Coinciden?: {}", passwordHash.equals(usuario.getPasswordHash()));
         
         if (!passwordHash.equals(usuario.getPasswordHash())) {
             log.warn("Contraseña incorrecta para usuario: {}", request.getUsername());
@@ -81,9 +83,12 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
         // Generar token simple (en producción usar JWT)
         String token = generarToken(usuario.getIdUsuario());
         
-        // Buscar reclutador asociado
+        // Buscar reclutador asociado (solo para referencia de ID si es necesario)
         Reclutador reclutador = reclutadorRepository.findByIdUsuario(usuario.getIdUsuario())
             .orElse(null);
+        
+        // --- CAMBIO: OBTENER ROL REAL DESDE BD ---
+        String rolUsuario = obtenerRolUsuario(usuario.getIdUsuario());
         
         LoginResponse response = new LoginResponse();
         response.setToken(token);
@@ -92,12 +97,41 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
         response.setNombreCompleto(usuario.getNombreCompleto());
         response.setEmail(usuario.getEmail());
         response.setIdReclutador(reclutador != null ? reclutador.getIdReclutador() : null);
-        response.setTipoUsuario(reclutador != null ? "RECLUTADOR" : "USUARIO");
         
-        log.info("Login exitoso para usuario: {}", usuario.getUsername());
+        // Asignamos el rol obtenido por SQL
+        response.setTipoUsuario(rolUsuario);
+        
+        log.info("Login exitoso para usuario: {} con rol: {}", usuario.getUsername(), rolUsuario);
         return response;
     }
     
+    /**
+     * Método para obtener el rol mediante JDBC puro
+     */
+    private String obtenerRolUsuario(Integer idUsuario) {
+        // Consultar el rol del usuario desde la base de datos
+        String sql = "SELECT r.nombre_rol FROM roles r " +
+                     "INNER JOIN usuarios_roles ur ON r.id_rol = ur.id_rol " +
+                     "WHERE ur.id_usuario = ? AND r.activo = TRUE"; // Asumiendo que 'activo' es booleano en BD
+        
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idUsuario);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("nombre_rol");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error al obtener rol del usuario con ID: " + idUsuario, e);
+        }
+        
+        // Rol por defecto si falla la consulta o no tiene rol asignado
+        return "USUARIO"; 
+    }
+
     @Override
     public void logout(String token) {
         // En producción, invalidar el token en una blacklist
@@ -162,4 +196,3 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
         return header + "." + payload;
     }
 }
-

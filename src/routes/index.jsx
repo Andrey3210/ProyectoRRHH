@@ -16,6 +16,10 @@ import ReglasIncentivos from '../modules/incentivos/admin/ReglasIncentivos'
 import MetasPeriodo from '../modules/incentivos/admin/metasPeriodo'
 import AprobacionesBonos from '../modules/incentivos/admin/AprobacionesBonos'
 import ReportesIncentivos from '../modules/incentivos/admin/ReportesIncentivos'
+import IncentivosRouter from '../modules/incentivos/IncentivosRouter'  
+import DashboardEmpleado from '../modules/incentivos/empleado/DashboardEmpleado'
+import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'  
+
 const Routes = () => {
   return (
     <RouterRoutes>
@@ -39,59 +43,23 @@ const Routes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route path="/incentivos-reconocimientos">
 
-          <Route index element={<Navigate to="admin/dashboard" replace />} />
-
-          <Route 
-            path="admin/dashboard" 
-            element={
-              <ProtectedRoute>
-                <DashboardIncentivos />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="admin/reglas" 
-            element={
-              <ProtectedRoute>
-                <ReglasIncentivos />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="admin/metas" 
-            element={
-              <ProtectedRoute>
-                <MetasPeriodo />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="admin/metas" 
-            element={
-              <ProtectedRoute>
-                <MetasPeriodo />
-              </ProtectedRoute>
-            } 
-          />
-                    <Route 
-            path="admin/aprobaciones" 
-            element={
-              <ProtectedRoute>
-                <AprobacionesBonos />
-              </ProtectedRoute>
-            } 
-          />
-                              <Route 
-            path="admin/reportes" 
-            element={
-              <ProtectedRoute>
-                <ReportesIncentivos />
-              </ProtectedRoute>
-            } 
-          />
+      <Route   
+       path="/incentivos-reconocimientos"   
+      element={  
+      <ProtectedRoute>  
+        <IncentivosRouter />  
+      </ProtectedRoute>  
+       }  
+      >  
+         <Route path="admin/dashboard" element={<DashboardIncentivos />} />  
+         <Route path="admin/reglas" element={<ReglasIncentivos />} />  
+         <Route path="admin/metas" element={<MetasPeriodo />} />  
+         <Route path="admin/aprobaciones" element={<AprobacionesBonos />} />  
+         <Route path="admin/reportes" element={<ReportesIncentivos />} />  
+    
+         <Route path="empleado/dashboard" element={<DashboardEmpleado />} />  
+         <Route path="empleado/pagos" element={<DetallePagosEmpleado />} />
       </Route>
       <Route 
         path="/vacaciones-permisos" 
