@@ -11,6 +11,9 @@ import Pipeline from '../modules/reclutamiento/Pipeline'
 import RecepcionCV from '../modules/recepcion/RecepcionCV'
 import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
+import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
+import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
+import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'
 
 const Routes = () => {
   return (
@@ -43,14 +46,35 @@ const Routes = () => {
           </ProtectedRoute>
         } 
       />
+      {/* Gestion de vacaciones y permisos======================= */}
       <Route 
         path="/vacaciones-permisos" 
         element={
           <ProtectedRoute>
-            <ComingSoon title="Gestión de Vacaciones y Permisos" />
+            <VistaAdministrador />
           </ProtectedRoute>
         } 
       />
+      {/* Ruta para el detalle */}
+      <Route 
+        path="/vacaciones/solicitud/:id" 
+        element={
+          <ProtectedRoute>
+            <DetalleSolicitudAdmin />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Ruta para crear solicitud */}
+      <Route 
+        path="/vacaciones/nueva" 
+        element={
+          <ProtectedRoute>
+            <RegistrarSolicitudAdmin />
+          </ProtectedRoute>
+        } 
+      />
+      {/* Gestion de vacaciones y permisos======================= */}
       <Route 
         path="/gestion-empleados" 
         element={
@@ -133,6 +157,7 @@ const Routes = () => {
           </ProtectedRoute>
         } 
       />
+      
     </RouterRoutes>
   )
 }
