@@ -20,7 +20,11 @@ public class EmpleadoResumen {
     @Column(name = "nombre_puesto") // Esto será el "Cargo"
     private String puesto;
 
-    @Column(name = "departamento") // Esto será el "Area"
+    // --- CORRECCIÓN DE MAPEO ---
+    @Column(name = "departamento")
+    private String departamento; // Ej: TI, RRHH (La agrupación principal)
+
+    @Column(name = "area")
     private String area;
 
     // Agregamos nombres y apellidos por separado si los necesitas para el buscador
@@ -28,5 +32,8 @@ public class EmpleadoResumen {
     private String nombres;
 
     @Column(name = "apellido_paterno")
-    private String apellidos;
+    private String apellidoPaterno;
+
+    @Column(name = "apellido_materno")
+    private String apellidoMaterno;
 }

@@ -394,3 +394,19 @@
 }
 
 .text-center { text-align: center !important; }
+
+/* Clase para controlar el tamaño de los iconos de imagen */
+.action-icon {
+  width: 16px;       /* Mismo tamaño que tenían los SVGs */
+  height: 16px;
+  object-fit: contain; /* Asegura que la imagen no se deforme */
+  display: block;    /* Ayuda a la alineación */
+}
+
+/* Ajuste opcional para el botón si usas imágenes */
+.btn-action {
+  /* ... tus estilos previos ... */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Un poco más de espacio si la imagen es densa */
+}

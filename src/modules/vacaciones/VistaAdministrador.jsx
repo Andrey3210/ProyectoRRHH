@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import vacacionesService from '../../services/api/vacacionesService';
+import { useNotification } from '../../components/common/NotificationProvider'; // Importar
 import ReporteSaldos from './ReporteSaldos';
 import './GestionVacaciones.css';
 
 const VistaAdministrador = () => {
   const navigate = useNavigate();
+  const { success, error: showError } = useNotification(); // Hook
 
   // Estado para controlar la vista activa: 'gestion' | 'reportes'
   const [vistaActiva, setVistaActiva] = useState('gestion');
@@ -108,27 +110,26 @@ const VistaAdministrador = () => {
   const handleConfirmarAccion = async () => {
     const { type, idSolicitud, texto } = modalConfig;
 
-    if (type === 'RECHAZAR') {
-      if (!texto.trim()) {
-        setErrorValidacion(true);
-        return;
-      }
-      try {
+    try {
+      if (type === 'RECHAZAR') {
+        if (!texto.trim()) {
+          setErrorValidacion(true);
+          return;
+        }
         await vacacionesService.rechazarSolicitud(idSolicitud, texto);
-        cerrarModal();
-        cargarSolicitudes();
-      } catch (error) {
-        alert("Error al rechazar la solicitud");
-      }
-    } else if (type === 'APROBAR') {
-      try {
-        // El comentario es opcional en aprobación
+        success("Solicitud rechazada");
+      } else if (type === 'APROBAR') {
         await vacacionesService.aprobarSolicitud(idSolicitud, texto);
-        cerrarModal();
-        cargarSolicitudes();
-      } catch (error) {
-        alert("Error al aprobar la solicitud");
+        success("Solicitud aprobada");
       }
+      
+      cerrarModal();
+      cargarSolicitudes(); // Recargar lista
+    } catch (err) {
+      // Captura del mensaje real
+      const msg = err.data?.message || err.message || "Error al procesar la acción";
+      showError(msg);
+      cerrarModal();
     }
   };
 
@@ -253,7 +254,11 @@ const VistaAdministrador = () => {
             ) : (
               solicitudesFiltradas.map((solicitud) => (
                 <tr key={solicitud.idSolicitud} onClick={() => irADetalle(solicitud.idSolicitud)} style={{cursor: 'pointer'}}>
-                  <td><div style={{fontWeight: '500'}}>{solicitud.empleado?.nombres} {solicitud.empleado?.apellidos}</div></td>
+                  <td>
+                    <div style={{fontWeight: '500'}}>
+                      {solicitud.empleado?.nombres} {solicitud.empleado?.apellidoPaterno} {solicitud.empleado?.apellidoMaterno || ''}
+                    </div>
+                  </td>
                   <td>{solicitud.tipoSolicitud?.nombre || 'General'}</td>
                   <td>{formatearFecha(solicitud.fechaInicio)}</td>
                   <td>{formatearFecha(solicitud.fechaFin)}</td>
@@ -270,13 +275,24 @@ const VistaAdministrador = () => {
                           className="btn-action approve" 
                           onClick={(e) => abrirModal(e, 'APROBAR', solicitud.idSolicitud)}
                         >
-                          👍 Aprobar
+                          {/* Reemplazo del SVG por IMG */}
+                          <img 
+                            src="/images/cheque.png" 
+                            alt="Aprobar" 
+                            className="action-icon" 
+                          />
+                           Aprobar
                         </button>
                         <button 
                           className="btn-action reject" 
                           onClick={(e) => abrirModal(e, 'RECHAZAR', solicitud.idSolicitud)}
                         >
-                          ✕ Rechazar
+                          <img 
+                            src="/images/multiplicar.png" 
+                            alt="Rechazar" 
+                            className="action-icon" 
+                          />
+                          Rechazar
                         </button>
                       </div>
                     ) : <span className="text-muted small">Procesado</span>}

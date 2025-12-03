@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import vacacionesService from '../../services/api/vacacionesService';
+import { useNotification } from '../../components/common/NotificationProvider'; // 1. Importar hook
 import './DetalleSolicitud.css';
 import './GestionVacaciones.css'; // Importamos para usar los estilos del modal
 
 const DetalleSolicitudAdmin = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { success, error: showError } = useNotification(); // 2. Instanciar notificaciones
   
   const [solicitud, setSolicitud] = useState(null);
   const [historial, setHistorial] = useState([]);
@@ -35,6 +37,7 @@ const DetalleSolicitudAdmin = () => {
       setHistorial(dataHistorial);
     } catch (error) {
       console.error("Error cargando detalle:", error);
+      showError("No se pudo cargar la información de la solicitud.");
     } finally {
       setLoading(false);
     }
@@ -61,21 +64,35 @@ const DetalleSolicitudAdmin = () => {
           return;
         }
         await vacacionesService.rechazarSolicitud(id, texto);
+        success("Solicitud rechazada correctamente"); // Mensaje de éxito
       } else if (type === 'APROBAR') {
         await vacacionesService.aprobarSolicitud(id, texto);
+        success("Solicitud aprobada exitosamente"); // Mensaje de éxito
       }
       
       cerrarModal();
-      cargarDatos(); // Recargar para ver cambios
-    } catch (error) {
-      alert("Ocurrió un error al procesar la acción");
+      cargarDatos(); 
+    } catch (err) {
+      // --- CORRECCIÓN AQUÍ ---
+      // Capturamos el mensaje que viene del Backend (ej: "Saldo insuficiente")
+      // apiClient suele devolver el error en err.data.message o err.message
+      const mensajeError = err.data?.message || err.message || "No se pudo completar la acción";
+      
+      showError(mensajeError); // Usamos la notificación roja bonita
+      cerrarModal(); 
     }
   };
 
   const handleVolverAprobacion = async () => {
     if(window.confirm("¿Regresar esta solicitud a estado Pendiente?")) {
-      await vacacionesService.volverAPendiente(id);
-      cargarDatos();
+      try {
+        await vacacionesService.volverAPendiente(id);
+        success("La solicitud ha retornado a estado Pendiente");
+        cargarDatos();
+      } catch (err) {
+        const msg = err.data?.message || "No se pudo retornar la solicitud a pendiente";
+        showError(msg);
+      }
     }
   };
 
@@ -107,10 +124,16 @@ const DetalleSolicitudAdmin = () => {
       return (
         <>
           <button className="btn-action-green" onClick={() => abrirModal('APROBAR')}>
-            👍 Aprobar
+            
+            Aprobar
           </button>
           <button className="btn-action-outline-red" onClick={() => abrirModal('RECHAZAR')}>
-            ✕ Rechazar
+            <img 
+                src="/images/multiplicar.png" 
+                alt="Rechazar" 
+                className="action-icon" 
+            />
+            Rechazar
           </button>
         </>
       );
@@ -141,7 +164,7 @@ const DetalleSolicitudAdmin = () => {
         <div className="info-card">
           <div className="info-row">
             <span className="info-label">Empleado</span>
-            <span className="info-value font-bold">{solicitud.empleado?.nombres} {solicitud.empleado?.apellidos}</span>
+            <span className="info-value font-bold">{solicitud.empleado?.nombres} {solicitud.empleado?.apellidoPaterno} {solicitud.empleado?.apellidoMaterno || ''}</span>
           </div>
           <div className="info-row">
             <span className="info-label">Area</span>

@@ -53,6 +53,9 @@ public class GestionVacacionesController {
     @GetMapping("/mis-solicitudes/{idEmpleado}")
     public ResponseEntity<List<Solicitud>> buscarMisSolicitudes(@PathVariable Integer idEmpleado) {
         List<Solicitud> solicitudes = empleadoFacade.buscarMisSolicitudes(idEmpleado);
+        if (solicitudes.isEmpty()) {
+            return ResponseEntity.ok(List.of()); // Devuelve lista vacía, no error 204
+        }
         return ResponseEntity.ok(solicitudes);
     }
 

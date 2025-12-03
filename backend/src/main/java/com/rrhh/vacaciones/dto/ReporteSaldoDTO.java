@@ -8,7 +8,8 @@ import lombok.Data;
 public class ReporteSaldoDTO {
     private Integer idEmpleado;
     private String nombreCompleto;
-    private String area; // Asumimos que viene de la entidad Empleado o se busca
+    private String departamento; // Nuevo campo para agrupar
+    private String area;         // Campo para mostrar detalle
     private Integer diasTotales;
     private Integer diasGozados;
     private Integer diasPendientes;

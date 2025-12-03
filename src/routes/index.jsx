@@ -14,6 +14,7 @@ import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
 import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
 import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
 import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'
+import VistaEmpleado from '../modules/vacaciones/VistaEmpleado';
 
 const Routes = () => {
   return (
@@ -71,6 +72,15 @@ const Routes = () => {
         element={
           <ProtectedRoute>
             <RegistrarSolicitudAdmin />
+          </ProtectedRoute>
+        } 
+      />
+
+      <Route 
+        path="/vacaciones/mis-solicitudes" 
+        element={
+          <ProtectedRoute>
+            <VistaEmpleado />
           </ProtectedRoute>
         } 
       />

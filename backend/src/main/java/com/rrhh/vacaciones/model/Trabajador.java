@@ -3,12 +3,11 @@ package com.rrhh.vacaciones.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @Entity
-@Table(name = "empleados") // Mapea a la tabla existente
+@Table(name = "empleados")
 public class Trabajador {
 
     @Id
@@ -19,18 +18,23 @@ public class Trabajador {
     @Column(name = "nombres")
     private String nombres;
 
+    // Renombramos 'apellidos' a 'apellidoPaterno' para mayor claridad
     @Column(name = "apellido_paterno")
-    private String apellidos;
+    private String apellidoPaterno;
+
+    // Agregamos el campo que faltaba
+    @Column(name = "apellido_materno")
+    private String apellidoMaterno;
 
     @Column(name = "email")
     private String email;
 
-    // Importante: @JsonIgnore para evitar el bucle infinito y error de Lazy Loading
+    // Campo area para el reporte (opcional, si existe en tu BD 'empleados')
+    // Si no existe columna 'area' en la tabla empleados, ignora esta línea o usa @Transient
+    @Transient
+    private String area;
+
     @JsonIgnore
     @OneToMany(mappedBy = "empleado", fetch = FetchType.LAZY)
     private List<Solicitud> solicitudes;
-
-    public List<Solicitud> verSolicitudes() {
-        return this.solicitudes != null ? this.solicitudes : new ArrayList<>();
-    }
 }

@@ -82,7 +82,8 @@ const RegistrarSolicitudAdmin = () => {
     // Filtrar usando 'nombreCompleto' que viene de tu API
     // Si nombreCompleto es null, usamos fallback a nombres + apellidos
     const coincidencias = empleados.filter(emp => {
-      const nombreFull = emp.nombreCompleto || `${emp.nombres} ${emp.apellidos}`;
+      const nombreFull = emp.nombreCompleto || 
+        `${emp.nombres} ${emp.apellidoPaterno} ${emp.apellidoMaterno || ''}`;
       return nombreFull.toLowerCase().includes(texto.toLowerCase());
     });
     
@@ -93,7 +94,8 @@ const RegistrarSolicitudAdmin = () => {
   // Seleccionar empleado de la lista
   const seleccionarEmpleado = (empleado) => {
     // Usamos los campos exactos de tu JSON
-    const nombreMostrar = empleado.nombreCompleto || `${empleado.nombres} ${empleado.apellidos}`;
+    const nombreMostrar = empleado.nombreCompleto || 
+      `${empleado.nombres} ${empleado.apellidoPaterno} ${empleado.apellidoMaterno || ''}`.trim();
     
     setBusquedaEmpleado(nombreMostrar);
     setFormData(prev => ({
@@ -198,7 +200,7 @@ const RegistrarSolicitudAdmin = () => {
                           className="suggestion-item"
                         >
                           <span className="suggestion-name">
-                            {emp.nombreCompleto || `${emp.nombres} ${emp.apellidos}`}
+                            {emp.nombreCompleto || `${emp.nombres} ${emp.apellidoPaterno} ${emp.apellidoMaterno || ''}`}
                           </span>
                           {/* Mostramos info adicional aunque sea null en tu JSON actual (se verá guion si no hay datos) */}
                           <span className="suggestion-meta">
