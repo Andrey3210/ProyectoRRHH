@@ -23,7 +23,12 @@ public class GesEmpleadoController {
     }
 
     @GetMapping("/con-puesto")
-    public List<GesEmpleadoConPuestoDTO> listarConPuestoActual() {
+    public List<GesEmpleadoConPuestoDTO> listarConPuesto() {
         return empleadoService.listarEmpleadosConPuestoActual();
+    }
+
+    @GetMapping("/{id}/puesto-actual")
+    public GesEmpleadoConPuestoDTO obtenerPuestoActual(@PathVariable Integer id) {
+        return empleadoService.obtenerEmpleadoConPuestoDTO(id);
     }
 }

@@ -3,6 +3,7 @@ package com.rrhh.gestionEmpleados.service;
 import com.rrhh.gestionEmpleados.dto.GesEmpleadoConPuestoDTO;
 import com.rrhh.gestionEmpleados.model.GesEmpleado;
 import com.rrhh.gestionEmpleados.model.GesEmpleadoPuesto;
+import com.rrhh.gestionEmpleados.model.GesPuesto;
 import com.rrhh.gestionEmpleados.repository.GesEmpleadoPuestoRepository;
 import com.rrhh.gestionEmpleados.repository.GesEmpleadoRepository;
 import org.springframework.stereotype.Service;
@@ -25,53 +26,64 @@ public class GesEmpleadoService {
         return empleadoRepository.findAll();
     }
 
+    public GesEmpleadoConPuestoDTO obtenerEmpleadoConPuestoDTO(Integer idEmpleado) {
+        GesEmpleado empleado = empleadoRepository.findById(idEmpleado).orElse(null);
+        GesEmpleadoPuesto empPuesto = empleadoPuestoRepository.obtenerPuestoActual(idEmpleado);
+
+        if (empleado == null) return null;
+
+        GesEmpleadoConPuestoDTO dto = new GesEmpleadoConPuestoDTO();
+
+        // ------- datos del empleado -------
+        dto.setIdEmpleado(empleado.getIdEmpleado());
+        dto.setCodigoEmpleado(empleado.getCodigoEmpleado());
+        dto.setNombres(empleado.getNombres());
+        dto.setApellidoPaterno(empleado.getApellidoPaterno());
+        dto.setApellidoMaterno(empleado.getApellidoMaterno());
+        dto.setDocumentoIdentidad(empleado.getDocumentoIdentidad());
+        dto.setTipoDocumento(empleado.getTipoDocumento());
+        dto.setFechaNacimiento(empleado.getFechaNacimiento());
+        dto.setGenero(empleado.getGenero());
+        dto.setEstadoCivil(empleado.getEstadoCivil());
+        dto.setNacionalidad(empleado.getNacionalidad());
+        dto.setDireccion(empleado.getDireccion());
+        dto.setTelefono(empleado.getTelefono());
+        dto.setEmail(empleado.getEmail());
+        dto.setEmailCorporativo(empleado.getEmailCorporativo());
+        dto.setFechaIngreso(empleado.getFechaIngreso());
+        dto.setFechaCese(empleado.getFechaCese());
+        dto.setEstado(empleado.getEstado());
+        dto.setTipoContrato(empleado.getTipoContrato());
+        dto.setModalidadTrabajo(empleado.getModalidadTrabajo());
+
+        // Si no hay puesto, devolver solo los datos del empleado
+        if (empPuesto == null) return dto;
+
+        // ------- datos del puesto -------
+        var puesto = empPuesto.getPuesto();
+        dto.setIdPuesto(puesto.getIdPuesto());
+        dto.setNombrePuesto(puesto.getNombrePuesto());
+        dto.setDepartamento(puesto.getDepartamento());
+        dto.setArea(puesto.getArea());
+        dto.setNivelJerarquico(puesto.getNivelJerarquico());
+        dto.setSalarioMinimo(puesto.getSalarioMinimo());
+        dto.setSalarioMaximo(puesto.getSalarioMaximo());
+
+        // ------- datos del empleado_puesto -------
+        dto.setFechaInicioPuesto(empPuesto.getFechaInicio());
+        dto.setFechaFinPuesto(empPuesto.getFechaFin());
+        dto.setSalarioAsignado(empPuesto.getSalario());
+
+        return dto;
+    }
+
     public List<GesEmpleadoConPuestoDTO> listarEmpleadosConPuestoActual() {
 
-        return empleadoRepository.findAll().stream()
-                .map(empleado -> {
-                    GesEmpleadoPuesto ep = empleadoPuestoRepository.obtenerPuestoActual(empleado.getIdEmpleado());
+        List<GesEmpleado> empleados = empleadoRepository.listarEmpleadosConPuestoActual();
 
-                    GesEmpleadoConPuestoDTO dto = new GesEmpleadoConPuestoDTO();
-
-                    // ---------- Datos del empleado ----------
-                    dto.setIdEmpleado(empleado.getIdEmpleado());
-                    dto.setCodigoEmpleado(empleado.getCodigoEmpleado());
-                    dto.setNombres(empleado.getNombres());
-                    dto.setApellidoPaterno(empleado.getApellidoPaterno());
-                    dto.setApellidoMaterno(empleado.getApellidoMaterno());
-                    dto.setDocumentoIdentidad(empleado.getDocumentoIdentidad());
-                    dto.setTipoDocumento(empleado.getTipoDocumento());
-                    dto.setFechaNacimiento(empleado.getFechaNacimiento());
-                    dto.setGenero(empleado.getGenero());
-                    dto.setEstadoCivil(empleado.getEstadoCivil());
-                    dto.setNacionalidad(empleado.getNacionalidad());
-                    dto.setDireccion(empleado.getDireccion());
-                    dto.setTelefono(empleado.getTelefono());
-                    dto.setEmail(empleado.getEmail());
-                    dto.setEmailCorporativo(empleado.getEmailCorporativo());
-                    dto.setFechaIngreso(empleado.getFechaIngreso());
-                    dto.setFechaCese(empleado.getFechaCese());
-                    dto.setEstado(empleado.getEstado());
-                    dto.setTipoContrato(empleado.getTipoContrato());
-                    dto.setModalidadTrabajo(empleado.getModalidadTrabajo());
-
-                    // ---------- Datos del puesto actual ----------
-                    if (ep != null) {
-                        dto.setIdPuesto(ep.getPuesto().getIdPuesto());
-                        dto.setNombrePuesto(ep.getPuesto().getNombrePuesto());
-                        dto.setDepartamento(ep.getPuesto().getDepartamento());
-                        dto.setArea(ep.getPuesto().getArea());
-                        dto.setNivelJerarquico(ep.getPuesto().getNivelJerarquico());
-                        dto.setSalarioMinimo(ep.getPuesto().getSalarioMinimo());
-                        dto.setSalarioMaximo(ep.getPuesto().getSalarioMaximo());
-
-                        dto.setFechaInicioPuesto(ep.getFechaInicio());
-                        dto.setFechaFinPuesto(ep.getFechaFin());
-                        dto.setSalarioAsignado(ep.getSalario());
-                    }
-
-                    return dto;
-                })
-                .collect(Collectors.toList());
+        return empleados.stream()
+                .map(emp -> obtenerEmpleadoConPuestoDTO(emp.getIdEmpleado()))
+                .filter(dto -> dto.getIdPuesto() != null) // evita nulos
+                .toList();
     }
 }
