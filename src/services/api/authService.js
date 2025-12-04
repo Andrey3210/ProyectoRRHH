@@ -26,7 +26,21 @@ class AuthService {
           tipoUsuario: data.tipoUsuario
         }))
       }
-      
+      if (data.token) {  
+  console.log('Datos del usuario que inicia sesión:', data);  
+  console.log('Tipo de usuario:', data.tipoUsuario);  
+  console.log('¿Es administrador?', data.tipoUsuario === 'ADMINISTRADOR');  
+    
+  localStorage.setItem('authToken', data.token)  
+  localStorage.setItem('user', JSON.stringify({  
+    idUsuario: data.idUsuario,  
+    username: data.username,  
+    nombreCompleto: data.nombreCompleto,  
+    email: data.email,  
+    idReclutador: data.idReclutador,  
+    tipoUsuario: data.tipoUsuario  
+  }))  
+}
       return data
     } catch (error) {
       console.error('Error al iniciar sesión:', error)

@@ -203,7 +203,7 @@ const DetalleSolicitudAdmin = () => {
                 </div>
                 <div className="timeline-item">
                   <div className="timeline-header">
-                    <span className="timeline-user">Usuario Sistema</span>
+                    <span className="timeline-user">{item.usuarioAccion?.nombreCompleto || 'Usuario Sistema'}</span>
                     <span className="timeline-time">{formatearHora(item.fechaAccion)}</span>
                   </div>
                   <div className="timeline-content">
