@@ -76,6 +76,14 @@ class VacacionesService {
   async obtenerReporteSaldos() {
     return await apiClient.get('/vacaciones/admin/reportes/saldos');
   }
+
+  async asignarSaldo(idEmpleado, anio, dias) {
+    return await apiClient.post('/vacaciones/admin/saldos/asignar', {
+      idEmpleado,
+      anio,
+      diasAsignados: dias
+    });
+  }
 }
 
 export default new VacacionesService();

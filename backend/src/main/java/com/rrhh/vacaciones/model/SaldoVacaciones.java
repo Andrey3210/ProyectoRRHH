@@ -22,10 +22,15 @@ public class SaldoVacaciones {
     @Column(name = "dias_tomados")
     private Integer diasTomados;
 
-    @Column(name = "dias_pendientes", insertable = false, updatable = false) // Columna calculada en BD
+    @Column(name = "dias_pendientes", insertable = false, updatable = false)
     private Integer diasPendientes;
+
+    // --- AGREGAR ESTE CAMPO ---
+    @Column(name = "dias_vencidos")
+    private Integer diasVencidos;
+    // --------------------------
 
     @ManyToOne
     @JoinColumn(name = "id_empleado")
-    private Trabajador empleado; // Reutilizamos la entidad Trabajador existente
+    private Trabajador empleado;
 }
