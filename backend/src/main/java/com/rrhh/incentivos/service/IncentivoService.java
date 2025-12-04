@@ -16,9 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory; // Import necesario para logging
+
 @Service
 @RequiredArgsConstructor
 public class IncentivoService implements IIncentivoService {
+
+    private static final Logger log = LoggerFactory.getLogger(IncentivoService.class); // Declaración del Logger
 
     private final BonoRepository bonoRepository;
     private final MetaRepository metaRepository;
@@ -147,11 +152,14 @@ public class IncentivoService implements IIncentivoService {
     @Override
     @Transactional(readOnly = true)
     public DashboardAdminDTO obtenerDatosDashboard(String periodo) {
+        log.debug("Iniciando carga de Dashboard Admin para el periodo: {}", periodo); // LOG 1: Trazabilidad
         DashboardAdminDTO dto = new DashboardAdminDTO();
 
         BigDecimal total = bonoRepository.sumMontoTotalPorPeriodo(periodo);
         dto.setTotalPagar(total != null ? total : BigDecimal.ZERO);
         dto.setPendientesRevision(bonoRepository.countByEstado(EstadoBono.PENDIENTE));
+        
+        // ... (rest of method logic) ...
 
         long metasCumplidas = metaRepository.countMetasCumplidas(periodo);
         long totalMetas = metaRepository.countByPeriodo(periodo);
@@ -225,8 +233,18 @@ public class IncentivoService implements IIncentivoService {
             regla.setValorCalculo(dto.getMonto());
             regla.setDescripcionRecompensa(null);
         }
-
-        reglaIncentivoRepository.save(regla);
+        
+        try {
+            reglaIncentivoRepository.save(regla);
+            log.info("Regla CREADA. ID: {}, Nombre: {}, Categoría: {}", 
+                regla.getIdRegla(), 
+                dto.getNombre(), 
+                dto.getCategoria()
+            ); // LOG 2: Trazabilidad de creación
+        } catch (Exception e) {
+            log.error("Error CRÍTICO al guardar la Regla {}: {}", dto.getNombre(), e.getMessage(), e); // LOG 3: Error
+            throw new RuntimeException("Error al guardar la regla.");
+        }
     }
 
     @Override
@@ -236,12 +254,19 @@ public class IncentivoService implements IIncentivoService {
             .orElseThrow(() -> new RuntimeException("Regla no encontrada"));
         regla.setActivo(nuevoEstado);
         reglaIncentivoRepository.save(regla);
+        log.info("Regla #{} actualizada. Estado: {}", idRegla, nuevoEstado ? "ACTIVO" : "INACTIVO"); // LOG 4: Trazabilidad
     }
     
     @Override
     @Transactional
     public void eliminarRegla(Integer idRegla) {
-        reglaIncentivoRepository.deleteById(idRegla);
+        try {
+            reglaIncentivoRepository.deleteById(idRegla);
+            log.warn("Regla #{} ELIMINADA del sistema.", idRegla); // LOG: Advertencia por eliminación
+        } catch (Exception e) {
+            log.error("Error eliminando regla #{}!", idRegla, e);
+            throw new RuntimeException("Fallo al eliminar la regla.");
+        }
     }
 
     @Override
@@ -348,6 +373,7 @@ public class IncentivoService implements IIncentivoService {
         meta.setValorObjetivo(dto.getValorObjetivo());
 
         metaRepository.save(meta);
+        log.info("Meta asignada/actualizada. Empleado ID: {}, Meta ID: {}, Objetivo: {}", empleado.getIdEmpleado(), meta.getIdMeta(), dto.getValorObjetivo());
     }
 
     @Override
@@ -381,6 +407,7 @@ public class IncentivoService implements IIncentivoService {
             .orElseThrow(() -> new RuntimeException("Bono no encontrado"));
         bono.setEstado(EstadoBono.APROBADO);
         bonoRepository.save(bono);
+        log.info("Bono #{} APROBADO por Admin. Monto: {}", idBono, bono.getMonto()); // LOG 5: Aprobación
     }
 
     @Override
@@ -390,6 +417,7 @@ public class IncentivoService implements IIncentivoService {
             .orElseThrow(() -> new RuntimeException("Bono no encontrado"));
         bono.setEstado(EstadoBono.RECHAZADO);
         bonoRepository.save(bono);
+        log.warn("Bono #{} RECHAZADO por Admin. Monto: {}", idBono, bono.getMonto()); // LOG 6: Rechazo
     }
 
     @Override
@@ -398,11 +426,13 @@ public class IncentivoService implements IIncentivoService {
         List<Bono> bonos = bonoRepository.findAllById(idsBonos);
         bonos.forEach(b -> b.setEstado(EstadoBono.APROBADO));
         bonoRepository.saveAll(bonos);
+        log.info("Aprobación MASIVA exitosa. {} bonos procesados.", idsBonos.size()); // LOG 7: Aprobación masiva
     }
 
     @Override
     @Transactional(readOnly = true)
     public ReporteIncentivosDTO generarReporteAnual(String anio) {
+        log.debug("Iniciando generación de Reporte Anual para el año {}", anio); // LOG 8: Trazabilidad
         ReporteIncentivosDTO reporte = new ReporteIncentivosDTO();
         
         List<Bono> bonosAnio = bonoRepository.findByAnio(anio);
@@ -471,25 +501,25 @@ public class IncentivoService implements IIncentivoService {
 
         // Ordenar del más reciente al más antiguo
         filas.sort((f1, f2) -> {
-            // Convierte "Mes YYYY" de vuelta a "YYYY-MM" para una comparación de cadena confiable
             String p1 = f1.getPeriodo().substring(f1.getPeriodo().length() - 4) + "-" + String.format("%02d", obtenerIndiceMes(f1.getPeriodo().substring(0, 3)));
             String p2 = f2.getPeriodo().substring(f2.getPeriodo().length() - 4) + "-" + String.format("%02d", obtenerIndiceMes(f2.getPeriodo().substring(0, 3)));
             return p2.compareTo(p1);
         });
         
         reporte.setTablaDetalle(filas);
+        log.info("Reporte Anual para {} generado. Contiene {} períodos consolidados.", anio, filas.size()); // LOG 9: Trazabilidad de finalización
         return reporte;
     }
 
     // =========================================================================
-    //                        NUEVO MÉTODO PARA EL MODAL
+    //                        MÉTODO PARA EL MODAL DE REPORTE
     // =========================================================================
 
     @Override
     @Transactional(readOnly = true)
     public List<BonoDetalleNominaDTO> obtenerDetalleNominaPorPeriodo(String periodo) {
-        // 'periodo' aquí debe ser "YYYY-MM" (lo que el frontend calcula a partir de "Mes YYYY")
         List<Bono> bonos = bonoRepository.findByPeriodo(periodo);
+        log.debug("Consulta de detalle de nómina para periodo {}: {} bonos encontrados.", periodo, bonos.size()); // LOG 10: Trazabilidad de detalle
 
         return bonos.stream()
             .map(this::mapToBonoDetalleNominaDTO)
@@ -506,7 +536,6 @@ public class IncentivoService implements IIncentivoService {
         dto.setMonto(bono.getMonto());
         dto.setEstado(bono.getEstado().toString());
 
-        // CORRECCIÓN: Convierte LocalDate (asumido en Bono) a LocalDateTime (en DTO)
         if (bono.getFechaCalculo() != null) {
             dto.setFechaCalculo(bono.getFechaCalculo().atStartOfDay()); 
         } else {
@@ -636,6 +665,9 @@ public class IncentivoService implements IIncentivoService {
         return dto;
     }
 
+    /**
+     * Extrae el mes de la cadena de período (espera YYYY-MM o Mes YYYY) y devuelve el índice (1-12).
+     */
     private int obtenerIndiceMes(String periodo) {
         try {
             if (periodo.contains("-")) {
@@ -665,6 +697,7 @@ public class IncentivoService implements IIncentivoService {
         }
     }
     
+   
     private String obtenerNombreMes(int indice) {
         String[] nombres = {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
         if (indice >= 1 && indice <= 12) {
