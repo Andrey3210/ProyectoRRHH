@@ -1,29 +1,69 @@
 package com.rrhh.gestionEmpleados.service;
 
 import com.rrhh.gestionEmpleados.dto.GesEmpleadoConPuestoDTO;
+import com.rrhh.gestionEmpleados.dto.GesEmpleadoRequestDTO;
 import com.rrhh.gestionEmpleados.model.GesEmpleado;
 import com.rrhh.gestionEmpleados.model.GesEmpleadoPuesto;
-import com.rrhh.gestionEmpleados.model.GesPuesto;
 import com.rrhh.gestionEmpleados.repository.GesEmpleadoPuestoRepository;
 import com.rrhh.gestionEmpleados.repository.GesEmpleadoRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class GesEmpleadoService {
 
     private final GesEmpleadoRepository empleadoRepository;
     private final GesEmpleadoPuestoRepository empleadoPuestoRepository;
 
-    public GesEmpleadoService(GesEmpleadoRepository empleadoRepository, GesEmpleadoPuestoRepository empleadoPuestoRepository) {
-        this.empleadoRepository = empleadoRepository;
-        this.empleadoPuestoRepository = empleadoPuestoRepository;
+    // ---------- Crear ----------
+    public GesEmpleado crear(GesEmpleadoRequestDTO dto) {
+        GesEmpleado empleado = new GesEmpleado();
+
+        mapDtoToEntity(dto, empleado);
+        empleado.setEstado("ACTIVO");
+        empleado.setFechaCreacion(LocalDateTime.now());
+        empleado.setFechaActualizacion(LocalDateTime.now());
+
+        return empleadoRepository.save(empleado);
     }
 
+    // ---------- Actualizar ----------
+    public GesEmpleado actualizar(Integer idEmpleado, GesEmpleadoRequestDTO dto) {
+
+        GesEmpleado empleado = empleadoRepository.findById(idEmpleado)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+        mapDtoToEntity(dto, empleado);
+        empleado.setFechaActualizacion(LocalDateTime.now());
+
+        return empleadoRepository.save(empleado);
+    }
+
+    // ---------- Obtener uno ----------
+    public GesEmpleado obtenerPorId(Integer idEmpleado) {
+        return empleadoRepository.findById(idEmpleado)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+    }
+
+    // ---------- Listar ----------
     public List<GesEmpleado> listarTodos() {
         return empleadoRepository.findAll();
+    }
+
+    // ---------- Cambiar estado a INACTIVO ----------
+    public GesEmpleado inactivar(Integer idEmpleado) {
+
+        GesEmpleado empleado = empleadoRepository.findById(idEmpleado)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+        empleado.setEstado("INACTIVO");
+        empleado.setFechaActualizacion(LocalDateTime.now());
+
+        return empleadoRepository.save(empleado);
     }
 
     public GesEmpleadoConPuestoDTO obtenerEmpleadoConPuestoDTO(Integer idEmpleado) {
@@ -94,5 +134,28 @@ public class GesEmpleadoService {
                 .map(emp -> obtenerEmpleadoConPuestoDTO(emp.getIdEmpleado()))
                 .filter(dto -> dto.getIdPuesto() != null) // seguridad extra
                 .toList();
+    }
+
+    private void mapDtoToEntity(GesEmpleadoRequestDTO dto, GesEmpleado empleado) {
+        empleado.setIdUsuario(dto.getIdUsuario());
+        empleado.setIdPostulante(dto.getIdPostulante());
+        empleado.setCodigoEmpleado(dto.getCodigoEmpleado());
+        empleado.setNombres(dto.getNombres());
+        empleado.setApellidoPaterno(dto.getApellidoPaterno());
+        empleado.setApellidoMaterno(dto.getApellidoMaterno());
+        empleado.setDocumentoIdentidad(dto.getDocumentoIdentidad());
+        empleado.setTipoDocumento(dto.getTipoDocumento());
+        empleado.setFechaNacimiento(dto.getFechaNacimiento());
+        empleado.setGenero(dto.getGenero());
+        empleado.setEstadoCivil(dto.getEstadoCivil());
+        empleado.setNacionalidad(dto.getNacionalidad());
+        empleado.setDireccion(dto.getDireccion());
+        empleado.setTelefono(dto.getTelefono());
+        empleado.setEmail(dto.getEmail());
+        empleado.setEmailCorporativo(dto.getEmailCorporativo());
+        empleado.setFechaIngreso(dto.getFechaIngreso());
+        empleado.setFechaCese(dto.getFechaCese());
+        empleado.setTipoContrato(dto.getTipoContrato());
+        empleado.setModalidadTrabajo(dto.getModalidadTrabajo());
     }
 }

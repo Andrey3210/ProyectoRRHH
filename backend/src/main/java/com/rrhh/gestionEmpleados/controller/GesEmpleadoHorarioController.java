@@ -10,6 +10,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/gempleados-horario")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class GesEmpleadoHorarioController {
 
     private final GesEmpleadoHorarioQueryService queryService;
