@@ -65,10 +65,39 @@ const Routes = () => {
         path="/vacaciones-permisos" 
         element={
           <ProtectedRoute>
-            <ComingSoon title="Gestión de Vacaciones y Permisos" />
+            <VistaAdministrador />
           </ProtectedRoute>
         } 
       />
+      {/* Ruta para el detalle */}
+      <Route 
+        path="/vacaciones/solicitud/:id" 
+        element={
+          <ProtectedRoute>
+            <DetalleSolicitudAdmin />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Ruta para crear solicitud */}
+      <Route 
+        path="/vacaciones/nueva" 
+        element={
+          <ProtectedRoute>
+            <RegistrarSolicitudAdmin />
+          </ProtectedRoute>
+        } 
+      />
+
+      <Route 
+        path="/vacaciones/mis-solicitudes" 
+        element={
+          <ProtectedRoute>
+            <VistaEmpleado />
+          </ProtectedRoute>
+        } 
+      />
+      {/* Gestion de vacaciones y permisos======================= */}
       <Route 
         path="/gestion-empleados" 
         element={
@@ -151,6 +180,7 @@ const Routes = () => {
           </ProtectedRoute>
         } 
       />
+      
     </RouterRoutes>
   )
 }

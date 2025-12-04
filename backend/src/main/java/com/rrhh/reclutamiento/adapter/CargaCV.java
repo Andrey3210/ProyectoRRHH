@@ -1,7 +1,7 @@
 package com.rrhh.reclutamiento.adapter;
 
-import com.rrhh.reclutamiento.adapter.model.CV;
+import com.rrhh.reclutamiento.adapter.model.CVAdapter;
 
 public interface CargaCV {
-    CV extraerDatos(com.rrhh.shared.domain.model.CV cv);
+    CVAdapter extraerDatos(com.rrhh.shared.domain.model.CV cv);
 }

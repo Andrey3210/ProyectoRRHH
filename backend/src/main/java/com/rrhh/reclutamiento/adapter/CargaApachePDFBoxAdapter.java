@@ -2,7 +2,7 @@ package com.rrhh.reclutamiento.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.rrhh.reclutamiento.adapter.external.ApachePDFBoxAdaptee;
-import com.rrhh.reclutamiento.adapter.model.CV;
+import com.rrhh.reclutamiento.adapter.model.CVAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,10 +21,10 @@ public class CargaApachePDFBoxAdapter implements CargaCV {
     private final ApachePDFBoxAdaptee externalTool;
 
     @Override
-    public CV extraerDatos(com.rrhh.shared.domain.model.CV cv) {
+    public CVAdapter extraerDatos(com.rrhh.shared.domain.model.CV cv) {
         if (cv == null || cv.getRutaArchivo() == null || cv.getRutaArchivo().isBlank()) {
             log.warn("CV sin ruta de archivo; se devuelve respuesta vacía");
-            return CV.vacio();
+            return CVAdapter.vacio();
         }
 
         ApachePDFBoxAdaptee.ExternalProfile perfil;
@@ -32,14 +32,14 @@ public class CargaApachePDFBoxAdapter implements CargaCV {
             perfil = externalTool.leerPerfilDesdeArchivo(Paths.get(cv.getRutaArchivo()));
         } catch (Exception e) {
             log.error("Error leyendo CV {}: {}", cv.getRutaArchivo(), e.getMessage(), e);
-            return CV.vacio();
+            return CVAdapter.vacio();
         }
 
         log.debug("Perfil extraído: formaciones {}, experiencias {}, habilidades {}", perfil.formacion().size(), perfil.experiencias().size(), perfil.habilidades().size());
 
-        List<CV.ParsedEducation> formaciones = new ArrayList<>();
+        List<CVAdapter.ParsedEducation> formaciones = new ArrayList<>();
         for (JsonNode node : perfil.formacion()) {
-            formaciones.add(new CV.ParsedEducation(
+            formaciones.add(new CVAdapter.ParsedEducation(
                     node.path("nivel").asText("No especificado"),
                     node.path("situacion").asText("EN_CURSO"),
                     node.path("carrera").asText(null),
@@ -51,9 +51,9 @@ public class CargaApachePDFBoxAdapter implements CargaCV {
             ));
         }
 
-        List<CV.ParsedExperience> experiencias = new ArrayList<>();
+        List<CVAdapter.ParsedExperience> experiencias = new ArrayList<>();
         for (JsonNode node : perfil.experiencias()) {
-            experiencias.add(new CV.ParsedExperience(
+            experiencias.add(new CVAdapter.ParsedExperience(
                     node.path("empresa").asText("Empresa no indicada"),
                     node.path("cargo").asText("Cargo no indicado"),
                     node.path("funciones").asText(null),
@@ -66,7 +66,7 @@ public class CargaApachePDFBoxAdapter implements CargaCV {
 
         log.info("Datos parseados desde CV {}: formaciones {}, experiencias {}, habilidades {}", cv.getRutaArchivo(), formaciones.size(), experiencias.size(), perfil.habilidades().size());
 
-        return new CV(formaciones, experiencias, perfil.habilidades());
+        return new CVAdapter(formaciones, experiencias, perfil.habilidades());
     }
 
     private LocalDate parseFecha(String fecha) {
