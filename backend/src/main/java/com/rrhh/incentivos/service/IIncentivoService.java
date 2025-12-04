@@ -24,4 +24,6 @@ public interface IIncentivoService {
     void aprobarMasivo(List<Integer> idsBonos);
     ReporteIncentivosDTO generarReporteAnual(String anio);
     DashboardEmpleadoDTO obtenerDashboardEmpleado(Integer idEmpleado, String periodo);
+    List<BonoDetalleNominaDTO> obtenerDetalleNominaPorPeriodo(String periodo); 
+
 }

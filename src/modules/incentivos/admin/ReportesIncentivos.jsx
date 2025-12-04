@@ -1,38 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Box,
-  AppBar,
-  Toolbar,
-  Button,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Typography,
-  Container,
-  Paper,
-  Tabs,
-  Tab,
-  TextField,
-  Select,
-  InputAdornment,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Chip,
-  Grid,
-  FormControl,
-  InputLabel,
-  CssBaseline,
-  CircularProgress,
-  Tooltip,
-  Card,
-  CardContent
+    Box, AppBar, Toolbar, Button, Menu, MenuItem, ListItemIcon, ListItemText,
+    Typography, Container, Paper, TextField, Select, InputAdornment,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    IconButton, Chip, Grid, FormControl, InputLabel, CssBaseline, CircularProgress,
+    Tooltip, Alert, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 
 // --- ICONOS ---
@@ -43,386 +16,481 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import RuleIcon from '@mui/icons-material/Rule';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import SearchIcon from '@mui/icons-material/Search';
+import AssessmentIcon from '@mui/icons-material/Assessment'; // Usado para el título del reporte
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import TableViewIcon from '@mui/icons-material/TableView'; // Icono Excel
+import TableViewIcon from '@mui/icons-material/TableView';
 import DownloadIcon from '@mui/icons-material/Download';
-import SecurityIcon from '@mui/icons-material/Security';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import GroupIcon from '@mui/icons-material/Group';
+
+
+// --- LIBRERÍAS EXTERNAS (Asumidas disponibles) ---
+const jsPDF = typeof window !== 'undefined' && window.jsPDF; 
+
+// --- SERVICIOS ---
+// CORRECCIÓN: Ajuste de la ruta relativa.
+// Si el archivo está en src/modules/incentivos/ y el servicio en src/services/, la ruta debería ser:
+import { incentivoService} from '../../../services/incentivoService';
 
 // ==========================================
-// 1. NAVBAR (Reutilizado)
+// 1. NAVBAR (Mantenido)
 // ==========================================
 const NavbarAdmin = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [anchorElConfig, setAnchorElConfig] = useState(null);
-  const [anchorElGestion, setAnchorElGestion] = useState(null);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [anchorElConfig, setAnchorElConfig] = useState(null);
+    const [anchorElGestion, setAnchorElGestion] = useState(null);
 
-  const handleOpenConfig = (event) => setAnchorElConfig(event.currentTarget);
-  const handleCloseConfig = () => setAnchorElConfig(null);
-  const handleOpenGestion = (event) => setAnchorElGestion(event.currentTarget);
-  const handleCloseGestion = () => setAnchorElGestion(null);
+    const handleOpenConfig = (event) => setAnchorElConfig(event.currentTarget);
+    const handleCloseConfig = () => setAnchorElConfig(null);
+    const handleOpenGestion = (event) => setAnchorElGestion(event.currentTarget);
+    const handleCloseGestion = () => setAnchorElGestion(null);
 
-  const handleNavigate = (path) => {
-    navigate(path);
-    handleCloseConfig();
-    handleCloseGestion();
-  };
+    const handleNavigate = (path) => {
+        const base = '/incentivos-reconocimientos/admin';
+        navigate(base + path);
+        handleCloseConfig();
+        handleCloseGestion();
+    };
 
-  const getButtonStyle = (path) => ({
-    textTransform: 'none',
-    fontWeight: location.pathname.includes(path) ? 'bold' : 'medium',
-    color: location.pathname.includes(path) ? '#2563EB' : '#4B5563',
-    mx: 1,
-    '&:hover': { backgroundColor: '#EFF6FF', color: '#2563EB' }
-  });
+    const getButtonStyle = (path) => ({
+        textTransform: 'none',
+        fontWeight: location.pathname.includes(path) ? 'bold' : 'medium',
+        color: location.pathname.includes(path) ? '#2563EB' : '#4B5563',
+        mx: 1,
+        '&:hover': { backgroundColor: '#EFF6FF', color: '#2563EB' }
+    });
 
-  return (
-    <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '1px solid #E5E7EB', bgcolor: 'white' }}>
-      <Toolbar variant="dense">
-        <Button startIcon={<DashboardIcon />} onClick={() => navigate('/incentivos-reconocimientos/admin/dashboard')} sx={getButtonStyle('/dashboard')}>
-          Dashboard
-        </Button>
-        <Box>
-          <Button startIcon={<SettingsIcon />} endIcon={<KeyboardArrowDownIcon />} onClick={handleOpenConfig} sx={getButtonStyle('/reglas')}>
-            Configuración
-          </Button>
-          <Menu anchorEl={anchorElConfig} open={Boolean(anchorElConfig)} onClose={handleCloseConfig}>
-            <MenuItem onClick={() => handleNavigate('/incentivos-reconocimientos/admin/reglas')}>
-              <ListItemIcon><RuleIcon fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Reglas de Incentivos" />
-            </MenuItem>
-            <MenuItem onClick={() => handleNavigate('/incentivos-reconocimientos/admin/metas')}>
-              <ListItemIcon><TrackChangesIcon fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Metas del Periodo" />
-            </MenuItem>
-          </Menu>
-        </Box>
-        <Box>
-          <Button startIcon={<PaidIcon />} endIcon={<KeyboardArrowDownIcon />} onClick={handleOpenGestion} sx={getButtonStyle('/gestion')}>
-            Gestión
-          </Button>
-          <Menu anchorEl={anchorElGestion} open={Boolean(anchorElGestion)} onClose={handleCloseGestion}>
-            <MenuItem onClick={() => handleNavigate('/incentivos-reconocimientos/admin/aprobaciones')}>
-              <ListItemIcon><CheckCircleIcon fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Aprobar Bonos" />
-            </MenuItem>
-            <MenuItem onClick={() => handleNavigate('/incentivos-reconocimientos/admin/reportes')}>
-              <ListItemIcon><AssessmentIcon fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Reportes" />
-            </MenuItem>
-          </Menu>
-        </Box>
-      </Toolbar>
-    </AppBar>
-  );
+    return (
+        <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '1px solid #E5E7EB', bgcolor: 'white' }}>
+            <Toolbar variant="dense">
+                <Button startIcon={<DashboardIcon />} onClick={() => navigate('/incentivos-reconocimientos/admin/dashboard')} sx={getButtonStyle('/dashboard')}>
+                    Dashboard
+                </Button>
+                <Box>
+                    <Button startIcon={<SettingsIcon />} endIcon={<KeyboardArrowDownIcon />} onClick={handleOpenConfig} sx={getButtonStyle('/reglas')}>
+                        Configuración
+                    </Button>
+                    <Menu anchorEl={anchorElConfig} open={Boolean(anchorElConfig)} onClose={handleCloseConfig}>
+                        <MenuItem onClick={() => handleNavigate('/reglas')}>
+                            <ListItemIcon><RuleIcon fontSize="small" /></ListItemIcon>
+                            <ListItemText primary="Reglas de Incentivos" />
+                        </MenuItem>
+                        <MenuItem onClick={() => handleNavigate('/metas')}>
+                            <ListItemIcon><TrackChangesIcon fontSize="small" /></ListItemIcon>
+                            <ListItemText primary="Metas del Periodo" />
+                        </MenuItem>
+                    </Menu>
+                </Box>
+                <Box>
+                    <Button startIcon={<PaidIcon />} endIcon={<KeyboardArrowDownIcon />} onClick={handleOpenGestion} sx={getButtonStyle('/reportes')}>
+                        Gestión
+                    </Button>
+                    <Menu anchorEl={anchorElGestion} open={Boolean(anchorElGestion)} onClose={handleCloseGestion}>
+                        <MenuItem onClick={() => handleNavigate('/aprobaciones')}>
+                            <ListItemIcon><CheckCircleIcon fontSize="small" /></ListItemIcon>
+                            <ListItemText primary="Aprobar Bonos" />
+                        </MenuItem>
+                        <MenuItem onClick={() => handleNavigate('/reportes')}>
+                            <ListItemIcon><AssessmentIcon fontSize="small" /></ListItemIcon>
+                            <ListItemText primary="Reportes" />
+                        </MenuItem>
+                    </Menu>
+                </Box>
+            </Toolbar>
+        </AppBar>
+    );
 };
 
 // ==========================================
-// 2. DATOS MOCK
-// ==========================================
-// Datos para el gráfico de barras (Financiero)
-const chartData2025 = [
-  { month: 'Ene', sales: 35000, support: 15000 },
-  { month: 'Feb', sales: 38000, support: 16000 },
-  { month: 'Mar', sales: 42000, support: 18000 },
-  { month: 'Abr', sales: 40000, support: 17000 },
-  { month: 'May', sales: 45000, support: 19000 },
-  { month: 'Jun', sales: 48000, support: 20000 },
-  { month: 'Jul', sales: 46000, support: 19500 },
-  { month: 'Ago', sales: 49000, support: 21000 },
-  { month: 'Sep', sales: 52000, support: 22000 },
-  { month: 'Oct', sales: 55000, support: 23000 },
-  { month: 'Nov', sales: 45280, support: 18000 }, // Actual
-];
-
-// Datos para la tabla de detalle (Financiero)
-const financialReports = [
-  { id: 1, periodo: 'Nov 2025', concepto: 'Nómina Incentivos', beneficiarios: 87, monto: 63280.00, estado: 'pendiente' },
-  { id: 2, periodo: 'Oct 2025', concepto: 'Nómina Incentivos', beneficiarios: 85, monto: 78000.00, estado: 'pagado' },
-  { id: 3, periodo: 'Sep 2025', concepto: 'Nómina Incentivos', beneficiarios: 82, monto: 74000.00, estado: 'pagado' },
-  { id: 4, periodo: 'Anual 2025', concepto: 'Consolidado YTD', beneficiarios: 145, monto: 680500.00, estado: 'informativo' },
-];
-
-// Datos para Auditoría
-const auditLogs = [
-  { id: 1, fecha: '01/12/2025 14:30:05', usuario: 'Andrés G. (Admin)', accion: 'APROBAR_BONO', detalle: 'Aprobó bono #8821 de Juan Pérez (S/ 1200)', tipo: 'success' },
-  { id: 2, fecha: '01/12/2025 14:15:22', usuario: 'Sistema', accion: 'SYNC_API_ERROR', detalle: 'Timeout al conectar con ERP SAP', tipo: 'error' },
-  { id: 3, fecha: '01/12/2025 10:00:00', usuario: 'Maria R. (Admin)', accion: 'CREAR_REGLA', detalle: 'Creó Regla #105 "Navidad"', tipo: 'info' },
-  { id: 4, fecha: '30/11/2025 18:45:10', usuario: 'Andrés G. (Admin)', accion: 'RECHAZAR_BONO', detalle: 'Rechazó bono #8819. Motivo: Evidencia ilegible', tipo: 'warning' },
-  { id: 5, fecha: '30/11/2025 09:00:00', usuario: 'Sistema', accion: 'CALCULO_MASIVO', detalle: 'Inició proceso de cálculo Noviembre 2025', tipo: 'info' },
-];
-
-// ==========================================
-// 3. COMPONENTE PRINCIPAL
+// 2. COMPONENTE PRINCIPAL
 // ==========================================
 const ReportesIncentivos = () => {
-  const [tabValue, setTabValue] = useState(0); // 0: Financiero, 1: Rendimiento, 2: Auditoría
-  const [isExporting, setIsExporting] = useState({ pdf: false, excel: false });
-  const [filterDept, setFilterDept] = useState('Todos');
+    const [reportData, setReportData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [anio, setAnio] = useState('2025'); 
+    const [isExporting, setIsExporting] = useState({ pdf: false, excel: false });
+    const [filterDept, setFilterDept] = useState('Todos'); 
+    const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+    
+    // Estado para el Modal de Detalle de Periodo
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [selectedPeriodDetail, setSelectedPeriodDetail] = useState(null);
+    const [loadingDetail, setLoadingDetail] = useState(false); // Nuevo estado para la carga del modal
 
-  const handleExport = (type) => {
-    setIsExporting(prev => ({ ...prev, [type]: true }));
-    // Simular retardo de red
-    setTimeout(() => {
-      setIsExporting(prev => ({ ...prev, [type]: false }));
-      // Aquí iría la lógica real de descarga
-    }, 2000);
-  };
 
-  const getMaxHeight = () => {
-    const maxVal = Math.max(...chartData2025.map(d => d.sales + d.support));
-    return maxVal;
-  };
-  const maxVal = getMaxHeight();
+    // --- Carga de datos del Backend ---
+    const fetchReportData = async () => {
+        setLoading(true);
+        try {
+            const data = await incentivoService.generarReporteAnual(anio);
+            setReportData(data);
+        } catch (error) {
+            console.error("Error al cargar reporte anual:", error);
+            setNotification({ open: true, message: 'Error al cargar datos del reporte anual.', severity: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  // Renderizado Condicional del Panel Principal
-  const renderMainContent = () => {
-    if (tabValue === 2) {
-      // --- VISTA AUDITORÍA ---
-      return (
-        <Box>
-          <Paper elevation={0} sx={{ p: 0, border: '1px solid #E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
-            <Box sx={{ p: 2, bgcolor: '#F9FAFB', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <SecurityIcon color="primary" /> LOG DE AUDITORÍA Y SEGURIDAD
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField 
-                  size="small" 
-                  placeholder="Buscar por usuario..." 
-                  InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }}
-                  sx={{ bgcolor: 'white' }}
-                />
-                <Button variant="outlined" startIcon={<CalendarMonthIcon />} size="small" sx={{ bgcolor: 'white' }}>
-                  Últimos 30 días
-                </Button>
-              </Box>
-            </Box>
-            <TableContainer>
-              <Table size="small">
-                <TableHead sx={{ bgcolor: '#F3F4F6' }}>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold' }}>FECHA/HORA</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>USUARIO (ADMIN)</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>ACCIÓN</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>DETALLE</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {auditLogs.map((log) => (
-                    <TableRow key={log.id} hover>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{log.fecha}</TableCell>
-                      <TableCell>{log.usuario}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={log.accion} 
-                          size="small" 
-                          color={log.tipo === 'error' ? 'error' : log.tipo === 'warning' ? 'warning' : log.tipo === 'success' ? 'success' : 'default'} 
-                          variant="outlined"
-                          sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{log.detalle}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Box sx={{ p: 1.5, borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'center' }}>
-              <Button size="small">Ver historial completo</Button>
-            </Box>
-          </Paper>
-        </Box>
-      );
-    }
+    useEffect(() => {
+        fetchReportData();
+    }, [anio]);
+    
+    // --- Lógica de Gráfico (Consolida la data del Backend) ---
+    const chartData = useMemo(() => {
+        if (!reportData) return [];
+        return reportData.etiquetasMeses.map((month, index) => ({
+            month,
+            sales: reportData.dataVentas[index] ? parseFloat(reportData.dataVentas[index]) : 0,
+            support: reportData.dataAtencion[index] ? parseFloat(reportData.dataAtencion[index]) : 0,
+        }));
+    }, [reportData]);
 
-    // --- VISTA FINANCIERA / RENDIMIENTO (Default) ---
-    return (
-      <Grid container spacing={3}>
-        {/* GRÁFICO DE TENDENCIA */}
-        <Grid item xs={12}>
-          <Paper elevation={0} sx={{ p: 3, border: '1px solid #E5E7EB', borderRadius: 2 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <TrendingUpIcon color="action" /> TENDENCIA DE GASTO EN INCENTIVOS (2025)
-            </Typography>
-            <Box sx={{ mt: 4, height: 300, display: 'flex', alignItems: 'flex-end', gap: 2, px: 2 }}>
-              {/* Eje Y (Simplificado) */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', pb: 3, mr: 1 }}>
-                <Typography variant="caption" color="text.secondary">S/ 80k</Typography>
-                <Typography variant="caption" color="text.secondary">S/ 40k</Typography>
-                <Typography variant="caption" color="text.secondary">S/ 0</Typography>
-              </Box>
-              
-              {/* Barras */}
-              {chartData2025.map((data, index) => {
-                const heightSales = (data.sales / maxVal) * 100;
-                const heightSupport = (data.support / maxVal) * 100;
-                return (
-                  <Box key={index} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', height: '100%' }}>
-                    <Tooltip title={`Ventas: S/ ${data.sales.toLocaleString()} | Atención: S/ ${data.support.toLocaleString()}`}>
-                      <Box sx={{ width: '60%', display: 'flex', flexDirection: 'column-reverse', height: '100%', cursor: 'pointer', transition: 'opacity 0.2s', '&:hover': { opacity: 0.8 } }}>
-                        {/* Segmento Ventas (Azul) */}
-                        <Box sx={{ height: `${heightSales}%`, bgcolor: '#2563EB', width: '100%', borderRadius: '2px 2px 0 0' }} />
-                        {/* Segmento Soporte (Verde) */}
-                        <Box sx={{ height: `${heightSupport}%`, bgcolor: '#10B981', width: '100%' }} />
-                      </Box>
-                    </Tooltip>
-                    <Typography variant="caption" sx={{ mt: 1, fontWeight: 'bold', color: 'text.secondary' }}>{data.month}</Typography>
-                  </Box>
-                );
-              })}
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, bgcolor: '#2563EB', borderRadius: '50%' }} />
-                <Typography variant="caption">Ventas</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, bgcolor: '#10B981', borderRadius: '50%' }} />
-                <Typography variant="caption">Atención</Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
+    const getMaxHeight = () => {
+        if (!chartData || chartData.length === 0) return 1;
+        const maxVal = Math.max(...chartData.map(d => d.sales + d.support));
+        return maxVal > 0 ? maxVal : 1;
+    };
+    const maxVal = getMaxHeight();
 
-        {/* TABLA DE DETALLE (Export Preview) */}
-        <Grid item xs={12}>
-          <Paper elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
-            <Box sx={{ p: 2, bgcolor: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
-              <Typography variant="subtitle1" fontWeight="bold">Tabla de Detalle (Vista Previa de Exportación)</Typography>
-            </Box>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }}>PERIODO</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }}>CONCEPTO DE PAGO</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }} align="center">N° BENEFICIARIOS</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }} align="right">MONTO TOTAL</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }}>ESTADO PAGO</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }} align="center">ACCIONES</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {financialReports.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell fontWeight="medium">{row.periodo}</TableCell>
-                      <TableCell>{row.concepto}</TableCell>
-                      <TableCell align="center">{row.beneficiarios} Empleados</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>S/ {row.monto.toLocaleString()}</TableCell>
-                      <TableCell>
-                        {row.estado === 'pendiente' && <Chip label="Pendiente" size="small" color="warning" sx={{ bgcolor: '#FFFBEB', color: '#B45309' }} />}
-                        {row.estado === 'pagado' && <Chip label="Pagado" size="small" color="primary" sx={{ bgcolor: '#EFF6FF', color: '#1E40AF' }} />}
-                        {row.estado === 'informativo' && <Typography variant="caption" color="text.secondary">--</Typography>}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Button variant="outlined" size="small" startIcon={<DownloadIcon />} sx={{ textTransform: 'none' }}>
-                          Descargar
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-      </Grid>
-    );
-  };
+    // --- Filtrado local de la tabla de detalle (Nómina) ---
+    const filteredReports = useMemo(() => {
+        if (!reportData || !reportData.tablaDetalle) return [];
+        return reportData.tablaDetalle; 
+    }, [reportData]);
 
-  return (
-    <Box sx={{ bgcolor: '#F3F4F6', minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
-      <CssBaseline />
-      <NavbarAdmin />
+    // --- MANEJADORES DE ACCIÓN ---
 
-      <Container maxWidth={false} sx={{ mt: 3, mb: 4, px: { xs: 2, md: 4 } }}>
+    const handleOpenDetailModal = async (periodoConsolidado, numBeneficiarios) => {
+        setLoadingDetail(true);
+        setDetailModalOpen(true);
+        setSelectedPeriodDetail({
+            periodo: periodoConsolidado,
+            numBeneficiarios,
+            empleados: [],
+            totalMonto: 0
+        });
+
+   
+        const monthIndex = reportData.etiquetasMeses.indexOf(periodoConsolidado.split(' ')[0]) + 1;
+        const anioPart = periodoConsolidado.split(' ')[1];
+        const periodoKey = anioPart + '-' + monthIndex.toString().padStart(2, '0');
         
-        {/* 2. SELECTOR DE TIPO DE REPORTE (Navegación Secundaria) */}
-        <Box sx={{ mb: 3 }}>
-          <Tabs 
-            value={tabValue} 
-            onChange={(e, v) => setTabValue(v)}
-            sx={{ 
-              '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' },
-              '& .MuiTab-root': { textTransform: 'none', fontWeight: 'bold', fontSize: '1rem', minHeight: 48 }
-            }}
-          >
-            <Tab 
-              icon={<AttachMoneyIcon />} 
-              iconPosition="start" 
-              label="Financiero / Nómina" 
-            />
-            <Tab 
-              icon={<AssessmentIcon />} 
-              iconPosition="start" 
-              label="Rendimiento / KPIs" 
-            />
-            <Tab 
-              icon={<SecurityIcon />} 
-              iconPosition="start" 
-              label="Auditoría del Sistema" 
-            />
-          </Tabs>
-          <Box sx={{ borderBottom: '1px solid #E5E7EB', mt: -0.1 }} />
+        try {
+            // Llama al nuevo endpoint del backend
+            const empleadosDetalle = await incentivoService.obtenerDetalleBonosPorPeriodo(periodoKey);
+
+            const totalMonto = empleadosDetalle.reduce((sum, emp) => sum + parseFloat(emp.monto), 0);
+
+            setSelectedPeriodDetail(prev => ({
+                ...prev,
+                empleados: empleadosDetalle,
+                totalMonto: totalMonto
+            }));
+
+        } catch (error) {
+            console.error("Error fetching detail:", error);
+            setNotification({ open: true, message: `Error al cargar detalle para ${periodoConsolidado}.`, severity: 'error' });
+            setSelectedPeriodDetail(prev => ({ ...prev, empleados: [], totalMonto: 0 }));
+        } finally {
+            setLoadingDetail(false);
+        }
+    };
+
+    const handleExport = (type) => {
+        setIsExporting(prev => ({ ...prev, [type]: true }));
+        setNotification({ open: true, message: `Iniciando exportación a ${type.toUpperCase()}...`, severity: 'info' });
+
+        if (type === 'pdf') {
+            exportPdf();
+        } 
+        
+        setTimeout(() => {
+            setIsExporting(prev => ({ ...prev, [type]: false }));
+            if (type !== 'pdf') {
+                setNotification({ open: true, message: `Exportación a ${type.toUpperCase()} finalizada.`, severity: 'success' });
+            }
+        }, 2000);
+    };
+
+    // --- LÓGICA DE EXPORTACIÓN A PDF (Mantenida) ---
+    const exportPdf = () => {
+        if (!jsPDF) {
+            setNotification({ open: true, message: "Librería jsPDF no disponible. Instala jspdf y jspdf-autotable para esta función.", severity: 'error' });
+            return;
+        }
+
+        const doc = new jsPDF({ orientation: 'landscape' });
+        
+        const headers = [
+            ["PERIODO", "CONCEPTO", "N° BENEFICIARIOS", "MONTO TOTAL (S/)", "ESTADO PAGO"]
+        ];
+
+        const body = filteredReports.map(row => [
+            row.periodo,
+            row.concepto,
+            row.numBeneficiarios,
+            `S/ ${parseFloat(row.montoTotal).toLocaleString('es-PE', { minimumFractionDigits: 2 })}`,
+            row.estadoPago
+        ]);
+
+        doc.setFontSize(18);
+        doc.text(`Reporte Anual de Nómina de Incentivos - ${anio}`, 14, 22);
+
+        doc.autoTable({
+            startY: 30,
+            head: headers,
+            body: body,
+            theme: 'striped',
+            styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+            headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+            columnStyles: {
+                3: { halign: 'right' },
+                2: { halign: 'center' }
+            }
+        });
+
+        doc.save(`Reporte_Incentivos_${anio}.pdf`);
+    };
+
+    // Renderizado del Contenido Principal
+    const renderMainContent = () => {
+        if (loading) {
+            return <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>;
+        }
+        
+        return (
+            <Grid container spacing={3}>
+                {/* GRÁFICO DE TENDENCIA */}
+                <Grid item xs={12}>
+                    <Paper elevation={0} sx={{ p: 3, border: '1px solid #E5E7EB', borderRadius: 2 }}>
+                        <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TrendingUpIcon color="action" /> TENDENCIA DE GASTO EN INCENTIVOS ({anio})
+                        </Typography>
+                        <Box sx={{ mt: 4, height: 300, display: 'flex', alignItems: 'flex-end', gap: 2, px: 2 }}>
+                            {/* Eje Y (Simplificado) */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', pb: 3, mr: 1, position: 'relative', width: 40 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ position: 'absolute', top: 0, left: 0 }}>S/ {Math.round(maxVal).toLocaleString()}</Typography>
+                                <Typography variant="caption" color="text.secondary" sx={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', left: 0 }}>S/ {Math.round(maxVal / 2).toLocaleString()}</Typography>
+                                <Typography variant="caption" color="text.secondary" sx={{ position: 'absolute', bottom: 0, left: 0 }}>S/ 0</Typography>
+                            </Box>
+                            
+                            {/* Barras */}
+                            <Box sx={{ display: 'flex', flexGrow: 1, height: '100%', alignItems: 'flex-end', gap: 2 }}>
+                                {chartData.map((data, index) => {
+                                    const totalMonth = data.sales + data.support;
+                                    const heightSales = (data.sales / maxVal) * 100;
+                                    const heightSupport = (data.support / maxVal) * 100;
+                                    return (
+                                        <Box key={index} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', height: '100%' }}>
+                                            <Tooltip title={`Ventas: S/ ${data.sales.toLocaleString()} | Atención: S/ ${data.support.toLocaleString()} | Total: S/ ${totalMonth.toLocaleString()}`}>
+                                                <Box sx={{ width: '60%', display: 'flex', flexDirection: 'column-reverse', height: '100%', cursor: 'pointer', transition: 'opacity 0.2s', '&:hover': { opacity: 0.8 } }}>
+                                                    <Box sx={{ height: `${heightSales}%`, bgcolor: '#2563EB', width: '100%', borderRadius: '2px 2px 0 0' }} />
+                                                    <Box sx={{ height: `${heightSupport}%`, bgcolor: '#10B981', width: '100%' }} />
+                                                </Box>
+                                            </Tooltip>
+                                            <Typography variant="caption" sx={{ mt: 1, fontWeight: 'bold', color: 'text.secondary' }}>{data.month}</Typography>
+                                        </Box>
+                                    );
+                                })}
+                            </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box sx={{ width: 12, height: 12, bgcolor: '#2563EB', borderRadius: '50%' }} />
+                                <Typography variant="caption">Ventas</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box sx={{ width: 12, height: 12, bgcolor: '#10B981', borderRadius: '50%' }} />
+                                <Typography variant="caption">Atención</Typography>
+                            </Box>
+                        </Box>
+                    </Paper>
+                </Grid>
+
+                {/* TABLA DE DETALLE (Nómina) */}
+                <Grid item xs={12}>
+                    <Paper elevation={0} sx={{ border: '1px solid #E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
+                        <Box sx={{ p: 2, bgcolor: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+                            <Typography variant="subtitle1" fontWeight="bold">Detalle de Nómina de Incentivos por Período</Typography>
+                        </Box>
+                        <TableContainer>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }}>PERIODO</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }}>CONCEPTO</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }} align="center">N° BENEFICIARIOS</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }} align="right">MONTO TOTAL</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }}>ESTADO PAGO</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: '#6B7280' }} align="center">ACCIONES</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {filteredReports.length > 0 ? filteredReports.map((row) => (
+                                        <TableRow key={row.periodo}>
+                                            <TableCell fontWeight="medium">{row.periodo}</TableCell>
+                                            <TableCell>{row.concepto}</TableCell>
+                                            <TableCell align="center">{row.numBeneficiarios} Empleados</TableCell>
+                                            <TableCell align="right" sx={{ fontWeight: 'bold' }}>S/ {parseFloat(row.montoTotal).toLocaleString()}</TableCell>
+                                            <TableCell>
+                                                {row.estadoPago === 'Pendiente' && <Chip label="Pendiente" size="small" color="warning" sx={{ bgcolor: '#FFFBEB', color: '#B45309' }} />}
+                                                {row.estadoPago === 'Pagado' && <Chip label="Pagado" size="small" color="primary" sx={{ bgcolor: '#EFF6FF', color: '#1E40AF' }} />}
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                <Tooltip title="Ver detalle de empleados">
+                                                    <IconButton 
+                                                        size="small" 
+                                                        color="primary" 
+                                                        onClick={() => handleOpenDetailModal(row.periodo, row.numBeneficiarios)}
+                                                    >
+                                                        <VisibilityIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </TableCell>
+                                        </TableRow>
+                                    )) : (
+                                        <TableRow><TableCell colSpan={6} align="center" sx={{ py: 3 }}>No hay datos de nómina para el año {anio}.</TableCell></TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Paper>
+                </Grid>
+            </Grid>
+        );
+    };
+
+    return (
+        <Box sx={{ bgcolor: '#F3F4F6', minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
+            <CssBaseline />
+            <NavbarAdmin />
+
+            <Container maxWidth="xl" sx={{ mt: 3, mb: 4, px: { xs: 2, md: 4 } }}>
+                
+                {/* 2. TÍTULO PRINCIPAL (Única Pestaña: Nomina Financiera) */}
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AttachMoneyIcon /> Reporte Financiero de Nómina Anual
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Visualización de la tendencia de gasto y consolidado de pagos de incentivos.
+                    </Typography>
+                    <Box sx={{ borderBottom: '1px solid #E5E7EB', mt: 2 }} />
+                </Box>
+
+                {/* 3. BARRA DE FILTROS Y EXPORTACIÓN */}
+                <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid #E5E7EB', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', border: '1px solid #D1D5DB', borderRadius: 1, px: 1, py: 0.5, bgcolor: '#F9FAFB' }}>
+                            <Typography variant="body2" fontWeight="bold" color="text.secondary" sx={{ mr: 1 }}>Año Fiscal:</Typography>
+                            <FormControl size="small" sx={{ minWidth: 100, bgcolor: 'white' }}>
+                                <Select value={anio} onChange={(e) => setAnio(e.target.value)} displayEmpty>
+                                    <MenuItem value="2025">2025</MenuItem>
+                                    <MenuItem value="2024">2024</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Box>
+                        
+                        <FormControl size="small" sx={{ minWidth: 200 }}>
+                            <Select value={filterDept} onChange={(e) => setFilterDept(e.target.value)} displayEmpty>
+                                <MenuItem value="Todos">Todos los Departamentos</MenuItem>
+                                <MenuItem value="Ventas">Ventas</MenuItem>
+                                <MenuItem value="Atención">Atención</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button 
+                            variant="outlined" 
+                            color="error" 
+                            startIcon={isExporting.pdf ? <CircularProgress size={20} color="inherit" /> : <PictureAsPdfIcon />}
+                            disabled={isExporting.pdf || loading}
+                            onClick={() => handleExport('pdf')}
+                            sx={{ bgcolor: '#FEF2F2', borderColor: '#FECACA', color: '#DC2626', '&:hover': { bgcolor: '#FEE2E2', borderColor: '#FCA5A5' } }}
+                        >
+                            {isExporting.pdf ? 'Generando PDF...' : 'PDF'}
+                        </Button>
+                        <Button 
+                            variant="contained" 
+                            color="success" 
+                            startIcon={isExporting.excel ? <CircularProgress size={20} color="inherit" /> : <TableViewIcon />}
+                            disabled={isExporting.excel || loading}
+                            onClick={() => handleExport('excel')}
+                            sx={{ bgcolor: '#10B981', '&:hover': { bgcolor: '#059669' } }}
+                        >
+                            {isExporting.excel ? 'Procesando Excel...' : 'Excel'}
+                        </Button>
+                    </Box>
+                </Paper>
+
+                {/* 4. PANEL DE VISUALIZACIÓN */}
+                {renderMainContent()}
+
+            </Container>
+            <Snackbar open={notification.open} autoHideDuration={4000} onClose={() => setNotification({...notification, open:false})}>
+                <Alert severity={notification.severity} onClose={() => setNotification({...notification, open:false})}>
+                    {notification.message}
+                </Alert>
+            </Snackbar>
+
+            {/* MODAL DE DETALLE DE EMPLEADOS POR PERIODO */}
+            <Dialog open={detailModalOpen} onClose={() => setDetailModalOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ borderBottom: '1px solid #E5E7EB' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <GroupIcon color="primary" />
+                        <Typography variant="h6" fontWeight="bold">
+                            Beneficiarios de Incentivos - {selectedPeriodDetail?.periodo}
+                        </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                        {selectedPeriodDetail?.numBeneficiarios} empleados recibieron un total de S/ {selectedPeriodDetail?.empleados?.reduce((sum, emp) => sum + parseFloat(emp.monto), 0).toLocaleString()}
+                    </Typography>
+                </DialogTitle>
+                <DialogContent>
+                    {loadingDetail ? (
+                        <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}>
+                            <CircularProgress size={30} />
+                        </Box>
+                    ) : selectedPeriodDetail?.empleados.length > 0 ? (
+                        <TableContainer component={Paper} elevation={0} variant="outlined">
+                            <Table size="small">
+                                <TableHead sx={{ bgcolor: '#F9FAFB' }}>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>EMPLEADO</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>CONCEPTO</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }} align="right">MONTO</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>ESTADO</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {selectedPeriodDetail?.empleados.map((emp) => (
+                                        <TableRow key={emp.idBono}>
+                                            <TableCell>{emp.nombreEmpleado}</TableCell>
+                                            <TableCell>{emp.concepto}</TableCell>
+                                            <TableCell align="right">S/ {parseFloat(emp.monto).toLocaleString()}</TableCell>
+                                            <TableCell>
+                                                <Chip label={emp.estado} size="small" color={emp.estado === 'PENDIENTE' ? 'warning' : 'primary'} />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    ) : (
+                        <Alert severity="info">No se encontraron detalles de bonos para este período.</Alert>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDetailModalOpen(false)}>Cerrar</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
-
-        {/* 3. BARRA DE FILTROS DE GENERACIÓN (Solo visible si no es Auditoría, o adaptada) */}
-        {tabValue !== 2 && (
-          <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid #E5E7EB', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', border: '1px solid #D1D5DB', borderRadius: 1, px: 1, py: 0.5, bgcolor: '#F9FAFB' }}>
-                <Typography variant="body2" fontWeight="bold" color="text.secondary" sx={{ mr: 1 }}>Periodo:</Typography>
-                <Typography variant="body2" fontWeight="medium">[ Ene 2025 ] ➔ [ Dic 2025 ]</Typography>
-                <IconButton size="small"><FilterAltIcon fontSize="small" /></IconButton>
-              </Box>
-              
-              <FormControl size="small" sx={{ minWidth: 200 }}>
-                <Select value={filterDept} onChange={(e) => setFilterDept(e.target.value)} displayEmpty>
-                  <MenuItem value="Todos">Todos los Departamentos</MenuItem>
-                  <MenuItem value="Ventas">Ventas</MenuItem>
-                  <MenuItem value="Atención">Atención</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button 
-                variant="outlined" 
-                color="error" 
-                startIcon={isExporting.pdf ? <CircularProgress size={20} color="inherit" /> : <PictureAsPdfIcon />}
-                disabled={isExporting.pdf}
-                onClick={() => handleExport('pdf')}
-                sx={{ bgcolor: '#FEF2F2', borderColor: '#FECACA', color: '#DC2626', '&:hover': { bgcolor: '#FEE2E2', borderColor: '#FCA5A5' } }}
-              >
-                {isExporting.pdf ? 'Generando...' : 'PDF'}
-              </Button>
-              <Button 
-                variant="contained" 
-                color="success" 
-                startIcon={isExporting.excel ? <CircularProgress size={20} color="inherit" /> : <TableViewIcon />}
-                disabled={isExporting.excel}
-                onClick={() => handleExport('excel')}
-                sx={{ bgcolor: '#10B981', '&:hover': { bgcolor: '#059669' } }}
-              >
-                {isExporting.excel ? 'Procesando...' : 'Excel'}
-              </Button>
-            </Box>
-          </Paper>
-        )}
-
-        {/* 4. y 5. PANEL DE VISUALIZACIÓN */}
-        {renderMainContent()}
-
-      </Container>
-    </Box>
-  );
+    );
 };
 
 export default ReportesIncentivos;

@@ -14,7 +14,6 @@ public class FabricaVentas implements FabricaIncentivos {
     @Override
     public ReglaIncentivo crearRegla() {
         ReglaVentas regla = new ReglaVentas();
-        regla.setCategoria("VENTAS");
         return regla;
     }
 

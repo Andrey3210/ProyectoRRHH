@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "reglas_incentivos")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "tipo_familia", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "id_tipo_incentivo", discriminatorType = DiscriminatorType.STRING)
 public abstract class ReglaIncentivo { // <-- Abstracta
 
     @Id
@@ -34,8 +34,6 @@ public abstract class ReglaIncentivo { // <-- Abstracta
     @Column(name = "activo")
     private Boolean activo;
 
-    @Column(name = "categoria") // "VENTAS" o "ATENCION"
-    private String categoria;
 
     @Column(name = "descripcion_recompensa")
     private String descripcionRecompensa;

@@ -17,7 +17,7 @@ public interface BonoRepository extends JpaRepository<Bono, Integer> {
     List<Bono> findByEmpleadoIdEmpleado(Integer idEmpleado);
 
     List<Bono> findByEmpleadoIdEmpleadoAndPeriodo(Integer idEmpleado, String periodo);
-
+    List<Bono> findByPeriodo(String periodo);
     @Query("SELECT b FROM Bono b WHERE b.estado = 'PENDIENTE'")
     List<Bono> findBonosPendientes();
     @Query("SELECT SUM(b.monto) FROM Bono b WHERE b.periodo = :periodo")

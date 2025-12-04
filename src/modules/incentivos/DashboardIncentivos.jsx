@@ -92,14 +92,12 @@ const DashboardIncentivos = () => {
     presupuestoPorArea: { Ventas: 0, "Atención al Cliente": 0, Otros: 0 }
   });
 
-  // --- CONEXIÓN CON BACKEND ---
   useEffect(() => {
     const fetchData = async () => {
       try {
         const user = authService.getCurrentUser(); 
         const token = user?.token || localStorage.getItem('token'); 
 
-        // CAMBIO REALIZADO: Periodo actualizado a '2025-12'
         const response = await axios.get('http://localhost:8080/api/incentivos/admin/dashboard', {
           params: { periodo: '2025-12' }, 
           headers: { Authorization: `Bearer ${token}` }
@@ -110,7 +108,6 @@ const DashboardIncentivos = () => {
         }
       } catch (error) {
         console.error("Error cargando dashboard:", error);
-        // Aquí podrías poner un toast o alerta de error para el usuario
       } finally {
         setLoading(false);
       }
@@ -127,8 +124,6 @@ const DashboardIncentivos = () => {
     );
   }
 
-  // Cálculos para Gráficos (Donut)
-  // Se agregan validaciones (|| 0) extra por seguridad si el backend devuelve nulos
   const totalPresupuesto = Object.values(data.presupuestoPorArea || {}).reduce((a, b) => a + b, 0);
   const pctVentas = totalPresupuesto > 0 ? Math.round((data.presupuestoPorArea?.['Ventas'] || 0) / totalPresupuesto * 100) : 0;
   const pctAtencion = totalPresupuesto > 0 ? Math.round((data.presupuestoPorArea?.['Atención al Cliente'] || 0) / totalPresupuesto * 100) : 0;
@@ -144,7 +139,6 @@ const DashboardIncentivos = () => {
         <Paper elevation={0} sx={{ p: 2, mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 2, border: '1px solid #E0E0E0' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="h6" color="text.secondary">Resumen:</Typography>
-            {/* Se actualiza label visual a Diciembre */}
             <Typography variant="h5" fontWeight="bold" color="primary.main">Diciembre 2025</Typography>
             <Chip label="CÁLCULO EN PROCESO" color="warning" size="small" sx={{ fontWeight: 'bold', bgcolor: '#FFF4E5', color: '#663C00' }} />
           </Box>

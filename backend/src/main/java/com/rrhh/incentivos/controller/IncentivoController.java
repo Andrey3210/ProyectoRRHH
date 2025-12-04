@@ -9,15 +9,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/incentivos")
+@RequestMapping("/incentivos")
 @RequiredArgsConstructor
 public class IncentivoController {
 
     private final IIncentivoService incentivoService;
-
-    // =========================================================================
-    //                            ENDPOINTS EMPLEADO
-    // =========================================================================
 
     @GetMapping("/empleado/{idEmpleado}/bonos")
     public ResponseEntity<List<BonoResumenDTO>> obtenerBonosEmpleado(@PathVariable Integer idEmpleado) {
@@ -36,11 +32,6 @@ public class IncentivoController {
         return ResponseEntity.ok(incentivoService.obtenerDashboardEmpleado(idEmpleado, periodo));
     }
 
-    // =========================================================================
-    //                          ENDPOINTS ADMIN
-    // =========================================================================
-
-    // ESTE ES EL QUE TE ESTÁ FALLANDO (Error 404)
     @GetMapping("/admin/dashboard")
     public ResponseEntity<DashboardAdminDTO> obtenerDashboardAdmin(
             @RequestParam(defaultValue = "2025-12") String periodo) {
@@ -57,10 +48,10 @@ public class IncentivoController {
         incentivoService.crearNuevaRegla(dto);
         return ResponseEntity.ok().build();
     }
-    
+
     @PatchMapping("/admin/reglas/{idRegla}/estado")
     public ResponseEntity<Void> cambiarEstadoRegla(
-            @PathVariable Integer idRegla, 
+            @PathVariable Integer idRegla,
             @RequestBody Boolean activo) {
         incentivoService.cambiarEstadoRegla(idRegla, activo);
         return ResponseEntity.ok().build();
@@ -113,5 +104,11 @@ public class IncentivoController {
     public ResponseEntity<ReporteIncentivosDTO> generarReporteAnual(
             @RequestParam(defaultValue = "2025") String anio) {
         return ResponseEntity.ok(incentivoService.generarReporteAnual(anio));
+    }
+
+    @GetMapping("/admin/reportes/nomina-detalle")
+    public ResponseEntity<List<BonoDetalleNominaDTO>> obtenerDetalleNomina(
+            @RequestParam String periodo) {
+        return ResponseEntity.ok(incentivoService.obtenerDetalleNominaPorPeriodo(periodo));
     }
 }

@@ -1,19 +1,9 @@
 package com.rrhh.incentivos.service;
 
-import com.rrhh.incentivos.domain.model.Bono;
-import com.rrhh.incentivos.domain.model.EmpleadoInc;
-import com.rrhh.incentivos.domain.model.EstadoBono;
-import com.rrhh.incentivos.domain.model.Evidencia;
-import com.rrhh.incentivos.domain.model.EvidenciaAtencion;
-import com.rrhh.incentivos.domain.model.EvidenciaVenta;
-import com.rrhh.incentivos.domain.model.Meta;
-import com.rrhh.incentivos.domain.model.ReglaIncentivo;
+import com.rrhh.incentivos.domain.model.*; 
 import com.rrhh.incentivos.dto.*;
 import com.rrhh.incentivos.pattern.FabricaIncentivos; 
-import com.rrhh.incentivos.repository.BonoRepository;
-import com.rrhh.incentivos.repository.MetaRepository;
-import com.rrhh.incentivos.repository.ReglaIncentivoRepository;
-import com.rrhh.incentivos.repository.EmpleadoRepository;
+import com.rrhh.incentivos.repository.*;
 import com.rrhh.shared.domain.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,12 +25,10 @@ public class IncentivoService implements IIncentivoService {
     private final EmpleadoRepository empleadoRepository;
     private final ReglaIncentivoRepository reglaIncentivoRepository;
     
-    // INYECCIÓN DEL PATRÓN ABSTRACT FACTORY
-    // Spring inyecta automáticamente los beans "VENTAS" y "ATENCION" en este mapa
     private final Map<String, FabricaIncentivos> fabricas;
 
     // =========================================================================
-    //                            MÓDULO EMPLEADO
+    //                            MÓDULO EMPLEADO (Implementación de Interfaz)
     // =========================================================================
 
     @Override
@@ -62,7 +50,7 @@ public class IncentivoService implements IIncentivoService {
             Evidencia evidencia = bono.getEvidencias().get(0);
             
             dto.setResumen(evidencia.obtenerResumen());
-            // Usamos el discriminador para saber el tipo (instanceof sigue funcionando correctamente)
+            
             if (evidencia instanceof EvidenciaVenta) {
                 dto.setTipoEvidencia("VENTA");
                 EvidenciaVenta venta = (EvidenciaVenta) evidencia;
@@ -89,7 +77,6 @@ public class IncentivoService implements IIncentivoService {
         EmpleadoInc empleado = empleadoRepository.findById(idEmpleado)
             .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
         
-        // Obtener área del puesto actual
         String area = "General";
         if (empleado.getPuesto() != null) {
             area = empleado.getPuesto().getDepartamento();
@@ -97,7 +84,6 @@ public class IncentivoService implements IIncentivoService {
         dto.setSaludo("Hola, " + empleado.getNombres() + " (" + area + ")");
         dto.setPeriodo(periodo);
 
-        // Calcular Acumulado
         List<Bono> bonosPeriodo = bonoRepository.findByEmpleadoIdEmpleadoAndPeriodo(idEmpleado, periodo);
         BigDecimal totalAcumulado = bonosPeriodo.stream()
             .map(Bono::getMonto)
@@ -112,7 +98,6 @@ public class IncentivoService implements IIncentivoService {
             dto.setMensajeMotivacional("Sigue esforzándote para alcanzar tus metas del mes.");
         }
 
-        // Metas
         List<Meta> metas = metaRepository.findByEmpleadoIdEmpleadoAndPeriodo(idEmpleado, periodo)
                                         .map(List::of)
                                         .orElse(new ArrayList<>());
@@ -120,7 +105,6 @@ public class IncentivoService implements IIncentivoService {
         List<DashboardEmpleadoDTO.MetaProgresoItem> itemsMeta = new ArrayList<>();
         for (Meta m : metas) {
             DashboardEmpleadoDTO.MetaProgresoItem item = new DashboardEmpleadoDTO.MetaProgresoItem();
-            // CORRECCIÓN: Usamos getNombreMeta() ya que getTipoMeta() fue eliminado
             item.setTitulo(m.getNombreMeta() != null ? m.getNombreMeta() : "Meta Asignada");
             
             double actual = m.getValorActual() != null ? m.getValorActual().doubleValue() : 0.0;
@@ -142,7 +126,6 @@ public class IncentivoService implements IIncentivoService {
         }
         dto.setMisMetas(itemsMeta);
 
-        // Últimos Logros
         List<Bono> ultimosBonos = bonoRepository.findTop5ByEmpleadoIdEmpleadoOrderByFechaCalculoDesc(idEmpleado);
         List<DashboardEmpleadoDTO.LogroItem> itemsLogro = ultimosBonos.stream().map(b -> {
             DashboardEmpleadoDTO.LogroItem item = new DashboardEmpleadoDTO.LogroItem();
@@ -158,7 +141,7 @@ public class IncentivoService implements IIncentivoService {
     }
 
     // =========================================================================
-    //                          MÓDULO ADMIN - DASHBOARD
+    //                            MÓDULO ADMIN
     // =========================================================================
 
     @Override
@@ -167,10 +150,7 @@ public class IncentivoService implements IIncentivoService {
         DashboardAdminDTO dto = new DashboardAdminDTO();
 
         BigDecimal total = bonoRepository.sumMontoTotalPorPeriodo(periodo);
-        // Manejo defensivo de valores nulos
         dto.setTotalPagar(total != null ? total : BigDecimal.ZERO);
-
-        // CORRECCIÓN: Eliminamos el casteo (int) porque el DTO espera Long
         dto.setPendientesRevision(bonoRepository.countByEstado(EstadoBono.PENDIENTE));
 
         long metasCumplidas = metaRepository.countMetasCumplidas(periodo);
@@ -185,12 +165,11 @@ public class IncentivoService implements IIncentivoService {
 
         dto.setEmpleadosActivos(empleadoRepository.countByEstado("ACTIVO"));
 
-        dto.setEvolucionSemestral(List.of(
+        dto.setEvolucionSemestral(java.util.Arrays.asList(
             new BigDecimal("38000"), new BigDecimal("41000"), new BigDecimal("39500"),
             new BigDecimal("42000"), new BigDecimal("44000"), total != null ? total : BigDecimal.ZERO
         ));
 
-        // CAMBIO: Usamos HashMap estándar para evitar problemas de compatibilidad o inmutabilidad
         Map<String, BigDecimal> presupuesto = new HashMap<>();
         presupuesto.put("Ventas", new BigDecimal("25000"));
         presupuesto.put("Atención al Cliente", new BigDecimal("15000"));
@@ -201,15 +180,19 @@ public class IncentivoService implements IIncentivoService {
         return dto;
     }
 
-    // =========================================================================
-    //                        MÓDULO ADMIN - REGLAS DE NEGOCIO
-    // =========================================================================
-
     @Override
     @Transactional(readOnly = true)
     public List<ReglaAdminDTO> listarReglasPorCategoria(String categoria) {
-        List<ReglaIncentivo> reglas = reglaIncentivoRepository.findByCategoria(categoria);
-        return reglas.stream().map(this::mapToReglaAdminDTO).collect(Collectors.toList());
+        List<ReglaIncentivo> todas = reglaIncentivoRepository.findAll();
+        
+        return todas.stream()
+            .filter(r -> {
+                if ("VENTAS".equalsIgnoreCase(categoria)) return r instanceof ReglaVentas;
+                if ("ATENCION".equalsIgnoreCase(categoria)) return r instanceof ReglaAtencion; 
+                return true;
+            })
+            .map(this::mapToReglaAdminDTO)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -222,7 +205,6 @@ public class IncentivoService implements IIncentivoService {
 
         ReglaIncentivo regla = fabrica.crearRegla();
 
-        // Configuración común
         regla.setNombreRegla(dto.getNombre());
         regla.setPeriodo(dto.getFrecuencia());
         regla.setActivo(true); 
@@ -262,16 +244,11 @@ public class IncentivoService implements IIncentivoService {
         reglaIncentivoRepository.deleteById(idRegla);
     }
 
-    // =========================================================================
-    //                        MÓDULO ADMIN - METAS DEL PERIODO
-    // =========================================================================
-
     @Override
     @Transactional(readOnly = true)
     public ResumenMetasDTO obtenerResumenMetas(String departamento, String periodo) {
         ResumenMetasDTO resumen = new ResumenMetasDTO();
 
-        // Traducción de nombres para consulta en BD
         String nombreDptoBd = departamento;
         if ("VENTAS".equalsIgnoreCase(departamento)) {
             nombreDptoBd = "Comercial";
@@ -279,10 +256,6 @@ public class IncentivoService implements IIncentivoService {
             nombreDptoBd = "Servicio al Cliente";
         }
 
-        Meta metaGlobal = metaRepository.findMetaGlobal(nombreDptoBd, periodo).orElse(null);
-        resumen.setMetaGlobalObjetivo(metaGlobal != null ? metaGlobal.getValorObjetivo() : BigDecimal.ZERO);
-
-        // Obtenemos metas individuales
         List<Meta> metasIndividuales = metaRepository.findMetasIndividuales(nombreDptoBd, periodo);
         
         BigDecimal sumaAsignada = BigDecimal.ZERO;
@@ -319,6 +292,13 @@ public class IncentivoService implements IIncentivoService {
 
         resumen.setEmpleados(listaDTOs);
         resumen.setSumaAsignada(sumaAsignada);
+
+        Meta metaGlobal = metaRepository.findMetaGlobal(nombreDptoBd, periodo).orElse(null);
+        if (metaGlobal != null) {
+            resumen.setMetaGlobalObjetivo(metaGlobal.getValorObjetivo());
+        } else {
+            resumen.setMetaGlobalObjetivo(sumaAsignada); 
+        }
 
         if (resumen.getMetaGlobalObjetivo().compareTo(BigDecimal.ZERO) > 0) {
             double pctEquipo = sumaAvance.doubleValue() / resumen.getMetaGlobalObjetivo().doubleValue() * 100;
@@ -370,10 +350,6 @@ public class IncentivoService implements IIncentivoService {
         metaRepository.save(meta);
     }
 
-    // =========================================================================
-    //                        MÓDULO ADMIN - APROBACIONES
-    // =========================================================================
-
     @Override
     @Transactional(readOnly = true)
     public PantallaAprobacionDTO obtenerDataAprobaciones(String periodo) {
@@ -424,10 +400,6 @@ public class IncentivoService implements IIncentivoService {
         bonoRepository.saveAll(bonos);
     }
 
-    // =========================================================================
-    //                        MÓDULO ADMIN - REPORTES
-    // =========================================================================
-
     @Override
     @Transactional(readOnly = true)
     public ReporteIncentivosDTO generarReporteAnual(String anio) {
@@ -435,7 +407,7 @@ public class IncentivoService implements IIncentivoService {
         
         List<Bono> bonosAnio = bonoRepository.findByAnio(anio);
 
-        List<String> meses = List.of("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic");
+        List<String> meses = java.util.Arrays.asList("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic");
         List<BigDecimal> dataVentas = new ArrayList<>();
         List<BigDecimal> dataAtencion = new ArrayList<>();
 
@@ -446,17 +418,17 @@ public class IncentivoService implements IIncentivoService {
 
         for (Bono b : bonosAnio) {
             int indiceMes = obtenerIndiceMes(b.getPeriodo());
-            if (indiceMes >= 0 && indiceMes < 12) {
-                // Usamos la fábrica o la categoría de la regla para determinar el tipo
+            if (indiceMes >= 1 && indiceMes <= 12) {
+                
                 boolean esVenta = false;
-                if (b.getRegla() != null && "VENTAS".equalsIgnoreCase(b.getRegla().getCategoria())) {
+                if (b.getRegla() != null && b.getRegla() instanceof ReglaVentas) {
                     esVenta = true;
                 }
                 
                 if (esVenta) {
-                    dataVentas.set(indiceMes, dataVentas.get(indiceMes).add(b.getMonto()));
+                    dataVentas.set(indiceMes - 1, dataVentas.get(indiceMes - 1).add(b.getMonto()));
                 } else {
-                    dataAtencion.set(indiceMes, dataAtencion.get(indiceMes).add(b.getMonto()));
+                    dataAtencion.set(indiceMes - 1, dataAtencion.get(indiceMes - 1).add(b.getMonto()));
                 }
             }
         }
@@ -472,7 +444,11 @@ public class IncentivoService implements IIncentivoService {
 
         bonosPorPeriodo.forEach((periodo, listaBonos) -> {
             ReporteIncentivosDTO.FilaReporteDTO fila = new ReporteIncentivosDTO.FilaReporteDTO();
-            fila.setPeriodo(periodo);
+            
+            // Conversión de YYYY-MM a "Mes YYYY" para el Frontend
+            fila.setPeriodo(
+                (obtenerNombreMes(obtenerIndiceMes(periodo))) + " " + periodo.substring(0, 4)
+            );
             fila.setConcepto("Nómina Incentivos");
             
             long numBeneficiarios = listaBonos.stream()
@@ -493,14 +469,75 @@ public class IncentivoService implements IIncentivoService {
             filas.add(fila);
         });
 
-        filas.sort((f1, f2) -> f2.getPeriodo().compareTo(f1.getPeriodo()));
+        // Ordenar del más reciente al más antiguo
+        filas.sort((f1, f2) -> {
+            // Convierte "Mes YYYY" de vuelta a "YYYY-MM" para una comparación de cadena confiable
+            String p1 = f1.getPeriodo().substring(f1.getPeriodo().length() - 4) + "-" + String.format("%02d", obtenerIndiceMes(f1.getPeriodo().substring(0, 3)));
+            String p2 = f2.getPeriodo().substring(f2.getPeriodo().length() - 4) + "-" + String.format("%02d", obtenerIndiceMes(f2.getPeriodo().substring(0, 3)));
+            return p2.compareTo(p1);
+        });
+        
         reporte.setTablaDetalle(filas);
         return reporte;
     }
 
     // =========================================================================
+    //                        NUEVO MÉTODO PARA EL MODAL
+    // =========================================================================
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BonoDetalleNominaDTO> obtenerDetalleNominaPorPeriodo(String periodo) {
+        // 'periodo' aquí debe ser "YYYY-MM" (lo que el frontend calcula a partir de "Mes YYYY")
+        List<Bono> bonos = bonoRepository.findByPeriodo(periodo);
+
+        return bonos.stream()
+            .map(this::mapToBonoDetalleNominaDTO)
+            .collect(Collectors.toList());
+    }
+
+    // =========================================================================
     //                            MAPPERS / HELPERS
     // =========================================================================
+    
+    private BonoDetalleNominaDTO mapToBonoDetalleNominaDTO(Bono bono) {
+        BonoDetalleNominaDTO dto = new BonoDetalleNominaDTO();
+        dto.setIdBono(bono.getIdBono());
+        dto.setMonto(bono.getMonto());
+        dto.setEstado(bono.getEstado().toString());
+
+        // CORRECCIÓN: Convierte LocalDate (asumido en Bono) a LocalDateTime (en DTO)
+        if (bono.getFechaCalculo() != null) {
+            dto.setFechaCalculo(bono.getFechaCalculo().atStartOfDay()); 
+        } else {
+            dto.setFechaCalculo(null);
+        }
+
+        if (bono.getEmpleado() != null) {
+            dto.setNombreEmpleado(bono.getEmpleado().getNombreCompleto());
+            Puesto puesto = bono.getEmpleado().getPuesto();
+            dto.setDepartamento(puesto != null ? puesto.getDepartamento() : "N/A");
+        } else {
+            dto.setNombreEmpleado("N/A");
+            dto.setDepartamento("N/A");
+        }
+
+        if (bono.getRegla() != null) {
+            dto.setConcepto(bono.getRegla().getNombreRegla());
+        } else if (bono.getMeta() != null) {
+            dto.setConcepto("Bono Meta: " + bono.getMeta().getNombreMeta());
+        } else {
+            dto.setConcepto("Bono Manual");
+        }
+        
+        if (bono.getEvidencias() != null && !bono.getEvidencias().isEmpty()) {
+            dto.setEvidenciaResumen(bono.getEvidencias().get(0).obtenerResumen());
+        } else {
+            dto.setEvidenciaResumen("Sin evidencia");
+        }
+
+        return dto;
+    }
 
     private BonoResumenDTO mapToResumenDTO(Bono bono) {
         BonoResumenDTO dto = new BonoResumenDTO();
@@ -509,7 +546,6 @@ public class IncentivoService implements IIncentivoService {
         if (bono.getRegla() != null) {
             dto.setConcepto(bono.getRegla().getNombreRegla());
         } else if (bono.getMeta() != null) {
-            // CORRECCIÓN: Usamos getNombreMeta() o un default
             String nombreMeta = bono.getMeta().getNombreMeta();
             dto.setConcepto("Bono Meta: " + (nombreMeta != null ? nombreMeta : "General"));
         } else {
@@ -545,7 +581,14 @@ public class IncentivoService implements IIncentivoService {
         dto.setCondicionLogica(entity.getCondicion());
         dto.setPeriodo(entity.getPeriodo());
         dto.setEstado(entity.getActivo());
-        dto.setCategoria(entity.getCategoria());
+        
+        if (entity instanceof ReglaVentas) {
+            dto.setCategoria("VENTAS");
+        } else if (entity instanceof ReglaAtencion) { 
+            dto.setCategoria("ATENCION");
+        } else {
+            dto.setCategoria("GENERAL");
+        }
 
         if (entity.getDescripcionRecompensa() != null && !entity.getDescripcionRecompensa().isEmpty()) {
             dto.setRecompensa("🎁 " + entity.getDescripcionRecompensa());
@@ -596,12 +639,37 @@ public class IncentivoService implements IIncentivoService {
     private int obtenerIndiceMes(String periodo) {
         try {
             if (periodo.contains("-")) {
+                // Formato YYYY-MM
                 String[] parts = periodo.split("-");
-                return Integer.parseInt(parts[1]) - 1; 
+                return Integer.parseInt(parts[1]); 
             }
-            return 0; 
+            // Formato Mes YYYY
+            String mesNombre = periodo.substring(0, 3);
+             switch (mesNombre) {
+                case "Ene": return 1;
+                case "Feb": return 2;
+                case "Mar": return 3;
+                case "Abr": return 4;
+                case "May": return 5;
+                case "Jun": return 6;
+                case "Jul": return 7;
+                case "Ago": return 8;
+                case "Sep": return 9;
+                case "Oct": return 10;
+                case "Nov": return 11;
+                case "Dic": return 12;
+                default: return 0;
+            }
         } catch (Exception e) {
             return 0;
         }
+    }
+    
+    private String obtenerNombreMes(int indice) {
+        String[] nombres = {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
+        if (indice >= 1 && indice <= 12) {
+            return nombres[indice - 1];
+        }
+        return "N/A";
     }
 }

@@ -11,7 +11,6 @@ import java.util.List;
 public interface ReglaIncentivoRepository extends JpaRepository<ReglaIncentivo, Integer> {
     
     List<ReglaIncentivo> findByActivoTrue();
-    List<ReglaIncentivo> findByCategoria(String categoria);
 
     List<ReglaIncentivo> findByNombreReglaContainingIgnoreCase(String nombre);
 }
