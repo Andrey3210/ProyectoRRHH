@@ -13,9 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.Base64;
 
@@ -23,41 +27,39 @@ import java.util.Base64;
 @RequiredArgsConstructor
 @Slf4j
 public class ServicioAutenticacion implements IServicioAutenticacion {
-    
+
     private final UsuarioRepository usuarioRepository;
     private final ReclutadorRepository reclutadorRepository;
-    
+    // Inyectamos DataSource para poder ejecutar la consulta SQL manual
+    private final DataSource dataSource;
+
     // En producción, usar JWT o Spring Security
     // Por ahora, usamos un token simple basado en UUID
-    
+
     @Override
     @Transactional
     public LoginResponse login(LoginRequest request) {
         log.info("Intento de login para usuario: {}", request.getUsername());
-        
+
         Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
-            .orElseThrow(() -> new BusinessException("CREDENCIALES_INVALIDAS", 
-                "Usuario o contraseña incorrectos"));
-        
+                .orElseThrow(() -> new BusinessException("CREDENCIALES_INVALIDAS",
+                        "Usuario o contraseña incorrectos"));
+
         // Verificar si la cuenta está bloqueada
         if (Boolean.TRUE.equals(usuario.getCuentaBloqueada())) {
-            throw new BusinessException("CUENTA_BLOQUEADA", 
-                "La cuenta está bloqueada. Contacte al administrador.");
+            throw new BusinessException("CUENTA_BLOQUEADA",
+                    "La cuenta está bloqueada. Contacte al administrador.");
         }
-        
+
         // Verificar si el usuario está activo
         if (!Boolean.TRUE.equals(usuario.getActivo())) {
-            throw new BusinessException("USUARIO_INACTIVO", 
-                "El usuario está inactivo. Contacte al administrador.");
+            throw new BusinessException("USUARIO_INACTIVO",
+                    "El usuario está inactivo. Contacte al administrador.");
         }
-        
+
         // Verificar contraseña (hash simple - en producción usar BCrypt)
         String passwordHash = hashPassword(request.getPassword());
-        log.info("Contraseña recibida (longitud): {}", request.getPassword() != null ? request.getPassword().length() : "null");
-        log.info("Hash calculado: {}", passwordHash);
-        log.info("Hash en BD: {}", usuario.getPasswordHash());
-        log.info("¿Coinciden?: {}", passwordHash.equals(usuario.getPasswordHash()));
-        
+
         if (!passwordHash.equals(usuario.getPasswordHash())) {
             log.warn("Contraseña incorrecta para usuario: {}", request.getUsername());
             // Incrementar intentos fallidos
@@ -65,26 +67,29 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
             if (usuario.getIntentosFallidos() >= 5) {
                 usuario.setCuentaBloqueada(true);
                 usuarioRepository.save(usuario);
-                throw new BusinessException("CUENTA_BLOQUEADA", 
-                    "Demasiados intentos fallidos. La cuenta ha sido bloqueada.");
+                throw new BusinessException("CUENTA_BLOQUEADA",
+                        "Demasiados intentos fallidos. La cuenta ha sido bloqueada.");
             }
             usuarioRepository.save(usuario);
-            throw new BusinessException("CREDENCIALES_INVALIDAS", 
-                "Usuario o contraseña incorrectos");
+            throw new BusinessException("CREDENCIALES_INVALIDAS",
+                    "Usuario o contraseña incorrectos");
         }
-        
+
         // Login exitoso
         usuario.setIntentosFallidos(0);
         usuario.setFechaUltimoAcceso(LocalDateTime.now());
         usuarioRepository.save(usuario);
-        
+
         // Generar token simple (en producción usar JWT)
         String token = generarToken(usuario.getIdUsuario());
-        
-        // Buscar reclutador asociado
+
+        // Buscar reclutador asociado (solo para referencia de ID si es necesario)
         Reclutador reclutador = reclutadorRepository.findByIdUsuario(usuario.getIdUsuario())
-            .orElse(null);
-        
+                .orElse(null);
+
+        // --- CAMBIO: OBTENER ROL REAL DESDE BD ---
+        String rolUsuario = obtenerRolUsuario(usuario.getIdUsuario());
+
         LoginResponse response = new LoginResponse();
         response.setToken(token);
         response.setIdUsuario(usuario.getIdUsuario());
@@ -92,18 +97,47 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
         response.setNombreCompleto(usuario.getNombreCompleto());
         response.setEmail(usuario.getEmail());
         response.setIdReclutador(reclutador != null ? reclutador.getIdReclutador() : null);
-        response.setTipoUsuario(reclutador != null ? "RECLUTADOR" : "USUARIO");
-        
-        log.info("Login exitoso para usuario: {}", usuario.getUsername());
+
+        // Asignamos el rol obtenido por SQL
+        response.setTipoUsuario(rolUsuario);
+
+        log.info("Login exitoso para usuario: {} con rol: {}", usuario.getUsername(), rolUsuario);
         return response;
     }
-    
+
+    /**
+     * Método para obtener el rol mediante JDBC puro
+     */
+    private String obtenerRolUsuario(Integer idUsuario) {
+        // Consultar el rol del usuario desde la base de datos
+        String sql = "SELECT r.nombre_rol FROM roles r " +
+                "INNER JOIN usuarios_roles ur ON r.id_rol = ur.id_rol " +
+                "WHERE ur.id_usuario = ? AND r.activo = TRUE"; // Asumiendo que 'activo' es booleano en BD
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idUsuario);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("nombre_rol");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error al obtener rol del usuario con ID: " + idUsuario, e);
+        }
+
+        // Rol por defecto si falla la consulta o no tiene rol asignado
+        return "USUARIO";
+    }
+
     @Override
     public void logout(String token) {
         // En producción, invalidar el token en una blacklist
         log.info("Logout para token: {}", token);
     }
-    
+
     @Override
     public boolean validarToken(String token) {
         // En producción, validar JWT
@@ -119,7 +153,7 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
         }
         return false;
     }
-    
+
     @Override
     public Integer obtenerIdUsuarioDesdeToken(String token) {
         try {
@@ -138,7 +172,7 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
         }
         return null;
     }
-    
+
     private String hashPassword(String password) {
         try {
             // Limpiar la contraseña (eliminar espacios al inicio y final)
@@ -150,16 +184,15 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
             throw new RuntimeException("Error al hashear contraseña", e);
         }
     }
-    
+
     private String generarToken(Integer idUsuario) {
         // Token simple: header.payload
         // En producción usar JWT
         String header = Base64.getEncoder().encodeToString("{\"alg\":\"HS256\",\"typ\":\"JWT\"}".getBytes());
         String payload = Base64.getEncoder().encodeToString(
-            String.format("{\"idUsuario\":%d,\"exp\":%d}", idUsuario, 
-                System.currentTimeMillis() + 86400000).getBytes()
+                String.format("{\"idUsuario\":%d,\"exp\":%d}", idUsuario,
+                        System.currentTimeMillis() + 86400000).getBytes()
         );
         return header + "." + payload;
     }
 }
-
