@@ -34,6 +34,9 @@ public class Trabajador {
     @Transient
     private String area;
 
+    @Transient // No se guarda en la tabla empleados, es solo para mostrar
+    private String puesto;
+
     @JsonIgnore
     @OneToMany(mappedBy = "empleado", fetch = FetchType.LAZY)
     private List<Solicitud> solicitudes;

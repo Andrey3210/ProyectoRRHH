@@ -82,6 +82,10 @@
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  /* Aseguramos que la tarjeta no crezca infinitamente */
+  display: flex;
+  flex-direction: column;
+  max-height: 600px; /* Altura máxima de la tarjeta entera */
 }
 
 .history-title {
@@ -89,12 +93,16 @@
   font-weight: 700;
   color: #666;
   margin-bottom: 20px;
+  flex-shrink: 0; /* Evita que el título se aplaste */
 }
 
 .timeline-container {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  overflow-y: auto; /* Scroll vertical */
+  padding-right: 10px; /* Espacio para que el scroll no tape texto */
+  flex-grow: 1; /* Ocupa el espacio restante */
 }
 
 .timeline-date-separator {
@@ -131,6 +139,18 @@
 .timeline-content {
   font-size: 13px;
   color: #444;
+}
+
+/* Estilo para la barra de scroll del historial */
+.timeline-container::-webkit-scrollbar {
+  width: 6px;
+}
+.timeline-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.timeline-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
 }
 
 /* --- FOOTER DE ACCIONES --- */

@@ -32,6 +32,9 @@ public class AprobarSolicitud implements ComandoGestionarSolicitud {
     @Setter
     private String comentarios;
 
+    @Setter
+    private Integer idUsuarioAccion;
+
     @Override
     @Transactional
     public void ejecutar() {
@@ -67,6 +70,8 @@ public class AprobarSolicitud implements ComandoGestionarSolicitud {
         historial.setEstado(Estado.APROBADA);
         historial.setFechaAccion(LocalDateTime.now());
         historial.setComentarios(comentarios != null ? comentarios : "Solicitud Aprobada");
+
+        historial.setIdUsuarioAccion(idUsuarioAccion);
 
         historialRepository.save(historial);
     }

@@ -160,10 +160,14 @@ public class ServicioAutenticacion implements IServicioAutenticacion {
             String[] parts = token.split("\\.");
             if (parts.length == 2) {
                 String payload = new String(Base64.getDecoder().decode(parts[1]));
-                // Extraer idUsuario del payload (formato simple: "idUsuario:1")
-                if (payload.contains("idUsuario:")) {
-                    String idStr = payload.substring(payload.indexOf("idUsuario:") + 10);
-                    idStr = idStr.split(",")[0].trim();
+
+                String claveBusqueda = "\"idUsuario\":";
+
+                if (payload.contains(claveBusqueda)) {
+
+                    String idStr = payload.substring(payload.indexOf(claveBusqueda) + claveBusqueda.length());
+
+                    idStr = idStr.split("[,}]")[0].trim();
                     return Integer.parseInt(idStr);
                 }
             }
