@@ -24,6 +24,8 @@ public class VolverAPendiente implements ComandoGestionarSolicitud {
 
     @Setter
     private Solicitud solicitud; // Estado inyectado
+    @Setter
+    private Integer idUsuarioAccion;
 
     @Override
     @Transactional
@@ -38,6 +40,8 @@ public class VolverAPendiente implements ComandoGestionarSolicitud {
         historial.setEstado(Estado.PENDIENTE);
         historial.setFechaAccion(LocalDateTime.now());
         historial.setComentarios("Retornado a estado Pendiente por administración");
+
+        historial.setIdUsuarioAccion(idUsuarioAccion);
 
         historialRepository.save(historial);
     }

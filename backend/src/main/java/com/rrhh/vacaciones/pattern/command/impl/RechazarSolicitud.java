@@ -27,6 +27,9 @@ public class RechazarSolicitud implements ComandoGestionarSolicitud {
     @Setter
     private String motivo;
 
+    @Setter
+    private Integer idUsuarioAccion;
+
     @Override
     @Transactional
     public void ejecutar() {
@@ -43,6 +46,8 @@ public class RechazarSolicitud implements ComandoGestionarSolicitud {
         historial.setEstado(Estado.RECHAZADA);
         historial.setFechaAccion(LocalDateTime.now());
         historial.setComentarios("Rechazado: " + motivo);
+
+        historial.setIdUsuarioAccion(idUsuarioAccion);
 
         historialRepository.save(historial);
     }
