@@ -4,12 +4,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime; // Importación necesaria
 
 @Data
 @Entity
 @Table(name = "metas")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "categoria_meta", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "tipo_meta", discriminatorType = DiscriminatorType.STRING)
 public abstract class Meta {
 
     @Id
@@ -27,11 +28,18 @@ public abstract class Meta {
     @Column(name = "nombre_meta")
     private String nombreMeta;
 
+    @Column(name = "descripcion", columnDefinition = "TEXT")
+    private String descripcion;
+
+
     @Column(name = "valor_objetivo")
     private BigDecimal valorObjetivo;
 
     @Column(name = "valor_actual")
     private BigDecimal valorActual;
+
+    @Column(name = "unidad_medida")
+    private String unidadMedida;
 
     @Column(name = "periodo")
     private String periodo;
@@ -42,8 +50,30 @@ public abstract class Meta {
     @Column(name = "fecha_fin")
     private LocalDate fechaFin;
     
-    @Column(name = "tipo_meta")
-    private String tipoMeta; 
+    @Column(name = "estado")
+    private String estado;
+
+    @Column(name = "incentivo_asociado")
+    private BigDecimal incentivoAsociado;
+
+    // --- Auditoría ---
+    @Column(name = "fecha_creacion", updatable = false)
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion")
+    private LocalDateTime fechaActualizacion;
+
+    // Métodos Lifecycle para manejar las fechas automáticamente
+    @PrePersist
+    protected void onCreate() {
+        this.fechaCreacion = LocalDateTime.now();
+        this.fechaActualizacion = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.fechaActualizacion = LocalDateTime.now();
+    }
 
     public abstract boolean verificarCumplimiento();
 }

@@ -28,7 +28,7 @@ public abstract class ReglaIncentivo { // <-- Abstracta
     @Column(name = "tipo_valor")
     private String tipoValor;
 
-    @Column(name = "periodo")
+    @Column(name = "periodo_aplicacion")
     private String periodo;
 
     @Column(name = "activo")

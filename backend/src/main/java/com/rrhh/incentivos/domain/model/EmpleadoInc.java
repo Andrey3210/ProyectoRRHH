@@ -17,10 +17,8 @@ public class EmpleadoInc {
     @Column(name = "id_empleado")
     private Integer idEmpleado;
 
-    // --- ESTE CAMPO FALTABA Y CAUSABA EL ERROR ---
     @Column(name = "codigo_empleado", unique = true)
     private String codigoEmpleado;
-    // ---------------------------------------------
 
     @Column(name = "nombres")
     private String nombres;
@@ -44,16 +42,13 @@ public class EmpleadoInc {
     @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
-    // Relación con la tabla intermedia para obtener el cargo
     @OneToMany(mappedBy = "empleado", fetch = FetchType.EAGER)
     private List<EmpleadoPuestoInc> asignacionesPuesto;
 
-    // Helper para obtener el puesto activo actual
     public Puesto getPuesto() {
         if (asignacionesPuesto == null || asignacionesPuesto.isEmpty()) {
             return null;
         }
-        // Buscamos el registro que tenga activo = true
         return asignacionesPuesto.stream()
                 .filter(ep -> Boolean.TRUE.equals(ep.getActivo()))
                 .map(EmpleadoPuestoInc::getPuesto)

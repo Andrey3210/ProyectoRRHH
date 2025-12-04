@@ -23,9 +23,8 @@ import GroupIcon from '@mui/icons-material/Group';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 // --- SERVICIOS ---
-// Asegúrate de tener configurado axios o usa fetch directo
 import axios from 'axios';
-import authService from '../../services/api/authService'; // Tu servicio de auth para el token
+import authService from '../../services/api/authService';
 
 // ==========================================
 // 1. NAVBAR (Mismo código visual)
@@ -83,6 +82,7 @@ const NavbarAdmin = () => {
 // ==========================================
 const DashboardIncentivos = () => {
   const [loading, setLoading] = useState(true);
+  // Estados iniciales seguros para evitar errores de renderizado si falla la API
   const [data, setData] = useState({
     totalPagar: 0,
     pendientesRevision: 0,
@@ -96,19 +96,21 @@ const DashboardIncentivos = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Obtenemos el token (ajusta según tu authService)
         const user = authService.getCurrentUser(); 
         const token = user?.token || localStorage.getItem('token'); 
 
-        // Llamada a la API que creamos
+        // CAMBIO REALIZADO: Periodo actualizado a '2025-12'
         const response = await axios.get('http://localhost:8080/api/incentivos/admin/dashboard', {
-          params: { periodo: '2025-11' }, // Puedes hacer esto dinámico con un selector de fecha
+          params: { periodo: '2025-12' }, 
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        setData(response.data);
+        if(response.data) {
+          setData(response.data);
+        }
       } catch (error) {
         console.error("Error cargando dashboard:", error);
+        // Aquí podrías poner un toast o alerta de error para el usuario
       } finally {
         setLoading(false);
       }
@@ -126,11 +128,11 @@ const DashboardIncentivos = () => {
   }
 
   // Cálculos para Gráficos (Donut)
-  const totalPresupuesto = Object.values(data.presupuestoPorArea).reduce((a, b) => a + b, 0);
-  const pctVentas = totalPresupuesto > 0 ? Math.round((data.presupuestoPorArea['Ventas'] || 0) / totalPresupuesto * 100) : 0;
-  const pctAtencion = totalPresupuesto > 0 ? Math.round((data.presupuestoPorArea['Atención al Cliente'] || 0) / totalPresupuesto * 100) : 0;
-  const pctOtros = 100 - pctVentas - pctAtencion;
-
+  // Se agregan validaciones (|| 0) extra por seguridad si el backend devuelve nulos
+  const totalPresupuesto = Object.values(data.presupuestoPorArea || {}).reduce((a, b) => a + b, 0);
+  const pctVentas = totalPresupuesto > 0 ? Math.round((data.presupuestoPorArea?.['Ventas'] || 0) / totalPresupuesto * 100) : 0;
+  const pctAtencion = totalPresupuesto > 0 ? Math.round((data.presupuestoPorArea?.['Atención al Cliente'] || 0) / totalPresupuesto * 100) : 0;
+  const pctOthers = 100 - pctVentas - pctAtencion;
   return (
     <Box sx={{ bgcolor: '#F3F4F6', minHeight: '100vh', display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
       <CssBaseline />
@@ -142,7 +144,8 @@ const DashboardIncentivos = () => {
         <Paper elevation={0} sx={{ p: 2, mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 2, border: '1px solid #E0E0E0' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="h6" color="text.secondary">Resumen:</Typography>
-            <Typography variant="h5" fontWeight="bold" color="primary.main">Noviembre 2025</Typography>
+            {/* Se actualiza label visual a Diciembre */}
+            <Typography variant="h5" fontWeight="bold" color="primary.main">Diciembre 2025</Typography>
             <Chip label="CÁLCULO EN PROCESO" color="warning" size="small" sx={{ fontWeight: 'bold', bgcolor: '#FFF4E5', color: '#663C00' }} />
           </Box>
           <Button variant="contained" startIcon={<SyncIcon />} sx={{ textTransform: 'none', fontWeight: 'bold' }}>Sincronizar</Button>
@@ -157,7 +160,7 @@ const DashboardIncentivos = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Box>
                     <Typography color="text.secondary" variant="caption" fontWeight="bold">TOTAL A PAGAR</Typography>
-                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>S/ {data.totalPagar.toLocaleString()}</Typography>
+                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>S/ {(data.totalPagar || 0).toLocaleString()}</Typography>
                     <Typography variant="caption" sx={{ color: 'success.main', display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
                       <TrendingUpIcon fontSize="inherit" sx={{ mr: 0.5 }} /> +12%
                     </Typography>
@@ -175,7 +178,7 @@ const DashboardIncentivos = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Box>
                     <Typography color="text.secondary" variant="caption" fontWeight="bold">PENDIENTES</Typography>
-                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>{data.pendientesRevision}</Typography>
+                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>{data.pendientesRevision || 0}</Typography>
                     <Typography variant="caption" color="warning.main" fontWeight="bold">Requiere revisión</Typography>
                   </Box>
                   <Avatar sx={{ bgcolor: '#FFF3E0', color: '#EF6C00' }}><PendingActionsIcon /></Avatar>
@@ -191,8 +194,8 @@ const DashboardIncentivos = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Box sx={{ width: '100%' }}>
                     <Typography color="text.secondary" variant="caption" fontWeight="bold">METAS CUMPLIDAS</Typography>
-                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 1, mb: 0.5 }}>{data.porcentajeMetasCumplidas}%</Typography>
-                    <LinearProgress variant="determinate" value={data.porcentajeMetasCumplidas} sx={{ height: 6, borderRadius: 5 }} />
+                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 1, mb: 0.5 }}>{data.porcentajeMetasCumplidas || 0}%</Typography>
+                    <LinearProgress variant="determinate" value={data.porcentajeMetasCumplidas || 0} sx={{ height: 6, borderRadius: 5 }} />
                   </Box>
                   <Avatar sx={{ bgcolor: '#E3F2FD', color: '#1976D2', ml: 1 }}><EmojiEventsIcon /></Avatar>
                 </Box>
@@ -207,7 +210,7 @@ const DashboardIncentivos = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Box>
                     <Typography color="text.secondary" variant="caption" fontWeight="bold">ACTIVOS</Typography>
-                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>{data.empleadosActivos}</Typography>
+                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 1 }}>{data.empleadosActivos || 0}</Typography>
                     <Typography variant="caption" color="text.secondary">+3 nuevas altas</Typography>
                   </Box>
                   <Avatar sx={{ bgcolor: '#F5F5F5', color: '#616161' }}><GroupIcon /></Avatar>
@@ -225,9 +228,9 @@ const DashboardIncentivos = () => {
               <CardContent>
                 <Typography variant="h6" fontWeight="bold" gutterBottom>Evolución Semestral</Typography>
                 <Box sx={{ height: 300, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', px: 2 }}>
-                  {['Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov'].map((mes, index) => {
-                    // Normalizar altura de barra para que entre en el gráfico (suponiendo max 60000)
-                    const valor = data.evolucionSemestral[index] || 0;
+                  {['Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((mes, index) => {
+                    // Actualizado rango de meses para terminar en Dic
+                    const valor = (data.evolucionSemestral && data.evolucionSemestral[index]) || 0;
                     const altura = Math.min((valor / 60000) * 100, 100); 
                     
                     return (
@@ -269,7 +272,7 @@ const DashboardIncentivos = () => {
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Box sx={{ width: 10, height: 10, bgcolor: '#E0E0E0', borderRadius: '50%' }} /><Typography variant="body2">Otros</Typography></Box>
-                    <Typography variant="body2" fontWeight="bold">{pctOtros}%</Typography>
+                    <Typography variant="body2" fontWeight="bold">{pctOthers || 0}%</Typography>
                   </Box>
                 </Box>
               </CardContent>

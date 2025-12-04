@@ -1,6 +1,5 @@
 package com.rrhh.incentivos.controller;
 
-import com.rrhh.auth.service.IServicioAutenticacion; 
 import com.rrhh.incentivos.dto.*;
 import com.rrhh.incentivos.service.IIncentivoService;
 import lombok.RequiredArgsConstructor;
@@ -12,143 +11,107 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/incentivos")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") 
 public class IncentivoController {
 
     private final IIncentivoService incentivoService;
-    private final IServicioAutenticacion authService;
 
     // =========================================================================
-    //                            MÓDULO EMPLEADO
+    //                            ENDPOINTS EMPLEADO
     // =========================================================================
 
-   
-    @GetMapping("/empleado/dashboard-resumen")
-    public ResponseEntity<DashboardEmpleadoDTO> obtenerDashboardEmpleado(
-            @RequestHeader("Authorization") String token,
-            @RequestParam(defaultValue = "2025-11") String periodo) {
-        
-        Integer idEmpleado = obtenerIdEmpleadoDesdeToken(token);
-        DashboardEmpleadoDTO dashboard = incentivoService.obtenerDashboardEmpleado(idEmpleado, periodo);
-        return ResponseEntity.ok(dashboard);
+    @GetMapping("/empleado/{idEmpleado}/bonos")
+    public ResponseEntity<List<BonoResumenDTO>> obtenerBonosEmpleado(@PathVariable Integer idEmpleado) {
+        return ResponseEntity.ok(incentivoService.obtenerBonosPorEmpleado(idEmpleado));
     }
 
- 
-    @GetMapping("/empleado/mis-bonos")
-    public ResponseEntity<List<BonoResumenDTO>> obtenerMisBonos(
-            @RequestHeader("Authorization") String token) {
-        
-        Integer idEmpleado = obtenerIdEmpleadoDesdeToken(token);
-        List<BonoResumenDTO> bonos = incentivoService.obtenerBonosPorEmpleado(idEmpleado);
-        return ResponseEntity.ok(bonos);
-    }
-
-    
-    @GetMapping("/bonos/{idBono}")
+    @GetMapping("/bono/{idBono}/detalle")
     public ResponseEntity<DetalleEvidenciaDTO> obtenerDetalleBono(@PathVariable Integer idBono) {
-        DetalleEvidenciaDTO detalle = incentivoService.obtenerDetalleBono(idBono);
-        return ResponseEntity.ok(detalle);
+        return ResponseEntity.ok(incentivoService.obtenerDetalleBono(idBono));
     }
 
-    
+    @GetMapping("/empleado/{idEmpleado}/dashboard")
+    public ResponseEntity<DashboardEmpleadoDTO> obtenerDashboardEmpleado(
+            @PathVariable Integer idEmpleado,
+            @RequestParam(defaultValue = "2025-12") String periodo) {
+        return ResponseEntity.ok(incentivoService.obtenerDashboardEmpleado(idEmpleado, periodo));
+    }
+
+    // =========================================================================
+    //                          ENDPOINTS ADMIN
+    // =========================================================================
+
+    // ESTE ES EL QUE TE ESTÁ FALLANDO (Error 404)
     @GetMapping("/admin/dashboard")
     public ResponseEntity<DashboardAdminDTO> obtenerDashboardAdmin(
-            @RequestParam(defaultValue = "2025-11") String periodo) {
-        
-        DashboardAdminDTO dashboard = incentivoService.obtenerDatosDashboard(periodo);
-        return ResponseEntity.ok(dashboard);
+            @RequestParam(defaultValue = "2025-12") String periodo) {
+        return ResponseEntity.ok(incentivoService.obtenerDatosDashboard(periodo));
     }
 
-  
-    @GetMapping("/admin/reglas")
-    public ResponseEntity<List<ReglaAdminDTO>> listarReglas(
-            @RequestParam(required = false, defaultValue = "VENTAS") String categoria) {
-        
-        List<ReglaAdminDTO> reglas = incentivoService.listarReglasPorCategoria(categoria);
-        return ResponseEntity.ok(reglas);
+    @GetMapping("/admin/reglas/{categoria}")
+    public ResponseEntity<List<ReglaAdminDTO>> listarReglas(@PathVariable String categoria) {
+        return ResponseEntity.ok(incentivoService.listarReglasPorCategoria(categoria));
     }
 
-  
     @PostMapping("/admin/reglas")
     public ResponseEntity<Void> crearRegla(@RequestBody ReglaCreateDTO dto) {
         incentivoService.crearNuevaRegla(dto);
         return ResponseEntity.ok().build();
     }
-
-  
-    @PatchMapping("/admin/reglas/{id}/estado")
+    
+    @PatchMapping("/admin/reglas/{idRegla}/estado")
     public ResponseEntity<Void> cambiarEstadoRegla(
-            @PathVariable Integer id,
-            @RequestBody Boolean nuevoEstado) {
-        
-        incentivoService.cambiarEstadoRegla(id, nuevoEstado);
+            @PathVariable Integer idRegla, 
+            @RequestBody Boolean activo) {
+        incentivoService.cambiarEstadoRegla(idRegla, activo);
         return ResponseEntity.ok().build();
     }
 
-   
-    @DeleteMapping("/admin/reglas/{id}")
-    public ResponseEntity<Void> eliminarRegla(@PathVariable Integer id) {
-        incentivoService.eliminarRegla(id);
+    @DeleteMapping("/admin/reglas/{idRegla}")
+    public ResponseEntity<Void> eliminarRegla(@PathVariable Integer idRegla) {
+        incentivoService.eliminarRegla(idRegla);
         return ResponseEntity.ok().build();
     }
 
-  
-    @GetMapping("/admin/metas")
-    public ResponseEntity<ResumenMetasDTO> obtenerMetas(
-            @RequestParam(defaultValue = "VENTAS") String departamento,
+    @GetMapping("/admin/metas/resumen")
+    public ResponseEntity<ResumenMetasDTO> obtenerResumenMetas(
+            @RequestParam String departamento,
             @RequestParam(defaultValue = "2025-12") String periodo) {
-        
-        ResumenMetasDTO resumen = incentivoService.obtenerResumenMetas(departamento, periodo);
-        return ResponseEntity.ok(resumen);
+        return ResponseEntity.ok(incentivoService.obtenerResumenMetas(departamento, periodo));
     }
 
-   
-    @PostMapping("/admin/metas")
+    @PostMapping("/admin/metas/asignar")
     public ResponseEntity<Void> asignarMeta(@RequestBody MetaAsignacionDTO dto) {
         incentivoService.asignarMetaEmpleado(dto);
         return ResponseEntity.ok().build();
     }
 
-   
     @GetMapping("/admin/aprobaciones")
     public ResponseEntity<PantallaAprobacionDTO> obtenerAprobaciones(
-            @RequestParam(defaultValue = "2025-11") String periodo) {
+            @RequestParam(defaultValue = "2025-12") String periodo) {
         return ResponseEntity.ok(incentivoService.obtenerDataAprobaciones(periodo));
     }
 
-  
-    @PatchMapping("/admin/aprobaciones/{id}/aprobar")
-    public ResponseEntity<Void> aprobarBono(@PathVariable Integer id) {
-        incentivoService.aprobarBono(id);
+    @PostMapping("/admin/bonos/{idBono}/aprobar")
+    public ResponseEntity<Void> aprobarBono(@PathVariable Integer idBono) {
+        incentivoService.aprobarBono(idBono);
         return ResponseEntity.ok().build();
     }
 
-
-    @PatchMapping("/admin/aprobaciones/{id}/rechazar")
-    public ResponseEntity<Void> rechazarBono(@PathVariable Integer id) {
-        incentivoService.rechazarBono(id);
+    @PostMapping("/admin/bonos/{idBono}/rechazar")
+    public ResponseEntity<Void> rechazarBono(@PathVariable Integer idBono) {
+        incentivoService.rechazarBono(idBono);
         return ResponseEntity.ok().build();
     }
 
-
-    @PostMapping("/admin/aprobaciones/masivo")
+    @PostMapping("/admin/bonos/aprobar-masivo")
     public ResponseEntity<Void> aprobarMasivo(@RequestBody List<Integer> idsBonos) {
         incentivoService.aprobarMasivo(idsBonos);
         return ResponseEntity.ok().build();
     }
 
-    // =========================================================================
-    //                        MÓDULO ADMIN - REPORTES
-    // =========================================================================
-
-    @GetMapping("/admin/reportes")
-    public ResponseEntity<ReporteIncentivosDTO> obtenerReporteAnual(
+    @GetMapping("/admin/reportes/anual")
+    public ResponseEntity<ReporteIncentivosDTO> generarReporteAnual(
             @RequestParam(defaultValue = "2025") String anio) {
         return ResponseEntity.ok(incentivoService.generarReporteAnual(anio));
-    }
-
-    private Integer obtenerIdEmpleadoDesdeToken(String token) {
-        String tokenLimpio = token.replace("Bearer ", "").trim();
-        return authService.obtenerIdUsuarioDesdeToken(tokenLimpio);
     }
 }

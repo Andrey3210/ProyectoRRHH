@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,7 +62,7 @@ public class IncentivoService implements IIncentivoService {
             Evidencia evidencia = bono.getEvidencias().get(0);
             
             dto.setResumen(evidencia.obtenerResumen());
-            // Usamos el discriminador para saber el tipo
+            // Usamos el discriminador para saber el tipo (instanceof sigue funcionando correctamente)
             if (evidencia instanceof EvidenciaVenta) {
                 dto.setTipoEvidencia("VENTA");
                 EvidenciaVenta venta = (EvidenciaVenta) evidencia;
@@ -113,16 +114,17 @@ public class IncentivoService implements IIncentivoService {
 
         // Metas
         List<Meta> metas = metaRepository.findByEmpleadoIdEmpleadoAndPeriodo(idEmpleado, periodo)
-                                         .map(List::of)
-                                         .orElse(new ArrayList<>());
+                                        .map(List::of)
+                                        .orElse(new ArrayList<>());
         
         List<DashboardEmpleadoDTO.MetaProgresoItem> itemsMeta = new ArrayList<>();
         for (Meta m : metas) {
             DashboardEmpleadoDTO.MetaProgresoItem item = new DashboardEmpleadoDTO.MetaProgresoItem();
-            item.setTitulo(m.getNombreMeta() != null ? m.getNombreMeta() : m.getTipoMeta());
+            // CORRECCIÓN: Usamos getNombreMeta() ya que getTipoMeta() fue eliminado
+            item.setTitulo(m.getNombreMeta() != null ? m.getNombreMeta() : "Meta Asignada");
             
-            double actual = m.getValorActual().doubleValue();
-            double objetivo = m.getValorObjetivo().doubleValue();
+            double actual = m.getValorActual() != null ? m.getValorActual().doubleValue() : 0.0;
+            double objetivo = m.getValorObjetivo() != null ? m.getValorObjetivo().doubleValue() : 0.0;
             int porcentaje = (objetivo > 0) ? (int)((actual / objetivo) * 100) : 0;
             
             item.setPorcentaje(Math.min(porcentaje, 100));
@@ -146,7 +148,7 @@ public class IncentivoService implements IIncentivoService {
             DashboardEmpleadoDTO.LogroItem item = new DashboardEmpleadoDTO.LogroItem();
             String concepto = (b.getRegla() != null) ? b.getRegla().getNombreRegla() : "Bono Extra";
             item.setTitulo("Te ganaste el bono '" + concepto + "'");
-            item.setFecha(b.getFechaCalculo().toString()); 
+            item.setFecha(b.getFechaCalculo() != null ? b.getFechaCalculo().toString() : ""); 
             item.setIcono("TROFEO");
             return item;
         }).collect(Collectors.toList());
@@ -165,8 +167,10 @@ public class IncentivoService implements IIncentivoService {
         DashboardAdminDTO dto = new DashboardAdminDTO();
 
         BigDecimal total = bonoRepository.sumMontoTotalPorPeriodo(periodo);
+        // Manejo defensivo de valores nulos
         dto.setTotalPagar(total != null ? total : BigDecimal.ZERO);
 
+        // CORRECCIÓN: Eliminamos el casteo (int) porque el DTO espera Long
         dto.setPendientesRevision(bonoRepository.countByEstado(EstadoBono.PENDIENTE));
 
         long metasCumplidas = metaRepository.countMetasCumplidas(periodo);
@@ -186,11 +190,13 @@ public class IncentivoService implements IIncentivoService {
             new BigDecimal("42000"), new BigDecimal("44000"), total != null ? total : BigDecimal.ZERO
         ));
 
-        dto.setPresupuestoPorArea(Map.of(
-            "Ventas", new BigDecimal("25000"), 
-            "Atención al Cliente", new BigDecimal("15000"),
-            "Recursos Humanos", new BigDecimal("5280")
-        ));
+        // CAMBIO: Usamos HashMap estándar para evitar problemas de compatibilidad o inmutabilidad
+        Map<String, BigDecimal> presupuesto = new HashMap<>();
+        presupuesto.put("Ventas", new BigDecimal("25000"));
+        presupuesto.put("Atención al Cliente", new BigDecimal("15000"));
+        presupuesto.put("Recursos Humanos", new BigDecimal("5280"));
+        
+        dto.setPresupuestoPorArea(presupuesto);
 
         return dto;
     }
@@ -209,14 +215,11 @@ public class IncentivoService implements IIncentivoService {
     @Override
     @Transactional
     public void crearNuevaRegla(ReglaCreateDTO dto) {
-        // USO DE ABSTRACT FACTORY: Obtenemos la fábrica correcta según la categoría del DTO ("VENTAS" o "ATENCION")
         FabricaIncentivos fabrica = fabricas.get(dto.getCategoria());
         if (fabrica == null) {
-            // Manejo de error o fallback
             fabrica = fabricas.get("VENTAS");
         }
 
-        // Delegamos la creación del objeto a la fábrica (creará ReglaVenta o ReglaAtencion)
         ReglaIncentivo regla = fabrica.crearRegla();
 
         // Configuración común
@@ -279,7 +282,7 @@ public class IncentivoService implements IIncentivoService {
         Meta metaGlobal = metaRepository.findMetaGlobal(nombreDptoBd, periodo).orElse(null);
         resumen.setMetaGlobalObjetivo(metaGlobal != null ? metaGlobal.getValorObjetivo() : BigDecimal.ZERO);
 
-        // Obtenemos metas individuales usando la query nativa que une con puestos
+        // Obtenemos metas individuales
         List<Meta> metasIndividuales = metaRepository.findMetasIndividuales(nombreDptoBd, periodo);
         
         BigDecimal sumaAsignada = BigDecimal.ZERO;
@@ -299,7 +302,7 @@ public class IncentivoService implements IIncentivoService {
             dto.setMetaObjetivo(metaIndiv.getValorObjetivo());
             dto.setAvanceActual(metaIndiv.getValorActual());
             
-            if (metaIndiv.getValorObjetivo().compareTo(BigDecimal.ZERO) > 0) {
+            if (metaIndiv.getValorObjetivo() != null && metaIndiv.getValorObjetivo().compareTo(BigDecimal.ZERO) > 0) {
                 double pct = metaIndiv.getValorActual().doubleValue() / metaIndiv.getValorObjetivo().doubleValue() * 100;
                 dto.setPorcentajeAvance(Math.min(pct, 100.0));
             } else {
@@ -333,16 +336,13 @@ public class IncentivoService implements IIncentivoService {
         EmpleadoInc empleado = empleadoRepository.findById(dto.getIdEmpleado())
             .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
 
-        // Buscamos si ya existe (Devuelve la entidad abstracta Meta)
         Meta meta = metaRepository.findByEmpleadoIdEmpleadoAndPeriodo(dto.getIdEmpleado(), dto.getPeriodo())
             .orElse(null);
 
         if (meta == null) {
-            // USO DE ABSTRACT FACTORY: Crear nueva MetaVenta o MetaAtencion
-            String deptoKey = "VENTAS"; // Default
+            String deptoKey = "VENTAS"; 
             if (empleado.getPuesto() != null) {
                 String dpto = empleado.getPuesto().getDepartamento();
-                // Lógica simple para detectar atención
                 if (dpto != null && (dpto.toUpperCase().contains("ATENCION") || dpto.toUpperCase().contains("CLIENTE"))) {
                     deptoKey = "ATENCION";
                 }
@@ -351,7 +351,7 @@ public class IncentivoService implements IIncentivoService {
             FabricaIncentivos fabrica = fabricas.get(deptoKey);
             if (fabrica == null) fabrica = fabricas.get("VENTAS");
 
-            meta = fabrica.crearMeta(); // Crea la instancia específica
+            meta = fabrica.crearMeta(); 
 
             meta.setEmpleado(empleado);
             meta.setPeriodo(dto.getPeriodo());
@@ -364,7 +364,7 @@ public class IncentivoService implements IIncentivoService {
             }
         }
 
-        meta.setTipoMeta(dto.getTipoMeta());
+        meta.setNombreMeta(dto.getTipoMeta()); 
         meta.setValorObjetivo(dto.getValorObjetivo());
 
         metaRepository.save(meta);
@@ -499,7 +499,7 @@ public class IncentivoService implements IIncentivoService {
     }
 
     // =========================================================================
-    //                                MAPPERS / HELPERS
+    //                            MAPPERS / HELPERS
     // =========================================================================
 
     private BonoResumenDTO mapToResumenDTO(Bono bono) {
@@ -509,7 +509,9 @@ public class IncentivoService implements IIncentivoService {
         if (bono.getRegla() != null) {
             dto.setConcepto(bono.getRegla().getNombreRegla());
         } else if (bono.getMeta() != null) {
-            dto.setConcepto("Bono Meta: " + bono.getMeta().getTipoMeta());
+            // CORRECCIÓN: Usamos getNombreMeta() o un default
+            String nombreMeta = bono.getMeta().getNombreMeta();
+            dto.setConcepto("Bono Meta: " + (nombreMeta != null ? nombreMeta : "General"));
         } else {
             dto.setConcepto("Bono Manual");
         }
@@ -574,7 +576,8 @@ public class IncentivoService implements IIncentivoService {
             dto.setConcepto(bono.getRegla().getNombreRegla());
             dto.setCodigoRef("Regla #" + bono.getRegla().getIdRegla());
         } else if (bono.getMeta() != null) {
-            dto.setConcepto("Bono por Meta: " + bono.getMeta().getTipoMeta());
+            String nombreMeta = bono.getMeta().getNombreMeta();
+            dto.setConcepto("Bono por Meta: " + (nombreMeta != null ? nombreMeta : "General"));
             dto.setCodigoRef("Meta #" + bono.getMeta().getIdMeta());
         } else {
             dto.setConcepto("Bono Manual");

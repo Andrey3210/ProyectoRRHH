@@ -44,7 +44,6 @@ public class Bono {
     @Column(name = "fecha_pago")
     private LocalDate fechaPago;
 
-    // Relación OneToMany con Evidencias
     @OneToMany(mappedBy = "bono", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Evidencia> evidencias;
 }
