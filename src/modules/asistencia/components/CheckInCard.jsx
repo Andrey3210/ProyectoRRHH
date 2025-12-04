@@ -21,30 +21,42 @@ export default function CheckInCard({
   };
 
   // Carga estado actual automáticamente
-  useEffect(() => {
-    if (!idEmpleado || !obtenerEstadoActual) return;
+useEffect(() => {
+  if (!idEmpleado || !obtenerEstadoActual) return;
 
-    const cargarEstado = async () => {
-      try {
-        setCargandoEstado(true);
-        const ultimoRegistro = await obtenerEstadoActual(idEmpleado);
-        if (ultimoRegistro) {
-          setInfo({
-            estado: ultimoRegistro.tipoRegistro ?? "-",
-            hora: formatearHora(ultimoRegistro.horaEntrada || ultimoRegistro.horaSalida),
-            fecha: ultimoRegistro.fecha ?? "-",
-          });
-        }
-      } catch (e) {
-        console.error("Error obteniendo estado actual:", e);
-        setInfo({ estado: "Error", hora: "-", fecha: "-" });
-      } finally {
-        setCargandoEstado(false);
+  const cargarEstado = async () => {
+    try {
+      setCargandoEstado(true);
+      const preview = await obtenerEstadoActual(idEmpleado);
+      if (!preview) {
+        setInfo({ estado: "-", hora: "-", fecha: "-" });
+        return;
       }
-    };
 
-    cargarEstado();
-  }, [idEmpleado, obtenerEstadoActual]);
+      // Mostrar el TIPO de registro (PUNTUAL/TARDE/FALTA...), no el EstadoRegistro
+      const estadoPreview = preview.tipoRegistro || "-";   // ← aquí
+
+      const horaRaw = preview.horaEntrada || preview.horaSalida || null;
+      const fechaRaw = preview.fecha || null;
+
+      setInfo({
+        estado: estadoPreview,
+        hora: formatearHora(horaRaw),
+        fecha: fechaRaw || "-",
+      });
+    } catch (e) {
+      console.error("Error obteniendo estado actual:", e);
+      setInfo({ estado: "-", hora: "-", fecha: "-" });
+    } finally {
+      setCargandoEstado(false);
+    }
+  };
+
+  cargarEstado();
+}, [idEmpleado, obtenerEstadoActual]);
+
+
+
 
   const manejarClick = async () => {
     if (cargando || !onMarcar || !idEmpleado || !obtenerEstadoActual) return;

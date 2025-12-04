@@ -1,19 +1,16 @@
+// com/rrhh/asistencia/service/impl/IReporteBuilder.java
 package com.rrhh.asistencia.service.impl;
 
-import com.rrhh.asistencia.domain.model.EmpleadoAsis;
-import com.rrhh.asistencia.domain.model.ReporteAsistencia;
-
-import java.time.LocalDate;
+import com.rrhh.asistencia.dto.ReporteAsistenciaRequest;
+import com.rrhh.asistencia.dto.ReporteAsistenciaResponse;
 
 public interface IReporteBuilder {
 
-    void reset();
+    void inicializar(ReporteAsistenciaRequest filtro);
 
-    void setEmpleado(EmpleadoAsis empleadoAsis);              // null para reporte general
+    void construirResumen();
 
-    void setPeriodo(LocalDate inicio, LocalDate fin);
+    void construirDetalle();
 
-    void calcularTotales();                           // usa registros_asistencia internamente
-
-    ReporteAsistencia build();
+    ReporteAsistenciaResponse build();
 }

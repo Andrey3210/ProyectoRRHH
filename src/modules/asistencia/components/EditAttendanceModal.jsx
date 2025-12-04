@@ -9,14 +9,17 @@ export default function EditAttendanceModal({ tramo, onClose, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("EDIT SUBMIT:", { inicio, fin, estado, motivo, tramo }); // ← añade esto
+
     onSave({
       ...tramo,
       inicio,
       fin: fin || null,
       estado,
-      motivo
+      motivo,
     });
   };
+
 
   return (
     <div className="et-modal-backdrop" onClick={onClose}>

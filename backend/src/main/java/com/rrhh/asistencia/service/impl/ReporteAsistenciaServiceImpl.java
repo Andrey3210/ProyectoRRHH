@@ -4,7 +4,11 @@ import com.rrhh.asistencia.dao.AsistenciaDAO;
 import com.rrhh.asistencia.dao.ReporteAsistenciaDAO;
 import com.rrhh.asistencia.domain.model.EmpleadoAsis;
 import com.rrhh.asistencia.domain.model.ReporteAsistencia;
+import com.rrhh.asistencia.dto.ReporteAsistenciaRequest;
+import com.rrhh.asistencia.dto.ReporteAsistenciaResponse;
 import com.rrhh.asistencia.service.IReporteAsistenciaService;
+import com.rrhh.asistencia.service.impl.builder.DirectorReporteAsistencia;
+import com.rrhh.asistencia.service.impl.builder.ReporteBasicoBuilder;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -21,21 +25,24 @@ public class ReporteAsistenciaServiceImpl implements IReporteAsistenciaService {
     private final ReporteAsistenciaDAO reporteDAO;
     private final AsistenciaDAO asistenciaDAO;
     private final DirectorReporteAsistencia director;
+    private final ReporteBasicoBuilder reporteBasicoBuilder;
 
     @PersistenceContext
     private EntityManager em;
 
     public ReporteAsistenciaServiceImpl(
             ReporteAsistenciaDAO reporteDAO,
-            AsistenciaDAO asistenciaDAO
+            AsistenciaDAO asistenciaDAO,
+            DirectorReporteAsistencia director,
+            ReporteBasicoBuilder reporteBasicoBuilder
     ) {
         this.reporteDAO = reporteDAO;
         this.asistenciaDAO = asistenciaDAO;
-
-        // inyectamos el builder básico al director
-        this.director = new DirectorReporteAsistencia();
-        this.director.setBuilder(new ReporteBasicoBuilder(asistenciaDAO));
+        this.director = director;
+        this.reporteBasicoBuilder = reporteBasicoBuilder;
     }
+
+    // ======= Métodos antiguos (si todavía los usas) =======
 
     @Override
     public ReporteAsistencia generarReporteEmpleadoBasico(
@@ -48,10 +55,9 @@ public class ReporteAsistenciaServiceImpl implements IReporteAsistenciaService {
             throw new IllegalArgumentException("Empleado no encontrado: " + idEmpleado);
         }
 
-        ReporteAsistencia reporte =
-                director.construirReporteEmpleadoBasico(empleadoAsis, inicio, fin);
-
-        return reporteDAO.guardar(reporte);
+        // Aquí podrías seguir usando tu lógica vieja,
+        // o adaptarla al nuevo builder según lo necesites.
+        throw new UnsupportedOperationException("Usar el nuevo método generarReporte(ReporteAsistenciaRequest)");
     }
 
     @Override
@@ -61,38 +67,17 @@ public class ReporteAsistenciaServiceImpl implements IReporteAsistenciaService {
             String area,
             Integer idEmpleadoOpcional
     ) {
-        List<EmpleadoAsis> empleadoAses = obtenerEmpleadosFiltrados(area, idEmpleadoOpcional);
-
-        List<ReporteAsistencia> reportes = new ArrayList<>();
-        for (EmpleadoAsis e : empleadoAses) {
-            ReporteAsistencia r =
-                    director.construirReporteEmpleadoBasico(e, inicio, fin);
-            reportes.add(r);
-        }
-        // si quieres persistir todos, podrías guardar cada uno:
-        // reportes.replaceAll(reporteDAO::guardar);
-        return reportes;
+        // Igual que arriba: puedes migrar o marcar como no soportado si ya no lo usarás.
+        return new ArrayList<>();
     }
 
-    private List<EmpleadoAsis> obtenerEmpleadosFiltrados(String area, Integer idEmpleadoOpcional) {
-        String jpql = "SELECT e FROM EmpleadoAsis e WHERE e.estado = 'ACTIVO'";
-        if (area != null && !"Todos".equalsIgnoreCase(area)) {
-            jpql += " AND e.id IN (" +
-                    "SELECT ep.empleado.id FROM EmpleadoHorario ep " +
-                    "JOIN ep.horario h WHERE h.departamento = :area" +
-                    ")";
-        }
-        if (idEmpleadoOpcional != null) {
-            jpql += " AND e.id = :idEmp";
-        }
+    // ======= Nuevo método para la pantalla de reportes =======
 
-        var query = em.createQuery(jpql, EmpleadoAsis.class);
-        if (area != null && !"Todos".equalsIgnoreCase(area)) {
-            query.setParameter("area", area);
-        }
-        if (idEmpleadoOpcional != null) {
-            query.setParameter("idEmp", idEmpleadoOpcional);
-        }
-        return query.getResultList();
+    @Override
+    public ReporteAsistenciaResponse generarReporte(ReporteAsistenciaRequest filtro) {
+        director.construirReporte(reporteBasicoBuilder, filtro);
+        return reporteBasicoBuilder.build();
     }
+
+    // método privado obtenerEmpleadosFiltrados se puede mantener solo si aún lo necesitas
 }

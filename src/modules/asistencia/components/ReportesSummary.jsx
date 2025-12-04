@@ -13,7 +13,9 @@ export default function ReportesSummary({ summary }) {
       </div>
       <div className="rep-kpi-card">
         <span className="rep-kpi-label">Tardanzas</span>
-        <span className="rep-kpi-value rep-kpi-warning">{summary.tardanzas}</span>
+        <span className="rep-kpi-value rep-kpi-warning">
+          {summary.tardanzas}
+        </span>
       </div>
       <div className="rep-kpi-card">
         <span className="rep-kpi-label">Horas extra</span>

@@ -1,49 +1,64 @@
+// com/rrhh/asistencia/controller/ReporteAsistenciaController.java
 package com.rrhh.asistencia.controller;
 
-import com.rrhh.asistencia.domain.model.ReporteAsistencia;
+import com.rrhh.asistencia.dto.DetalleDiaDTO;
+import com.rrhh.asistencia.dto.ReporteAsistenciaRequest;
+import com.rrhh.asistencia.dto.ReporteAsistenciaResponse;
 import com.rrhh.asistencia.service.IReporteAsistenciaService;
-import org.springframework.format.annotation.DateTimeFormat;
+import com.rrhh.asistencia.dao.ReporteAsistenciaDAO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reportes/asistencia")
+@RequestMapping("/reporte")
 @CrossOrigin(origins = "*")
 public class ReporteAsistenciaController {
 
-    private final IReporteAsistenciaService reporteService;
+    private final IReporteAsistenciaService reporteAsistenciaService;
+    private final ReporteAsistenciaDAO reporteAsistenciaDAO;
 
-    public ReporteAsistenciaController(IReporteAsistenciaService reporteService) {
-        this.reporteService = reporteService;
+    public ReporteAsistenciaController(IReporteAsistenciaService reporteAsistenciaService,
+                                       ReporteAsistenciaDAO reporteAsistenciaDAO) {
+        this.reporteAsistenciaService = reporteAsistenciaService;
+        this.reporteAsistenciaDAO = reporteAsistenciaDAO;
     }
 
-    @GetMapping("/resumen")
-    public ResponseEntity<List<ReporteAsistencia>> obtenerResumenPorEmpleado(
-            @RequestParam("inicio")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
-            @RequestParam("fin")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin,
-            @RequestParam(value = "area", required = false) String area,
-            @RequestParam(value = "idEmpleado", required = false) Integer idEmpleado
+    @GetMapping("/resumen-empleado")
+    public ResponseEntity<ReporteAsistenciaResponse> getResumenEmpleado(
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin,
+            @RequestParam(required = false) Long areaId,
+            @RequestParam(required = false) Long empleadoId,
+            @RequestParam(defaultValue = "false") boolean soloFaltas,
+            @RequestParam(defaultValue = "false") boolean soloTardanzas,
+            @RequestParam(defaultValue = "false") boolean incluirSinRegistro
     ) {
-        List<ReporteAsistencia> reportes =
-                reporteService.generarReporteResumenPorEmpleado(inicio, fin, area, idEmpleado);
-        return ResponseEntity.ok(reportes);
-    }
-
-    @GetMapping("/empleado/{idEmpleado}")
-    public ResponseEntity<ReporteAsistencia> obtenerReporteEmpleado(
-            @PathVariable Integer idEmpleado,
-            @RequestParam("inicio")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
-            @RequestParam("fin")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin
-    ) {
-        ReporteAsistencia reporte =
-                reporteService.generarReporteEmpleadoBasico(idEmpleado, inicio, fin);
+        ReporteAsistenciaRequest filtro = new ReporteAsistenciaRequest(
+                fechaInicio, fechaFin, areaId, empleadoId,
+                soloFaltas, soloTardanzas, incluirSinRegistro
+        );
+        ReporteAsistenciaResponse reporte = reporteAsistenciaService.generarReporte(filtro);
         return ResponseEntity.ok(reporte);
+    }
+
+    @GetMapping("/detalle-dia")
+    public List<DetalleDiaDTO> getDetallePorDia(
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin,
+            @RequestParam(required = false) Long areaId,
+            @RequestParam(required = false) Long empleadoId
+    ) {
+        ReporteAsistenciaRequest filtro = new ReporteAsistenciaRequest(
+                fechaInicio,
+                fechaFin,
+                areaId,
+                empleadoId,
+                false,
+                false,
+                false
+        );
+        return reporteAsistenciaDAO.obtenerDetallePorDia(filtro);
     }
 }

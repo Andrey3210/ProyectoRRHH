@@ -1,40 +1,31 @@
 // src/modules/asistencia/components/ReportesFilters.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaFilter } from "react-icons/fa";
-
-const AREAS = [
-  "Todos",
-  "Recursos humanos",
-  "Ventas",
-  "Operaciones",
-  "Logística",
-  "IT",
-  "Marketing",
-  "Finanzas"
-];
-
-const EMPLEADOS_MOCK = [
-  { id: "Todos", nombre: "Todos" },
-  { id: "1", nombre: "Estefano Alexis Ramírez García" },
-  { id: "2", nombre: "María López" },
-  { id: "3", nombre: "Juan Pérez" },
-  { id: "4", nombre: "Lucía Martínez" }
-];
 
 const TIPOS_REPORTE = [
   { id: "ResumenPorEmpleado", label: "Resumen por empleado" },
   { id: "DetallePorDia", label: "Detalle por día" }
 ];
 
-export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
+export default function ReportesFilters({
+  filtros,
+  onAplicar,
+  onLimpiar,
+  areasOptions,
+  empleadosOptions
+}) {
   const [local, setLocal] = useState(filtros);
 
+  useEffect(() => {
+    setLocal(filtros);
+  }, [filtros]);
+
   const handleChange = (campo, valor) => {
-    setLocal(prev => ({ ...prev, [campo]: valor }));
+    setLocal((prev) => ({ ...prev, [campo]: valor }));
   };
 
   const handleCheckbox = (campo) => {
-    setLocal(prev => ({ ...prev, [campo]: !prev[campo] }));
+    setLocal((prev) => ({ ...prev, [campo]: !prev[campo] }));
   };
 
   const handleSubmit = (e) => {
@@ -43,7 +34,7 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
   };
 
   const handleReset = () => {
-    setLocal({
+    const base = {
       fechaInicio: "",
       fechaFin: "",
       area: "Todos",
@@ -52,9 +43,20 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
       soloFaltas: false,
       soloTardanzas: false,
       incluirDiasSinRegistro: false
-    });
+    };
+    setLocal(base);
     onLimpiar();
   };
+
+  // áreas desde backend
+  const areas =
+    areasOptions && areasOptions.length > 0 ? areasOptions : ["Todos"];
+
+  // empleados desde backend
+  const empleados =
+    empleadosOptions && empleadosOptions.length > 0
+      ? empleadosOptions
+      : [{ id: "Todos", nombre: "Todos" }];
 
   return (
     <form className="reportes-filters-card" onSubmit={handleSubmit}>
@@ -71,7 +73,7 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
           <input
             type="date"
             value={local.fechaInicio}
-            onChange={e => handleChange("fechaInicio", e.target.value)}
+            onChange={(e) => handleChange("fechaInicio", e.target.value)}
           />
         </div>
         <div className="rep-field">
@@ -79,17 +81,19 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
           <input
             type="date"
             value={local.fechaFin}
-            onChange={e => handleChange("fechaFin", e.target.value)}
+            onChange={(e) => handleChange("fechaFin", e.target.value)}
           />
         </div>
         <div className="rep-field">
           <label>Área</label>
           <select
             value={local.area}
-            onChange={e => handleChange("area", e.target.value)}
+            onChange={(e) => handleChange("area", e.target.value)}
           >
-            {AREAS.map(a => (
-              <option key={a} value={a}>{a}</option>
+            {areas.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
             ))}
           </select>
         </div>
@@ -97,10 +101,12 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
           <label>Empleado</label>
           <select
             value={local.empleadoId}
-            onChange={e => handleChange("empleadoId", e.target.value)}
+            onChange={(e) => handleChange("empleadoId", e.target.value)}
           >
-            {EMPLEADOS_MOCK.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.nombre}</option>
+            {empleados.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.nombre}
+              </option>
             ))}
           </select>
         </div>
@@ -108,10 +114,12 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
           <label>Tipo de reporte</label>
           <select
             value={local.tipoReporte}
-            onChange={e => handleChange("tipoReporte", e.target.value)}
+            onChange={(e) => handleChange("tipoReporte", e.target.value)}
           >
-            {TIPOS_REPORTE.map(t => (
-              <option key={t.id} value={t.id}>{t.label}</option>
+            {TIPOS_REPORTE.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label}
+              </option>
             ))}
           </select>
         </div>
@@ -124,6 +132,7 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
                 type="checkbox"
                 checked={local.soloFaltas}
                 onChange={() => handleCheckbox("soloFaltas")}
+                disabled={local.tipoReporte === "DetallePorDia"}
               />
               Solo faltas
             </label>
@@ -132,6 +141,7 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
                 type="checkbox"
                 checked={local.soloTardanzas}
                 onChange={() => handleCheckbox("soloTardanzas")}
+                disabled={local.tipoReporte === "DetallePorDia"}
               />
               Solo tardanzas
             </label>
@@ -155,10 +165,7 @@ export default function ReportesFilters({ filtros, onAplicar, onLimpiar }) {
         >
           Limpiar
         </button>
-        <button
-          type="submit"
-          className="rep-btn-primary"
-        >
+        <button type="submit" className="rep-btn-primary">
           Aplicar filtros
         </button>
       </div>

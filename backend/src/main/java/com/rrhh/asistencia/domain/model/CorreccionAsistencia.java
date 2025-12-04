@@ -56,7 +56,7 @@ public class CorreccionAsistencia {
 
     // getters y setters...
 
-    public Integer getId() { return id; }
+    public Integer getIdCorreccion() { return id; }
 
     public void setId(Integer id) { this.id = id; }
 

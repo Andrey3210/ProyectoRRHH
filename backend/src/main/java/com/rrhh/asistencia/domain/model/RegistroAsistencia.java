@@ -201,6 +201,7 @@ public class RegistroAsistencia {
         return fechaActualizacion;
     }
 
+
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
         this.fechaActualizacion = fechaActualizacion;
     }

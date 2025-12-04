@@ -1,27 +1,16 @@
-package com.rrhh.asistencia.service.impl;
+// com/rrhh/asistencia/service/impl/builder/DirectorReporteAsistencia.java
+package com.rrhh.asistencia.service.impl.builder;
 
-import com.rrhh.asistencia.domain.model.EmpleadoAsis;
-import com.rrhh.asistencia.domain.model.ReporteAsistencia;
+import com.rrhh.asistencia.dto.ReporteAsistenciaRequest;
+import com.rrhh.asistencia.service.impl.IReporteBuilder;
+import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-
+@Component
 public class DirectorReporteAsistencia {
 
-    private IReporteBuilder builder;
-
-    public void setBuilder(IReporteBuilder builder) {
-        this.builder = builder;
-    }
-
-    public ReporteAsistencia construirReporteEmpleadoBasico(
-            EmpleadoAsis empleadoAsis,
-            LocalDate inicio,
-            LocalDate fin
-    ) {
-        builder.reset();
-        builder.setEmpleado(empleadoAsis);
-        builder.setPeriodo(inicio, fin);
-        builder.calcularTotales();
-        return builder.build();
+    public void construirReporte(IReporteBuilder builder, ReporteAsistenciaRequest filtro) {
+        builder.inicializar(filtro);
+        builder.construirResumen();
+        builder.construirDetalle();
     }
 }

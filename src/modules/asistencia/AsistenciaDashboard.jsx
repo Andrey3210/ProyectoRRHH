@@ -3,15 +3,19 @@ import MonthlySummaryPie from "./components/MonthlySummaryPie.jsx";
 import AsistenciaTable from "./components/AsistenciaTable.jsx";
 import CheckInCard from "./components/CheckInCard.jsx";
 import "./AsistenciaDashboard.css";
+import authService from "../../services/api/authService";
+import AsistenciaNavTabs from "./components/AsistenciaNavTabs";
 
 import {
   marcarAsistencia,
   obtenerHistorialAsistencia,
-  obtenerEstadoActual,  // ← se pasa como prop
+  obtenerEstadoActual,
+  obtenerMiEmpleado,
 } from "../../services/api/asistenciaApi";
 
 export default function AsistenciaDashboard() {
-  const idEmpleado = 2; // temporal
+  const user = authService.getCurrentUser();
+  const idUsuario = user?.idUsuario;
 
   const hoy = new Date();
   const hace30 = new Date(hoy);
@@ -19,12 +23,31 @@ export default function AsistenciaDashboard() {
 
   const [rango, setRango] = useState({
     desde: hace30.toISOString().slice(0, 10),
-    hasta: hoy.toISOString().slice(0, 10)
+    hasta: hoy.toISOString().slice(0, 10),
   });
 
+  const [idEmpleado, setIdEmpleado] = useState(null);
   const [historial, setHistorial] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const cargarEmpleado = async () => {
+      if (!idUsuario) return;
+      try {
+        setCargando(true);
+        setError("");
+        const emp = await obtenerMiEmpleado(idUsuario);
+        setIdEmpleado(emp.idEmpleado);
+      } catch (e) {
+        console.error(e);
+        setError("No se encontró un empleado asociado al usuario actual.");
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargarEmpleado();
+  }, [idUsuario]);
 
   const cargarHistorial = async () => {
     if (!idEmpleado) return;
@@ -45,8 +68,9 @@ export default function AsistenciaDashboard() {
   };
 
   useEffect(() => {
+    if (!idEmpleado) return;
     cargarHistorial();
-  }, []);
+  }, [idEmpleado, rango.desde, rango.hasta]);
 
   const handleMarcar = async () => {
     if (!idEmpleado) return;
@@ -62,14 +86,20 @@ export default function AsistenciaDashboard() {
     }
   };
 
-  if (!idEmpleado) {
-    return <p>No se encontró un empleado asociado al usuario actual.</p>;
-  }
+  const handleDateChange = (nuevoRango) => {
+    setRango((prev) => ({ ...prev, ...nuevoRango }));
+  };
+
+  if (!user) return <p>No hay usuario autenticado.</p>;
+  if (!idEmpleado && !cargando) return <p>No se encontró un empleado asociado.</p>;
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <div className="asistencia-main">
-        <h1 className="main-title">Mi asistencia</h1>
+        <div className="asistencia-header">
+          <h1 className="main-title">Mi asistencia</h1>
+          <AsistenciaNavTabs />
+        </div>
 
         {error && <p className="asistencia-error">{error}</p>}
 
@@ -79,7 +109,7 @@ export default function AsistenciaDashboard() {
               onMarcar={handleMarcar}
               cargando={cargando}
               idEmpleado={idEmpleado}
-              obtenerEstadoActual={obtenerEstadoActual}  // ← PASA LA FUNCIÓN
+              obtenerEstadoActual={obtenerEstadoActual}
             />
 
             <div className="monthly-card">
@@ -91,7 +121,12 @@ export default function AsistenciaDashboard() {
           </div>
 
           <div className="right-column">
-            <AsistenciaTable registros={historial} />
+            <AsistenciaTable
+              registros={historial}
+              desde={rango.desde}
+              hasta={rango.hasta}
+              onDateChange={handleDateChange}
+            />
           </div>
         </div>
       </div>

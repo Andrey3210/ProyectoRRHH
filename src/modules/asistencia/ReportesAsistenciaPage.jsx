@@ -1,16 +1,21 @@
 // src/modules/asistencia/ReportesAsistenciaPage.jsx
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import "./ReportesAsistencia.css";
 import ReportesFilters from "./components/ReportesFilters";
 import ReportesSummary from "./components/ReportesSummary";
 import ReportesTable from "./components/ReportesTable";
 import {
-  mockSummary,
-  mockResumenPorEmpleado,
-  mockDetallePorDia
-} from "./reportesMockData";
+  obtenerReporteResumenAsistencia,
+  obtenerReporteDetallePorDia
+} from "../../services/api/asistenciaApi";
+import AsistenciaNavTabs from "./components/AsistenciaNavTabs";
 
 export default function ReportesAsistenciaPage() {
+  const [areasDisponibles, setAreasDisponibles] = useState(["Todos"]);
+  const [empleadosDisponibles, setEmpleadosDisponibles] = useState([
+    { id: "Todos", nombre: "Todos" }
+  ]);
+
   const [filtros, setFiltros] = useState({
     fechaInicio: "",
     fechaFin: "",
@@ -22,104 +27,106 @@ export default function ReportesAsistenciaPage() {
     incluirDiasSinRegistro: false
   });
 
-  const [modoDetalle, setModoDetalle] = useState(false);
+  const [filas, setFilas] = useState([]);
+  const [summary, setSummary] = useState({
+    diasTrabajados: 0,
+    faltas: 0,
+    tardanzas: 0,
+    horasExtra: 0
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const datosFiltrados = useMemo(() => {
-    if (filtros.tipoReporte === "DetallePorDia") {
-      let filas = [...mockDetallePorDia];
+  const limpiarSummary = () =>
+    setSummary({
+      diasTrabajados: 0,
+      faltas: 0,
+      tardanzas: 0,
+      horasExtra: 0
+    });
 
-      if (filtros.area !== "Todos") {
-        filas = filas.filter(f => f.area === filtros.area);
-      }
-      if (filtros.empleadoId !== "Todos") {
-        filas = filas.filter(
-          f => String(f.empleadoId) === String(filtros.empleadoId)
-        );
-      }
-      if (filtros.fechaInicio) {
-        filas = filas.filter(f => f.fecha >= filtros.fechaInicio);
-      }
-      if (filtros.fechaFin) {
-        filas = filas.filter(f => f.fecha <= filtros.fechaFin);
-      }
-      if (filtros.soloFaltas) {
-        filas = filas.filter(f => f.estado === "Falta");
-      }
-      if (filtros.soloTardanzas) {
-        filas = filas.filter(f => f.estado === "Tarde");
-      }
-
-      return filas;
-    } else {
-      let filas = [...mockResumenPorEmpleado];
-
-      if (filtros.area !== "Todos") {
-        filas = filas.filter(f => f.area === filtros.area);
-      }
-      if (filtros.empleadoId !== "Todos") {
-        filas = filas.filter(
-          f => String(f.empleadoId) === String(filtros.empleadoId)
-        );
-      }
-      if (filtros.soloFaltas) {
-        filas = filas.filter(f => f.faltas > 0);
-      }
-      if (filtros.soloTardanzas) {
-        filas = filas.filter(f => f.tardanzas > 0);
-      }
-
-      return filas;
+  const cargarReporte = async (f) => {
+    if (!f.fechaInicio || !f.fechaFin) {
+      setFilas([]);
+      limpiarSummary();
+      return;
     }
-  }, [filtros]);
 
-  const summaryCalculado = useMemo(() => {
-    if (datosFiltrados.length === 0) return mockSummary;
+    setLoading(true);
+    setError(null);
 
-    if (filtros.tipoReporte === "DetallePorDia") {
-      let diasTrabajados = 0;
-      let faltas = 0;
-      let tardanzas = 0;
-      let horasExtra = 0; // sin cálculo real, solo placeholder
+    try {
+      if (f.tipoReporte === "DetallePorDia") {
+        const detalle = await obtenerReporteDetallePorDia(f);
+        setFilas(detalle);
+        limpiarSummary();
 
-      datosFiltrados.forEach(f => {
-        if (f.estado === "Falta") faltas += 1;
-        if (f.estado === "Tarde") tardanzas += 1;
-        if (f.estado === "Puntual" || f.estado === "Tarde") {
-          diasTrabajados += 1;
-        }
-      });
+        const areasUnicas = [
+          "Todos",
+          ...new Set(detalle.map((r) => r.areaNombre).filter((a) => a))
+        ];
+        setAreasDisponibles(areasUnicas);
 
-      return {
-        diasTrabajados,
-        faltas,
-        tardanzas,
-        horasExtra
-      };
-    } else {
-      let diasTrabajados = 0;
-      let faltas = 0;
-      let tardanzas = 0;
-      let horasExtra = 0;
+        const empleadosUnicos = [
+          { id: "Todos", nombre: "Todos" },
+          ...Array.from(
+            new Map(
+              detalle.map((r) => [
+                r.empleadoId,
+                { id: String(r.empleadoId), nombre: r.empleadoNombre }
+              ])
+            ).values()
+          )
+        ];
+        setEmpleadosDisponibles(empleadosUnicos);
+      } else {
+        const data = await obtenerReporteResumenAsistencia(f);
+        const detalle = data.detalle || [];
 
-      datosFiltrados.forEach(f => {
-        diasTrabajados += f.diasTrabajados;
-        faltas += f.faltas;
-        tardanzas += f.tardanzas;
-        horasExtra += f.horasExtra;
-      });
+        setSummary(
+          data.resumen || {
+            diasTrabajados: 0,
+            faltas: 0,
+            tardanzas: 0,
+            horasExtra: 0
+          }
+        );
+        setFilas(detalle);
 
-      return {
-        diasTrabajados,
-        faltas,
-        tardanzas,
-        horasExtra: Number(horasExtra.toFixed(2))
-      };
+        const areasUnicas = [
+          "Todos",
+          ...new Set(detalle.map((r) => r.areaNombre).filter((a) => a))
+        ];
+        setAreasDisponibles(areasUnicas);
+
+        const empleadosUnicos = [
+          { id: "Todos", nombre: "Todos" },
+          ...Array.from(
+            new Map(
+              detalle.map((r) => [
+                r.empleadoId,
+                { id: String(r.empleadoId), nombre: r.empleadoNombre }
+              ])
+            ).values()
+          )
+        ];
+        setEmpleadosDisponibles(empleadosUnicos);
+      }
+    } catch (e) {
+      console.error(e);
+      setError(e.message);
+      setFilas([]);
+      limpiarSummary();
+    } finally {
+      setLoading(false);
     }
-  }, [datosFiltrados, filtros.tipoReporte]);
+  };
 
   const manejarAplicarFiltros = (nuevosFiltros) => {
     setFiltros(nuevosFiltros);
-    setModoDetalle(nuevosFiltros.tipoReporte === "DetallePorDia");
+    setFilas([]);
+    limpiarSummary();
+    cargarReporte(nuevosFiltros);
   };
 
   const manejarLimpiar = () => {
@@ -134,52 +141,85 @@ export default function ReportesAsistenciaPage() {
       incluirDiasSinRegistro: false
     };
     setFiltros(base);
-    setModoDetalle(false);
+    setFilas([]);
+    limpiarSummary();
+    setError(null);
+    setAreasDisponibles(["Todos"]);
+    setEmpleadosDisponibles([{ id: "Todos", nombre: "Todos" }]);
   };
 
-  const manejarExportar = (formato) => {
-    console.log("Exportar", formato, "con filtros:", filtros);
-  };
+  const filasFiltradas = useMemo(() => {
+    if (!filtros.fechaInicio || !filtros.fechaFin) return [];
+
+    let resultado = filas;
+
+    if (filtros.area && filtros.area !== "Todos") {
+      const areaSel = filtros.area.trim().toLowerCase();
+      resultado = resultado.filter(
+        (f) => (f.areaNombre || "").trim().toLowerCase() === areaSel
+      );
+    }
+
+    if (filtros.empleadoId && filtros.empleadoId !== "Todos") {
+      resultado = resultado.filter(
+        (f) => String(f.empleadoId) === String(filtros.empleadoId)
+      );
+    }
+
+    if (filtros.tipoReporte === "ResumenPorEmpleado") {
+      if (filtros.soloFaltas) {
+        resultado = resultado.filter((f) => f.faltas > 0);
+      }
+      if (filtros.soloTardanzas) {
+        resultado = resultado.filter((f) => f.tardanzas > 0);
+      }
+    }
+
+    return resultado;
+  }, [
+    filas,
+    filtros.area,
+    filtros.empleadoId,
+    filtros.soloFaltas,
+    filtros.soloTardanzas,
+    filtros.tipoReporte,
+    filtros.fechaInicio,
+    filtros.fechaFin
+  ]);
 
   return (
     <div className="employee-timeline-main">
-      <h1 className="main-title">Reportes de asistencia</h1>
+      <div className="asistencia-header">
+        <h1 className="main-title">Reportes de asistencia</h1>
+        <AsistenciaNavTabs />
+      </div>
 
       <div className="reportes-content">
         <ReportesFilters
           filtros={filtros}
           onAplicar={manejarAplicarFiltros}
           onLimpiar={manejarLimpiar}
+          areasOptions={areasDisponibles}
+          empleadosOptions={empleadosDisponibles}
         />
 
         <div className="reportes-results-card">
           <div className="reportes-results-header">
             <h2 className="reportes-results-title">
-              {modoDetalle ? "Detalle por día" : "Resumen por empleado"}
+              {filtros.tipoReporte === "DetallePorDia"
+                ? "Detalle por día"
+                : "Resumen por empleado"}
             </h2>
-            <div className="reportes-actions">
-              <button
-                type="button"
-                className="rep-btn-secondary"
-                onClick={() => manejarExportar("excel")}
-              >
-                Exportar Excel
-              </button>
-              <button
-                type="button"
-                className="rep-btn-primary"
-                onClick={() => manejarExportar("pdf")}
-              >
-                Exportar PDF
-              </button>
-            </div>
           </div>
 
-          <ReportesSummary summary={summaryCalculado} />
+          {error && <p className="rep-error">{error}</p>}
+          {loading && <p>Cargando...</p>}
+
+          <ReportesSummary summary={summary} />
 
           <ReportesTable
             tipoReporte={filtros.tipoReporte}
-            filas={datosFiltrados}
+            filas={filasFiltradas}
           />
         </div>
       </div>

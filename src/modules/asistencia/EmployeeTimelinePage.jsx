@@ -1,147 +1,162 @@
-// src/modules/asistencia/EmployeeTimelinePage.jsx
-import { useEffect, useMemo, useState } from "react";
-import "./EmployeeTimeline.css";
-import { HOURS } from "./employeeMockData";
+import { useEffect, useState, useMemo } from "react";
+import {
+  obtenerAsistenciaHoyTimeline,
+  guardarCorreccionAsistencia,
+} from "../../services/api/asistenciaApi";
 import EmployeeTimelineFilters from "./components/EmployeeTimelineFilters";
 import EmployeeTimelineGrid from "./components/EmployeeTimelineGrid";
 import EditAttendanceModal from "./components/EditAttendanceModal";
-import { obtenerAsistenciaHoyTimeline } from "../../services/api/asistenciaApi";
-
+import authService from "../../services/api/authService";
+import AsistenciaNavTabs from "../asistencia/components/AsistenciaNavTabs";
+import "./EmployeeTimeline.css";
 
 export default function EmployeeTimelinePage() {
-  const [data, setData] = useState([]); // antes mockEmployeeAttendance
-  const [search, setSearch] = useState("");
-  const [area, setArea] = useState("Todos");
-  const [estado, setEstado] = useState("Todos");
+  const [empleados, setEmpleados] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [filtros, setFiltros] = useState({ search: "", area: "", status: "" });
+  const [areasDisponibles, setAreasDisponibles] = useState([]);
   const [selectedTramo, setSelectedTramo] = useState(null);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState("");
 
-  // Cargar asistencia real de hoy
   useEffect(() => {
-    const cargar = async () => {
-      try {
-        setCargando(true);
-        setError("");
-        const registros = await obtenerAsistenciaHoyTimeline();
-        // registros: [{ idEmpleado, nombreCompleto, area, tipoRegistro, inicio, fin }]
-        const empleadosMap = new Map();
-
-        registros.forEach((r, index) => {
-          if (!empleadosMap.has(r.idEmpleado)) {
-            empleadosMap.set(r.idEmpleado, {
-              id: r.idEmpleado,
-              nombre: r.nombreCompleto,
-              area: r.area || "General",
-              tramos: [],
-            });
-          }
-          const emp = empleadosMap.get(r.idEmpleado);
-          emp.tramos.push({
-            id: index + 1,           // id local del tramo
-            inicio: r.inicio,        // "HH:mm"
-            fin: r.fin,              // "HH:mm" o null
-            estado: r.tipoRegistro,  // PUNTUAL, TARDE, FALTA, JUSTIFICADA
-          });
-        });
-
-        setData(Array.from(empleadosMap.values()));
-      } catch (e) {
-        console.error(e);
-        setError(e.message || "Error al cargar asistencia de hoy");
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    cargar();
+    cargarDatos();
   }, []);
 
-  const employees = useMemo(() => {
-    return data.filter((emp) => {
-      const matchName = emp.nombre.toLowerCase().includes(search.toLowerCase());
-      const matchArea = area === "Todos" || emp.area === area;
-      const hasEstado =
-        estado === "Todos" ||
-        emp.tramos.some((t) => t.estado === estado);
-      return matchName && matchArea && hasEstado;
-    });
-  }, [data, search, area, estado]);
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+      const data = await obtenerAsistenciaHoyTimeline();
+      setEmpleados(data);
 
-  const handleOpenEdit = (empId, tramoId) => {
-    const emp = data.find((e) => e.id === empId);
-    const tramo = emp?.tramos.find((t) => t.id === tramoId);
-    if (!emp || !tramo) return;
-    setSelectedTramo({
-      empleadoId: emp.id,
-      empleadoNombre: emp.nombre,
-      ...tramo,
-    });
+      const areasUnicas = [...new Set(
+        data
+          .map(emp => emp.area)
+          .filter(area => area && area !== "Sin Área")
+      )].sort();
+      setAreasDisponibles(areasUnicas);
+    } catch (error) {
+      console.error("Error al cargar timeline:", error);
+    } finally {
+      setCargando(false);
+    }
   };
 
-  const handleCloseEdit = () => setSelectedTramo(null);
+  const handleFilterChange = (key, value) => {
+    setFiltros(prev => ({ ...prev, [key]: value }));
+  };
 
-  const handleSaveEdit = (updated) => {
-    setData((prev) =>
-      prev.map((emp) => {
-        if (emp.id !== updated.empleadoId) return emp;
-        return {
-          ...emp,
-          tramos: emp.tramos.map((t) =>
-            t.id === updated.id
-              ? {
-                  ...t,
-                  inicio: updated.inicio,
-                  fin: updated.fin,
-                  estado: updated.estado,
-                }
-              : t
-          ),
+  const empleadosFiltrados = useMemo(() => {
+    return empleados.filter((emp) => {
+      const matchSearch = emp.nombreCompleto
+        .toLowerCase()
+        .includes(filtros.search.toLowerCase());
+
+      const matchArea = filtros.area ? emp.area === filtros.area : true;
+
+      const rawTipo = emp.tipoRegistro || emp.tipo || "";
+      const matchStatus = filtros.status
+        ? rawTipo.toUpperCase() === filtros.status.toUpperCase()
+        : true;
+
+      return matchSearch && matchArea && matchStatus;
+    });
+  }, [empleados, filtros]);
+
+  const timelineData = useMemo(() => {
+    const map = {};
+    empleadosFiltrados.forEach((registro) => {
+      if (!map[registro.idEmpleado]) {
+        map[registro.idEmpleado] = {
+          id: registro.idEmpleado,
+          nombre: registro.nombreCompleto,
+          tramos: [],
         };
-      })
-    );
-    setSelectedTramo(null);
-  };
+      }
+      if (registro.inicio) {
+        const rawTipo = registro.tipoRegistro || registro.tipo || null;
 
-  const areasDisponibles = useMemo(() => {
-    const set = new Set();
-    data.forEach(emp => {
-      if (emp.area) set.add(emp.area);
+        const estadoCapitalizado = rawTipo
+          ? rawTipo.charAt(0).toUpperCase() + rawTipo.slice(1).toLowerCase()
+          : "Pendiente";
+
+        map[registro.idEmpleado].tramos.push({
+          id: `${registro.idEmpleado}-${registro.inicio}`,
+          inicio: registro.inicio,
+          fin: registro.fin,
+          estado: estadoCapitalizado,
+          idRegistro: registro.idRegistro,
+          fecha: registro.fecha,
+          empleadoNombre: registro.nombreCompleto,
+          empleadoId: registro.idEmpleado,
+        });
+      }
     });
-    return Array.from(set);
-  }, [data]);
+    return Object.values(map);
+  }, [empleadosFiltrados]);
 
+  const hours = Array.from({ length: 18 }, (_, i) => i + 6);
+
+  const handleSaveCorreccion = async (dataCorreccion) => {
+    console.log("Corrección a guardar (handle):", dataCorreccion);
+
+    try {
+      const user = authService.getCurrentUser();
+
+      await guardarCorreccionAsistencia({
+        idRegistro: dataCorreccion.idRegistro || null,
+        idEmpleado: dataCorreccion.empleadoId,
+        fecha: dataCorreccion.fecha || new Date().toISOString().slice(0, 10),
+        horaEntrada: dataCorreccion.inicio,
+        horaSalida: dataCorreccion.fin || null,
+        tipoRegistro: dataCorreccion.estado.toUpperCase(),
+        motivo: dataCorreccion.motivo || "",
+        idUsuarioCorrige: user?.idUsuario,
+      });
+
+      setSelectedTramo(null);
+      await cargarDatos();
+    } catch (e) {
+      console.error("Error guardando corrección:", e);
+    }
+  };
 
   return (
     <div className="employee-timeline-main">
-      <h1 className="main-title">Asistencia de empleados</h1>
-
-      {error && <p className="asistencia-error">{error}</p>}
-      {cargando && <p>Cargando asistencia de hoy...</p>}
+      <div className="asistencia-header">
+        <h1 className="main-title">Monitoreo en tiempo real</h1>
+        <AsistenciaNavTabs />
+      </div>
 
       <div className="timeline-content">
         <EmployeeTimelineFilters
-          search={search}
-          onSearchChange={setSearch}
-          area={area}
-          onAreaChange={setArea}
-          estado={estado}
-          onEstadoChange={setEstado}
-          areasDisponibles={areasDisponibles}
+          filters={filtros}
+          onFilterChange={handleFilterChange}
+          areasOptions={areasDisponibles}
         />
 
-        <EmployeeTimelineGrid
-          hours={HOURS}
-          employees={employees}
-          onBarClick={handleOpenEdit}
-        />
+        <div className="et-grid-wrapper et-grid-wrapper--spaced">
+          {cargando ? (
+            <p>Cargando asistencia...</p>
+          ) : (
+            <EmployeeTimelineGrid
+              hours={hours}
+              employees={timelineData}
+              onBarClick={(idEmp, idTramo) => {
+                const emp = timelineData.find(e => e.id === idEmp);
+                const tramo = emp?.tramos.find(t => t.id === idTramo);
+                if (tramo) {
+                  setSelectedTramo(tramo);
+                }
+              }}
+            />
+          )}
+        </div>
       </div>
 
       {selectedTramo && (
         <EditAttendanceModal
           tramo={selectedTramo}
-          onClose={handleCloseEdit}
-          onSave={handleSaveEdit}
+          onClose={() => setSelectedTramo(null)}
+          onSave={handleSaveCorreccion}
         />
       )}
     </div>

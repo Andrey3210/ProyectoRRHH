@@ -1,8 +1,9 @@
 package com.rrhh.asistencia.domain.model;
 
+import com.rrhh.shared.domain.model.Usuario;
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "empleados")
@@ -34,7 +35,12 @@ public class EmpleadoAsis {
     @Column(name = "estado", nullable = false)
     private String estado; // ACTIVO, INACTIVO, etc.
 
-    // getters y setters...
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario")  // FK a tabla usuarios
+    @JsonIgnore
+    private Usuario usuario;
+
+    // ===== getters y setters =====
 
     public Integer getId() { return id; }
 
@@ -67,4 +73,8 @@ public class EmpleadoAsis {
     public String getEstado() { return estado; }
 
     public void setEstado(String estado) { this.estado = estado; }
+
+    public Usuario getUsuario() { return usuario; }
+
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 }

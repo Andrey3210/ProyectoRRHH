@@ -1,9 +1,11 @@
 package com.rrhh.asistencia.service.impl;
 
 import com.rrhh.asistencia.dao.AsistenciaDAO;
+import com.rrhh.asistencia.dao.EmpleadoAsistenciaDAO;
 import com.rrhh.asistencia.dao.HorarioDAO;
 import com.rrhh.asistencia.domain.enums.EstadoRegistro;
 import com.rrhh.asistencia.domain.enums.TipoRegistro;
+import com.rrhh.asistencia.domain.model.CorreccionAsistencia;
 import com.rrhh.asistencia.domain.model.EmpleadoAsis;
 import com.rrhh.asistencia.domain.model.EmpleadoHorario;
 import com.rrhh.asistencia.domain.model.RegistroAsistencia;
@@ -13,9 +15,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import jakarta.persistence.Query;
+import com.rrhh.asistencia.dao.CorreccionAsistenciaDAO;
+
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -25,13 +31,23 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
 
     private final AsistenciaDAO asistenciaDAO;
     private final HorarioDAO horarioDAO;
+    private final EmpleadoAsistenciaDAO empleadoAsistenciaDAO;
+    private final CorreccionAsistenciaDAO correccionAsistenciaDAO;
+
 
     @PersistenceContext
     private EntityManager em;
 
-    public AsistenciaServiceImpl(AsistenciaDAO asistenciaDAO, HorarioDAO horarioDAO) {
+    public AsistenciaServiceImpl(
+            AsistenciaDAO asistenciaDAO,
+            HorarioDAO horarioDAO,
+            EmpleadoAsistenciaDAO empleadoAsistenciaDAO,
+            CorreccionAsistenciaDAO correccionAsistenciaDAO
+    ) {
         this.asistenciaDAO = asistenciaDAO;
         this.horarioDAO = horarioDAO;
+        this.empleadoAsistenciaDAO = empleadoAsistenciaDAO;
+        this.correccionAsistenciaDAO = correccionAsistenciaDAO;;
     }
 
     @Override
@@ -60,7 +76,7 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
             registro.setHoraSalida(ahora);
             calcularHorasTrabajadas(registro);
         } else {
-            // ya tiene entrada y salida, opcionalmente podrías lanzar excepción
+            // ya tiene entrada y salida
         }
 
         return asistenciaDAO.guardar(registro);
@@ -81,12 +97,10 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
         preview.setFecha(hoy);
         preview.setHoraEntrada(ahora); // hora actual
 
-        // Reutilizar lógica de aplicarEstadoEntrada pero sin guardar
         aplicarEstadoEntrada(preview, empleadoAsis, hoy, ahora);
 
         return preview;
     }
-
 
     private void aplicarEstadoEntrada(
             RegistroAsistencia registro,
@@ -98,7 +112,7 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
                 .obtenerHorarioActivo(empleadoAsis, fecha)
                 .orElse(null);
 
-        // ← CAMBIO: Todos los nuevos registros van PENDIENTE
+        // Todos los nuevos registros van PENDIENTE
         if (empleadoHorario == null) {
             registro.setEstado(EstadoRegistro.PENDIENTE);
             return;
@@ -110,30 +124,22 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
 
         LocalTime limiteTolerancia = horaEsperada.plusMinutes(tolerancia);
 
-        // ← CAMBIO: setTipoRegistro() en lugar de setEstado()
         if (horaEntradaReal.isAfter(limiteTolerancia)) {
-            registro.setTipoRegistro(TipoRegistro.TARDE);  // Tipo de registro: TARDANZA
-            registro.setEstado(EstadoRegistro.PENDIENTE);     // Estado: recién creado
+            registro.setTipoRegistro(TipoRegistro.TARDE);
+            registro.setEstado(EstadoRegistro.PENDIENTE);
         } else {
-            registro.setTipoRegistro(TipoRegistro.PUNTUAL);   // Tipo de registro: PUNTUAL
-            registro.setEstado(EstadoRegistro.PENDIENTE);     // Estado: recién creado
+            registro.setTipoRegistro(TipoRegistro.PUNTUAL);
+            registro.setEstado(EstadoRegistro.PENDIENTE);
         }
     }
-
 
     private void calcularHorasTrabajadas(RegistroAsistencia registro) {
         if (registro.getHoraEntrada() != null && registro.getHoraSalida() != null) {
             Duration d = Duration.between(registro.getHoraEntrada(), registro.getHoraSalida());
             double horas = d.toMinutes() / 60.0;
-
-            // Usa "horas" aquí para lo que necesites, por ejemplo:
             System.out.println("Horas trabajadas calculadas: " + horas);
-
-            // No se asigna a registro.setHorasTrabajadas(horas);
-            // Puedes guardar o retornar este valor según el caso
         }
     }
-
 
     @Override
     public List<RegistroAsistencia> obtenerAsistenciaHoy() {
@@ -155,6 +161,19 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
     }
 
     @Override
+    public EmpleadoAsis obtenerEmpleadoPorUsuario(Integer idUsuario) {
+        return empleadoAsistenciaDAO.buscarPorIdUsuario(idUsuario)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No se encontró empleado para el usuario: " + idUsuario));
+    }
+
+    //
+    // ... imports existentes
+ // Asegúrate de tener este import
+
+// ... dentro de la clase AsistenciaServiceImpl
+
+    @Override
     public List<AsistenciaHoyDTO> obtenerAsistenciaHoyParaTimeline() {
         LocalDate hoy = LocalDate.now();
         List<RegistroAsistencia> registrosHoy = asistenciaDAO.listarPorFecha(hoy);
@@ -170,15 +189,21 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
                             emp.getApellidoMaterno() == null ? "" : emp.getApellidoMaterno()
                     ).trim();
 
-                    // Por ahora área null o algo simple; luego lo puedes sacar de puesto/horario
-                    String area = null;
+                    // --- INICIO CAMBIO: Obtener Área desde BD ---
+                    String area = obtenerAreaPorEmpleado(emp.getId());
+                    // --- FIN CAMBIO ---
 
-                    String tipo = reg.getTipoRegistro() != null
-                            ? reg.getTipoRegistro().name()
-                            : null;
+                    TipoRegistro tipoEnum = reg.getTipoRegistro();
+                    if (tipoEnum == null) {
+                        // Si por alguna razón viene null, asumimos PRESENTE o PUNTUAL
+                        tipoEnum = TipoRegistro.PUNTUAL;
+                        reg.setTipoRegistro(tipoEnum); // opcional: persistir el valor corregido
+                    }
+
+                    String tipo = tipoEnum.name(); // "PUNTUAL", "TARDE", etc.
 
                     String inicio = reg.getHoraEntrada() != null
-                            ? reg.getHoraEntrada().toString().substring(0, 5) // HH:mm
+                            ? reg.getHoraEntrada().toString().substring(0, 5)
                             : null;
 
                     String fin = reg.getHoraSalida() != null
@@ -188,7 +213,7 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
                     return new AsistenciaHoyDTO(
                             emp.getId(),
                             nombreCompleto,
-                            area,
+                            area, // Ahora pasamos el área real
                             tipo,
                             inicio,
                             fin
@@ -202,4 +227,98 @@ public class AsistenciaServiceImpl implements IAsistenciaService {
                 })
                 .toList();
     }
+
+    // Método auxiliar para obtener el área usando SQL nativo
+    // Esto es robusto incluso si no tienes las entidades de Puesto mapeadas en este módulo
+    private String obtenerAreaPorEmpleado(Integer idEmpleado) {
+        try {
+            String sql = """
+                SELECT p.area 
+                FROM empleados_puestos ep
+                JOIN puestos p ON ep.id_puesto = p.id_puesto
+                WHERE ep.id_empleado = :idEmpleado 
+                AND ep.activo = 1
+                LIMIT 1
+            """;
+
+            Query query = em.createNativeQuery(sql);
+            query.setParameter("idEmpleado", idEmpleado);
+
+            List<?> result = query.getResultList();
+            if (!result.isEmpty()) {
+                return (String) result.get(0);
+            }
+        } catch (Exception e) {
+            System.err.println("Error obteniendo área para empleado " + idEmpleado + ": " + e.getMessage());
+        }
+        return "Sin Área"; // Valor por defecto si no se encuentra
+    }
+
+    @Override
+    public RegistroAsistencia corregirAsistencia(
+            Integer idRegistro,
+            Integer idEmpleado,
+            LocalDate fecha,
+            LocalTime nuevaHoraEntrada,
+            LocalTime nuevaHoraSalida,
+            String nuevoTipoRegistro,
+            String motivo,
+            Integer idUsuarioCorrige
+    ) {
+        EmpleadoAsis empleado = em.find(EmpleadoAsis.class, idEmpleado);
+        if (empleado == null) {
+            throw new IllegalArgumentException("Empleado no encontrado: " + idEmpleado);
+        }
+
+        // 1) Intentar encontrar el registro por id
+        RegistroAsistencia registro = null;
+        if (idRegistro != null) {
+            registro = asistenciaDAO.buscarPorId(idRegistro).orElse(null);
+        }
+
+        // 2) Si no viene idRegistro o no se encontró, buscar por empleado+fecha
+        if (registro == null) {
+            registro = asistenciaDAO.buscarPorEmpleadoYFecha(empleado, fecha).orElse(null);
+        }
+
+        // 3) Solo si realmente no existe ninguno, crear uno nuevo
+        if (registro == null) {
+            registro = new RegistroAsistencia();
+            registro.setEmpleado(empleado);
+            registro.setFecha(fecha);
+        }
+
+        // Determinar qué se corrige
+        boolean corrigeEntrada = nuevaHoraEntrada != null;
+        boolean corrigeSalida = nuevaHoraSalida != null;
+        String tipoCorreccion;
+        if (corrigeEntrada && corrigeSalida) tipoCorreccion = "AMBAS";
+        else if (corrigeEntrada) tipoCorreccion = "ENTRADA";
+        else tipoCorreccion = "SALIDA";
+
+        CorreccionAsistencia corr = new CorreccionAsistencia();
+        corr.setRegistroAsistencia(registro);
+        corr.setIdEmpleado(idEmpleado);
+        corr.setFecha(fecha);
+        corr.setTipoCorreccion(tipoCorreccion);
+        corr.setHoraAnterior(corrigeEntrada ? registro.getHoraEntrada() : registro.getHoraSalida());
+        corr.setHoraCorregida(corrigeEntrada ? nuevaHoraEntrada : nuevaHoraSalida);
+        corr.setMotivo(motivo);
+        corr.setCorregidaPor(idUsuarioCorrige);
+        corr.setEstado("PENDIENTE");
+        correccionAsistenciaDAO.guardar(corr);
+
+        // Aplicar cambio al registro real
+        if (corrigeEntrada) registro.setHoraEntrada(nuevaHoraEntrada);
+        if (corrigeSalida) registro.setHoraSalida(nuevaHoraSalida);
+
+        if (nuevoTipoRegistro != null) {
+            registro.setTipoRegistro(TipoRegistro.valueOf(nuevoTipoRegistro));
+        }
+        registro.setEstado(EstadoRegistro.CORREGIDO);
+
+        return asistenciaDAO.guardar(registro);
+    }
+
+
 }

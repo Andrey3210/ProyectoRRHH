@@ -1,6 +1,10 @@
-import { FaFilter } from "react-icons/fa";
+import { useState } from "react";
+import { FaFilter, FaTimes } from "react-icons/fa";
 
-export default function AsistenciaTable({ registros = [] }) {
+export default function AsistenciaTable({ registros = [], desde, hasta, onDateChange }) {
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("TODOS");
+
   const estadoConfig = {
     PRESENTE: { color: "#3b82f6", label: "Presente" },
     Puntual: { color: "#22c55e", label: "Puntual" },
@@ -10,6 +14,14 @@ export default function AsistenciaTable({ registros = [] }) {
     FALTA: { color: "#ef4444", label: "Falta" },
     Falta: { color: "#ef4444", label: "Falta" }
   };
+
+  // Lógica de filtrado local (por estado)
+  const registrosFiltrados = registros.filter((r) => {
+    if (statusFilter === "TODOS") return true;
+    // Normalizamos a mayúsculas para comparar
+    const estadoRegistro = (r.tipoRegistro || "").toUpperCase();
+    return estadoRegistro === statusFilter;
+  });
 
   return (
     <div
@@ -22,9 +34,11 @@ export default function AsistenciaTable({ registros = [] }) {
         boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
         border: "1px solid #e0e0e0",
         padding: "18px 22px",
-        minHeight: 0
+        minHeight: 0,
+        position: "relative" // Necesario para el popup absoluto
       }}
     >
+      {/* Header con botón Filtrar */}
       <div
         style={{
           display: "flex",
@@ -33,25 +47,19 @@ export default function AsistenciaTable({ registros = [] }) {
           marginBottom: "14px"
         }}
       >
-        <h2
-          style={{
-            fontSize: "20px",
-            fontWeight: "600",
-            margin: 0,
-            color: "#222"
-          }}
-        >
+        <h2 style={{ fontSize: "20px", fontWeight: "600", margin: 0, color: "#222" }}>
           Historial de asistencias
         </h2>
 
         <button
+          onClick={() => setShowFilters(!showFilters)}
           style={{
             display: "flex",
             alignItems: "center",
             gap: "6px",
             padding: "7px 12px",
             borderRadius: "8px",
-            backgroundColor: "#f3f4f6",
+            backgroundColor: showFilters ? "#e5e7eb" : "#f3f4f6",
             border: "1px solid #d1d5db",
             fontSize: "13px",
             fontWeight: "500",
@@ -59,31 +67,94 @@ export default function AsistenciaTable({ registros = [] }) {
             cursor: "pointer",
             transition: "all 0.2s"
           }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#e5e7eb")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#f3f4f6")
-          }
         >
           <FaFilter style={{ fontSize: "11px" }} />
-          Filtrar
+          {showFilters ? "Cerrar Filtros" : "Filtrar"}
         </button>
       </div>
 
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          minHeight: 0
-        }}
-      >
-        <table
+      {/* Panel de Filtros (Popup) */}
+      {showFilters && (
+        <div
           style={{
-            width: "100%",
-            borderCollapse: "collapse"
+            position: "absolute",
+            top: "60px",
+            right: "22px",
+            width: "300px",
+            backgroundColor: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "12px",
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+            padding: "16px",
+            zIndex: 50,
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px"
           }}
         >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontWeight: "600", fontSize: "14px" }}>Filtros</span>
+            <FaTimes 
+              style={{ cursor: "pointer", color: "#9ca3af" }} 
+              onClick={() => setShowFilters(false)}
+            />
+          </div>
+
+          {/* Filtro de Fechas (Afecta a la API) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <label style={{ fontSize: "12px", fontWeight: "500", color: "#6b7280" }}>Rango de Fechas</label>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <input
+                type="date"
+                value={desde}
+                onChange={(e) => onDateChange({ desde: e.target.value })}
+                style={inputStyle}
+              />
+              <input
+                type="date"
+                value={hasta}
+                onChange={(e) => onDateChange({ hasta: e.target.value })}
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          {/* Filtro de Estado (Local) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <label style={{ fontSize: "12px", fontWeight: "500", color: "#6b7280" }}>Estado</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="TODOS">Todos</option>
+              <option value="PUNTUAL">Puntual</option>
+              <option value="TARDE">Tarde</option>
+              <option value="FALTA">Falta</option>
+            </select>
+          </div>
+          
+          <button 
+            onClick={() => { setStatusFilter("TODOS"); }}
+            style={{
+              marginTop: "5px",
+              padding: "6px",
+              fontSize: "12px",
+              color: "#4b5563",
+              background: "transparent",
+              border: "1px dashed #d1d5db",
+              cursor: "pointer",
+              borderRadius: "4px"
+            }}
+          >
+            Limpiar filtro de estado
+          </button>
+        </div>
+      )}
+
+      {/* Tabla */}
+      <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr
               style={{
@@ -100,13 +171,12 @@ export default function AsistenciaTable({ registros = [] }) {
             </tr>
           </thead>
           <tbody>
-            {registros.map((r, i) => {
+            {registrosFiltrados.map((r, i) => {
               const estado = r.tipoRegistro || "-";
-              const cfg =
-                estadoConfig[estado] || {
-                  color: "#9ca3af",
-                  label: estado
-                };
+              const cfg = estadoConfig[estado] || {
+                color: "#9ca3af",
+                label: estado
+              };
               return (
                 <tr
                   key={r.id ?? i}
@@ -114,24 +184,14 @@ export default function AsistenciaTable({ registros = [] }) {
                     borderBottom: "1px solid #f3f4f6",
                     transition: "background-color 0.15s"
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#f9fafb")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9fafb")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   <td style={tdStyle}>{r.fecha}</td>
                   <td style={tdStyle}>{r.horaEntrada ?? "-"}</td>
                   <td style={tdStyle}>{r.horaSalida ?? "-"}</td>
                   <td style={tdStyle}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "7px"
-                      }}
-                    >
+                    <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
                       <div
                         style={{
                           width: "9px",
@@ -148,18 +208,20 @@ export default function AsistenciaTable({ registros = [] }) {
               );
             })}
 
-            {registros.length === 0 && (
+            {registrosFiltrados.length === 0 && (
               <tr>
                 <td
                   colSpan={4}
                   style={{
-                    padding: "12px 8px",
-                    fontSize: "13px",
+                    padding: "20px",
+                    fontSize: "14px",
                     color: "#6b7280",
                     textAlign: "center"
                   }}
                 >
-                  No hay registros en el rango seleccionado.
+                  {registros.length > 0 
+                    ? "No hay coincidencias con el filtro de estado." 
+                    : "No hay registros en el rango de fechas seleccionado."}
                 </td>
               </tr>
             )}
@@ -170,6 +232,7 @@ export default function AsistenciaTable({ registros = [] }) {
   );
 }
 
+// Estilos auxiliares
 const thStyle = {
   padding: "10px 8px",
   textAlign: "left",
@@ -182,4 +245,13 @@ const tdStyle = {
   padding: "10px 8px",
   fontSize: "13px",
   color: "#1f2937"
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "8px",
+  borderRadius: "6px",
+  border: "1px solid #d1d5db",
+  fontSize: "13px",
+  outline: "none"
 };
