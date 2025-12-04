@@ -86,4 +86,13 @@ public class GesEmpleadoService {
                 .filter(dto -> dto.getIdPuesto() != null) // evita nulos
                 .toList();
     }
+
+    public List<GesEmpleadoConPuestoDTO> listarEmpleadosPorArea(String area) {
+        List<GesEmpleado> empleados = empleadoRepository.listarEmpleadosPorArea(area);
+
+        return empleados.stream()
+                .map(emp -> obtenerEmpleadoConPuestoDTO(emp.getIdEmpleado()))
+                .filter(dto -> dto.getIdPuesto() != null) // seguridad extra
+                .toList();
+    }
 }

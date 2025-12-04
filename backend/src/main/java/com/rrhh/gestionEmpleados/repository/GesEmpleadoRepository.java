@@ -13,4 +13,14 @@ public interface GesEmpleadoRepository extends JpaRepository<GesEmpleado, Intege
     WHERE ep.activo = true
     """)
     List<GesEmpleado> listarEmpleadosConPuestoActual();
+
+    @Query("""
+        SELECT e
+        FROM GesEmpleado e
+        JOIN GesEmpleadoPuesto ep ON ep.empleado.idEmpleado = e.idEmpleado
+        JOIN GesPuesto p ON p.idPuesto = ep.puesto.idPuesto
+        WHERE ep.activo = true
+          AND p.area = :area
+    """)
+    List<GesEmpleado> listarEmpleadosPorArea(String area);
 }

@@ -31,4 +31,24 @@ public class GesEmpleadoController {
     public GesEmpleadoConPuestoDTO obtenerPuestoActual(@PathVariable Integer id) {
         return empleadoService.obtenerEmpleadoConPuestoDTO(id);
     }
+
+    @GetMapping("/area/{area}")
+    public List<GesEmpleadoConPuestoDTO> listarPorArea(@PathVariable String area) {
+        return empleadoService.listarEmpleadosPorArea(area);
+    }
+
+    @GetMapping("/area/ventas")
+    public List<GesEmpleadoConPuestoDTO> listarPorAreaVentas() {
+        return empleadoService.listarEmpleadosPorArea("Cotización y Ventas");
+    }
+
+    @GetMapping("/area/atencion-cliente")
+    public List<GesEmpleadoConPuestoDTO> listarPorAreaAtencionCliente() {
+        return empleadoService.listarEmpleadosPorArea("Atención al cliente");
+    }
+
+    @GetMapping("/area/compras")
+    public List<GesEmpleadoConPuestoDTO> listarPorAreaCompras() {
+        return empleadoService.listarEmpleadosPorArea("Compras");
+    }
 }
