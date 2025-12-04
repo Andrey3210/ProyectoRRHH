@@ -11,10 +11,14 @@ import Pipeline from '../modules/reclutamiento/Pipeline'
 import RecepcionCV from '../modules/recepcion/RecepcionCV'
 import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
-import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
-import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
-import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'
-import VistaEmpleado from '../modules/vacaciones/VistaEmpleado';
+import DashboardIncentivos from '../modules/incentivos/DashboardIncentivos'  
+import ReglasIncentivos from '../modules/incentivos/admin/ReglasIncentivos' 
+import MetasPeriodo from '../modules/incentivos/admin/metasPeriodo'
+import AprobacionesBonos from '../modules/incentivos/admin/AprobacionesBonos'
+import ReportesIncentivos from '../modules/incentivos/admin/ReportesIncentivos'
+import IncentivosRouter from '../modules/incentivos/IncentivosRouter'  
+import DashboardEmpleado from '../modules/incentivos/empleado/DashboardEmpleado'
+import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'  
 
 const Routes = () => {
   return (
@@ -39,15 +43,24 @@ const Routes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/incentivos-reconocimientos" 
-        element={
-          <ProtectedRoute>
-            <ComingSoon title="Gestión de Incentivos y Reconocimientos" />
-          </ProtectedRoute>
-        } 
-      />
-      {/* Gestion de vacaciones y permisos======================= */}
+
+      <Route   
+       path="/incentivos-reconocimientos"   
+      element={  
+      <ProtectedRoute>  
+        <IncentivosRouter />  
+      </ProtectedRoute>  
+       }  
+      >  
+         <Route path="admin/dashboard" element={<DashboardIncentivos />} />  
+         <Route path="admin/reglas" element={<ReglasIncentivos />} />  
+         <Route path="admin/metas" element={<MetasPeriodo />} />  
+         <Route path="admin/aprobaciones" element={<AprobacionesBonos />} />  
+         <Route path="admin/reportes" element={<ReportesIncentivos />} />  
+    
+         <Route path="empleado/dashboard" element={<DashboardEmpleado />} />  
+         <Route path="empleado/pagos" element={<DetallePagosEmpleado />} />
+      </Route>
       <Route 
         path="/vacaciones-permisos" 
         element={
