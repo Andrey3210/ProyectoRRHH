@@ -1,5 +1,6 @@
 package com.rrhh.vacaciones.controller;
 
+import com.rrhh.vacaciones.dto.AsignarSaldoDTO;
 import com.rrhh.vacaciones.dto.ReporteSaldoDTO;
 import com.rrhh.vacaciones.dto.SolicitudDTO; // <--- Importar el DTO
 import com.rrhh.vacaciones.model.*; // Importar modelos incluyendo Empleado y TipoSolicitud
@@ -144,6 +145,12 @@ public class GestionVacacionesController {
     @GetMapping("/admin/reportes/saldos")
     public ResponseEntity<List<ReporteSaldoDTO>> obtenerReporteSaldos() {
         return ResponseEntity.ok(adminFacade.generarReporteSaldos());
+    }
+
+    @PostMapping("/admin/saldos/asignar")
+    public ResponseEntity<?> asignarSaldo(@RequestBody AsignarSaldoDTO dto) {
+        adminFacade.asignarSaldo(dto.getIdEmpleado(), dto.getAnio(), dto.getDiasAsignados());
+        return ResponseEntity.ok(Map.of("message", "Saldo asignado correctamente"));
     }
 
 }

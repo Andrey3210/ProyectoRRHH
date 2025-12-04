@@ -91,4 +91,12 @@ public class AdministradorPermisosFacade {
     public List<ReporteSaldoDTO> generarReporteSaldos() {
         return calcularSaldosCommand.ejecutar();
     }
+
+    public void asignarSaldo(Integer idEmpleado, Integer anio, Integer dias) {
+        AsignarSaldo comando = context.getBean(AsignarSaldo.class);
+        comando.setIdEmpleado(idEmpleado);
+        comando.setAnio(anio);
+        comando.setDiasAsignados(dias);
+        comando.ejecutar();
+    }
 }
