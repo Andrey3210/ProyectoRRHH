@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface GesEmpleadoRepository extends JpaRepository<GesEmpleado, Integer> {
+
     @Query("""
     SELECT e FROM GesEmpleado e
     JOIN GesEmpleadoPuesto ep ON ep.empleado.idEmpleado = e.idEmpleado
