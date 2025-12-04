@@ -1,4 +1,4 @@
-package com.rrhh.shared.domain.model;
+package com.rrhh.incentivos.domain.model;
 
 public enum TipoEvidencia {
     VENTA,

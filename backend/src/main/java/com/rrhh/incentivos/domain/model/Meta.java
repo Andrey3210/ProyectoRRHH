@@ -1,4 +1,4 @@
-package com.rrhh.shared.domain.model;
+package com.rrhh.incentivos.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -8,7 +8,9 @@ import java.time.LocalDate;
 @Data
 @Entity
 @Table(name = "metas")
-public class Meta {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "categoria_meta", discriminatorType = DiscriminatorType.STRING)
+public abstract class Meta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,13 +19,13 @@ public class Meta {
 
     @ManyToOne
     @JoinColumn(name = "id_empleado")
-    private Empleado empleado;
+    private EmpleadoInc empleado;
+
+    @Column(name = "id_departamento") 
+    private String idDepartamento;
 
     @Column(name = "nombre_meta")
     private String nombreMeta;
-
-    @Column(name = "tipo_meta") // VENTA, CALIDAD, ETC.
-    private String tipoMeta;
 
     @Column(name = "valor_objetivo")
     private BigDecimal valorObjetivo;
@@ -39,4 +41,9 @@ public class Meta {
 
     @Column(name = "fecha_fin")
     private LocalDate fechaFin;
+    
+    @Column(name = "tipo_meta")
+    private String tipoMeta; 
+
+    public abstract boolean verificarCumplimiento();
 }

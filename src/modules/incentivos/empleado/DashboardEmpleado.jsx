@@ -163,12 +163,11 @@ const FeedItem = ({ icono, color, titulo, tiempo }) => (
 const DashboardEmpleado = () => {
   return (
     <Box sx={{ 
-      bgcolor: '#F8FAFC', // Fondo muy suave
+      bgcolor: '#F8FAFC', 
       minHeight: '100vh', 
       display: 'flex', 
       flexDirection: 'column',
-      ml: '110px',        // Margen para Sidebar
-      width: 'auto',      // Auto width
+      width: '100%',    
       boxSizing: 'border-box',
       overflowX: 'hidden'
     }}>

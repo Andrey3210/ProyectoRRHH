@@ -1,4 +1,4 @@
-package com.rrhh.shared.domain.model;
+package com.rrhh.incentivos.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -18,7 +18,7 @@ public class Bono {
 
     @ManyToOne
     @JoinColumn(name = "id_empleado", nullable = false)
-    private Empleado empleado;
+    private EmpleadoInc empleado;
 
     @ManyToOne
     @JoinColumn(name = "id_regla")

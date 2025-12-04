@@ -152,8 +152,7 @@ const DetallePagosEmpleado = () => {
       minHeight: '100vh', 
       display: 'flex', 
       flexDirection: 'column',
-      ml: '110px', 
-      width: 'auto',
+      width: '100%',
       boxSizing: 'border-box',
       overflowX: 'hidden'
     }}>

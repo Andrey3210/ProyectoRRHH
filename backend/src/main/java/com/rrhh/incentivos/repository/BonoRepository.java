@@ -1,7 +1,7 @@
 package com.rrhh.incentivos.repository;
 
-import com.rrhh.shared.domain.model.Bono;
-import com.rrhh.shared.domain.model.EstadoBono;
+import com.rrhh.incentivos.domain.model.Bono;
+import com.rrhh.incentivos.domain.model.EstadoBono;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +27,16 @@ public interface BonoRepository extends JpaRepository<Bono, Integer> {
     
     @Query("SELECT b.periodo, SUM(b.monto) FROM Bono b GROUP BY b.periodo ORDER BY b.periodo DESC LIMIT 6")
     List<Object[]> findEvolucionSemestral();
+
+    @Query("SELECT SUM(b.monto) FROM Bono b WHERE b.periodo = :periodo AND b.estado = :estado")
+    BigDecimal sumMontoPorPeriodoYEstado(@Param("periodo") String periodo, @Param("estado") EstadoBono estado);
+
+    @Query("SELECT SUM(b.monto) FROM Bono b WHERE b.periodo = :periodo")
+    BigDecimal sumTotalPeriodo(@Param("periodo") String periodo);
+
+    @Query("SELECT b FROM Bono b WHERE b.estado = 'PENDIENTE' AND b.periodo = :periodo")
+    List<Bono> findPendientesPorPeriodo(@Param("periodo") String periodo);
+    @Query("SELECT b FROM Bono b WHERE b.periodo LIKE %:anio%")
+    List<Bono> findByAnio(@Param("anio") String anio);
+    List<Bono> findTop5ByEmpleadoIdEmpleadoOrderByFechaCalculoDesc(Integer idEmpleado);
 }
