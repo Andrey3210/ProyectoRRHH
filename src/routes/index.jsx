@@ -19,6 +19,15 @@ import ReportesIncentivos from '../modules/incentivos/admin/ReportesIncentivos'
 import IncentivosRouter from '../modules/incentivos/IncentivosRouter'  
 import DashboardEmpleado from '../modules/incentivos/empleado/DashboardEmpleado'
 import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'  
+import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
+import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
+import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'
+import VistaEmpleado from '../modules/vacaciones/VistaEmpleado'
+import AsistenciaDashboard from '../modules/asistencia/AsistenciaDashboard'
+import EmployeeTimelinePage from '../modules/asistencia/EmployeeTimelinePage'
+import ReportesAsistenciaPage from '../modules/asistencia/ReportesAsistenciaPage'
+import AuditoriaPage from '../modules/asistencia/AuditoriaPage';
+
 
 const Routes = () => {
   return (
@@ -35,11 +44,12 @@ const Routes = () => {
           </ProtectedRoute>
         } 
       />
+      {/* INICIO Módulo de Asistencia INICIO*/}
       <Route 
         path="/control-asistencia" 
         element={
           <ProtectedRoute>
-            <ComingSoon title="Control de Asistencia" />
+            <AsistenciaDashboard />
           </ProtectedRoute>
         } 
       />
@@ -61,6 +71,41 @@ const Routes = () => {
          <Route path="empleado/dashboard" element={<DashboardEmpleado />} />  
          <Route path="empleado/pagos" element={<DetallePagosEmpleado />} />
       </Route>
+      <Route 
+        path="/control-asistenciaLineaTiempo" 
+        element={
+          <ProtectedRoute>
+            <EmployeeTimelinePage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/control-asistenciaReporte" 
+        element={
+          <ProtectedRoute>
+            <ReportesAsistenciaPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/control-asistenciaSistema" 
+        element={
+          <ProtectedRoute>
+            <AuditoriaPage />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* FIN Módulo de Asistencia FIN*/}
+      <Route 
+        path="/incentivos-reconocimientos" 
+        element={
+          <ProtectedRoute>
+            <ComingSoon title="Gestión de Incentivos y Reconocimientos" />
+          </ProtectedRoute>
+        } 
+      />
+      {/* Gestion de vacaciones y permisos======================= */}
       <Route 
         path="/vacaciones-permisos" 
         element={

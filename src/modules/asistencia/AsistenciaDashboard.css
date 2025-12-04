@@ -1,0 +1,79 @@
+/* contenedor principal - fondo transparente/blanco */
+.asistencia-main {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  background: transparent; /* ← SIN fondo gris */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* título principal con padding interno */
+.main-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+  padding: 18px 24px 12px 24px;
+  color: #222;
+  flex-shrink: 0;
+}
+
+/* grid de dos columnas con padding interno */
+.content-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  column-gap: 20px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 24px 18px 24px;
+}
+
+/* columna izquierda */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* columna derecha */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* tarjeta resumen mensual */
+.monthly-card {
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  padding: 16px 20px;
+}
+
+.monthly-inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 28px;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  margin: 0;
+}
