@@ -15,11 +15,13 @@ public class GesEmpleadoHorario {
     @Column(name = "id_empleado_horario")
     private Integer idEmpleadoHorario;
 
-    @Column(name = "id_empleado")
-    private Integer idEmpleado;
+    @ManyToOne
+    @JoinColumn(name = "id_empleado")
+    private GesEmpleado empleado;
 
-    @Column(name = "id_horario")
-    private Integer idHorario;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_horario")
+    private GesHorario horario;
 
     @Column(name = "fecha_inicio")
     private LocalDate fechaInicio;
