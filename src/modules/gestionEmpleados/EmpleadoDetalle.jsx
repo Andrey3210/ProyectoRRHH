@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import "./EmpleadoDetalle.css"; // Separa el CSS para estilos
 
 export default function EmpleadoDetalle() {
     const { id } = useParams();
@@ -34,15 +35,13 @@ export default function EmpleadoDetalle() {
                 setEmpleado({
                     ...dataEmpleado,
                     // Solo añadir datos de puesto si existen
-                    ...(dataPuesto ? {
-                        nombrePuesto: dataPuesto.nombrePuesto,
-                        departamento: dataPuesto.departamento,
-                        area: dataPuesto.area,
-                        nivelJerarquico: dataPuesto.nivelJerarquico,
-                        salarioAsignado: dataPuesto.salarioAsignado,
-                        fechaInicioPuesto: dataPuesto.fechaInicioPuesto,
-                        fechaFinPuesto: dataPuesto.fechaFinPuesto,
-                    } : {}),
+                    nombrePuesto: dataPuesto ? dataPuesto.nombrePuesto : "Sin Asignar",
+                    departamento: dataPuesto ? dataPuesto.departamento : "Sin Asignar",
+                    area: dataPuesto ? dataPuesto.area : null,
+                    nivelJerarquico: dataPuesto ? dataPuesto.nivelJerarquico : "Sin Asignar",
+                    salarioAsignado: dataPuesto ? dataPuesto.salarioAsignado : "Sin Asignar",
+                    fechaInicioPuesto: dataPuesto ? dataPuesto.fechaInicioPuesto : "Sin Asignar",
+                    fechaFinPuesto: dataPuesto ? dataPuesto.fechaFinPuesto : "Sin Asignar",
                     // Datos de horario
                     nombreHorario: empleadoHorario ? empleadoHorario.nombreHorario : "Sin horario",
                     horaEntrada: empleadoHorario ? empleadoHorario.horaEntrada : null,
@@ -65,42 +64,114 @@ export default function EmpleadoDetalle() {
 
     return (
         <div className="empleado-detalle">
-            <button onClick={() => navigate(-1)} style={{ marginBottom: "1rem" }}>
-                ← Volver a la lista
-            </button>
+            <button onClick={() => navigate(-1)} className="volver-btn">← Volver a la lista</button>
 
-            <h2>Detalle de {empleado.nombres} {empleado.apellidoPaterno}</h2>
+            <h2>Detalle de empleado</h2>
 
-            <div className="detalle-seccion">
-                <h3>Información básica</h3>
-                <p>ID: {empleado.idEmpleado}</p>
-                <p>DNI: {empleado.documentoIdentidad}</p>
-                <p>Email: {empleado.email}</p>
-                <p>Teléfono: {empleado.telefono}</p>
-                <p>Área: {empleado.area || "Sin área"}</p>
+            <div className="detalle-grid">
+                {/* Sección izquierda */}
+                <div className="detalle-izquierda">
+                    <div className="avatar">
+                        {/* Placeholder para la foto */}
+                    </div>
+                    <div className="card">
+                        <strong>Nombre completo</strong>
+                        <p>{empleado.nombres} {empleado.apellidoPaterno} {empleado.apellidoMaterno}</p>
+                    </div>
+                    <div className="card">
+                        <strong>ID  {empleado.idEmpleado}</strong>
+                    </div>
+                    <div className="card">
+                        <strong>Código</strong>
+                        <p>{empleado.codigoEmpleado}</p>
+                    </div>
+                </div>
+
+                {/* Sección derecha */}
+                <div className="detalle-derecha">
+                    {/* Información básica */}
+                    <h3>Información básica</h3>
+                    <div className="info-grid">
+                        <div className="card">
+                            <strong>DNI</strong>
+                            <p>{empleado.documentoIdentidad}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Email</strong>
+                            <p>{empleado.email}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Teléfono</strong>
+                            <p>{empleado.telefono}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Fecha de nacimiento</strong>
+                            <p>{empleado.fechaNacimiento}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Género</strong>
+                            <p>{empleado.genero}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Estado civil</strong>
+                            <p>{empleado.estadoCivil}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Nacionalidad</strong>
+                            <p>{empleado.nacionalidad}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Dirección</strong>
+                            <p>{empleado.direccion}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Área</strong>
+                            <p>{empleado.area || "Sin área"}</p>
+                        </div>
+                        <div className="card">
+                            <strong>Estado</strong>
+                            <p>{empleado.estado}</p>
+                        </div>
+                    </div>
+
+                    {/* Sección Puesto y Horario */}
+                    <div className="subsecciones">
+                        {/* Puesto actual */}
+                        <div className="subseccion">
+                            <h3>Puesto actual</h3>
+                            <div className="card">
+                                <strong>Nombre</strong>
+                                <p>{empleado.nombrePuesto}</p>
+                                <strong>Departamento</strong>
+                                <p>{empleado.departamento}</p>
+                                <strong>Nivel jerárquico</strong>
+                                <p>{empleado.nivelJerarquico}</p>
+                                <strong>Salario asignado</strong>
+                                <p>{empleado.salarioAsignado}</p>
+                                <strong>Fecha inicio</strong>
+                                <p>{empleado.fechaInicioPuesto}</p>
+                                <strong>Fecha fin</strong>
+                                <p>{empleado.fechaFinPuesto}</p>
+                            </div>
+                        </div>
+
+                        {/* Horario */}
+                        <div className="subseccion">
+                            <h3>Horario</h3>
+                            <div className="card">
+                                <strong>Nombre</strong>
+                                <p>{empleado.nombreHorario}</p>
+                                <strong>Hora entrada</strong>
+                                <p>{empleado.horaEntrada || "-"}</p>
+                                <strong>Hora salida</strong>
+                                <p>{empleado.horaSalida || "-"}</p>
+                                <strong>Días</strong>
+                                <p>{empleado.diasSemana || "-"}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            {empleado.nombrePuesto && (
-                <div className="detalle-seccion">
-                    <h3>Puesto actual</h3>
-                    <p>Nombre: {empleado.nombrePuesto}</p>
-                    <p>Departamento: {empleado.departamento}</p>
-                    <p>Nivel jerárquico: {empleado.nivelJerarquico}</p>
-                    <p>Salario asignado: {empleado.salarioAsignado}</p>
-                    <p>Fecha inicio: {empleado.fechaInicioPuesto}</p>
-                    <p>Fecha fin: {empleado.fechaFinPuesto || "N/A"}</p>
-                </div>
-            )}
-
-            {empleado.nombreHorario && (
-                <div className="detalle-seccion">
-                    <h3>Horario</h3>
-                    <p>Nombre: {empleado.nombreHorario}</p>
-                    <p>Hora entrada: {empleado.horaEntrada || "-"}</p>
-                    <p>Hora salida: {empleado.horaSalida || "-"}</p>
-                    <p>Días: {empleado.diasSemana || "-"}</p>
-                </div>
-            )}
         </div>
     );
 }
