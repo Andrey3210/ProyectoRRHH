@@ -187,6 +187,37 @@ export default function ReportesAsistenciaPage() {
     filtros.fechaFin
   ]);
 
+  // Resumen calculado a partir de la tabla filtrada
+  const resumenCalculado = useMemo(() => {
+    if (!filasFiltradas || filasFiltradas.length === 0) {
+      return {
+        diasTrabajados: 0,
+        faltas: 0,
+        tardanzas: 0,
+        horasExtra: 0
+      };
+    }
+
+    const diasTrabajados = filasFiltradas.reduce(
+      (acc, f) => acc + (f.diasTrabajados || 0),
+      0
+    );
+    const faltas = filasFiltradas.reduce(
+      (acc, f) => acc + (f.faltas || 0),
+      0
+    );
+    const tardanzas = filasFiltradas.reduce(
+      (acc, f) => acc + (f.tardanzas || 0),
+      0
+    );
+    const horasExtra = filasFiltradas.reduce(
+      (acc, f) => acc + (f.horasExtra || 0),
+      0
+    );
+
+    return { diasTrabajados, faltas, tardanzas, horasExtra };
+  }, [filasFiltradas]);
+
   return (
     <div className="employee-timeline-main">
       <div className="asistencia-header">
@@ -215,7 +246,8 @@ export default function ReportesAsistenciaPage() {
           {error && <p className="rep-error">{error}</p>}
           {loading && <p>Cargando...</p>}
 
-          <ReportesSummary summary={summary} />
+          {/* usar el resumen calculado desde las filas filtradas */}
+          <ReportesSummary summary={resumenCalculado} />
 
           <ReportesTable
             tipoReporte={filtros.tipoReporte}

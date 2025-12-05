@@ -14,20 +14,24 @@ function TablaResumenPorEmpleado({ filas }) {
         </tr>
       </thead>
       <tbody>
-        {filas.map((f) => (
-          <tr key={f.empleadoId}>
-            <td>{f.empleadoNombre}</td>
-            <td>{f.areaNombre}</td>
-            <td>{f.diasTrabajados}</td>
-            <td>{f.faltas}</td>
-            <td>{f.tardanzas}</td>
-            <td>{f.horasExtra}</td>
-          </tr>
-        ))}
+        {filas.map((f) => {
+          const diasEfectivos = (f.diasTrabajados || 0) - (f.faltas || 0);
+          return (
+            <tr key={f.empleadoId}>
+              <td>{f.empleadoNombre}</td>
+              <td>{f.areaNombre}</td>
+              <td>{diasEfectivos}</td>
+              <td>{f.faltas}</td>
+              <td>{f.tardanzas}</td>
+              <td>{f.horasExtra}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
 }
+
 
 function calcularHorasTrabajadas(horaEntrada, horaSalida) {
   if (!horaEntrada || !horaSalida) return 0;

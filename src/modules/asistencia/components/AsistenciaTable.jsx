@@ -15,13 +15,29 @@ export default function AsistenciaTable({ registros = [], desde, hasta, onDateCh
     Falta: { color: "#ef4444", label: "Falta" }
   };
 
-  // Lógica de filtrado local (por estado)
-  const registrosFiltrados = registros.filter((r) => {
-    if (statusFilter === "TODOS") return true;
-    // Normalizamos a mayúsculas para comparar
-    const estadoRegistro = (r.tipoRegistro || "").toUpperCase();
-    return estadoRegistro === statusFilter;
-  });
+  // Filtrado por estado + orden cronológico (más antiguos arriba)
+  const registrosFiltrados = registros
+    .filter((r) => {
+      if (statusFilter === "TODOS") return true;
+      const estadoRegistro = (r.tipoRegistro || "").toUpperCase();
+      return estadoRegistro === statusFilter;
+    })
+    .slice()
+    .sort((a, b) => {
+      const da = a.fecha || "";
+      const db = b.fecha || "";
+
+      if (da < db) return 1;   // más reciente (fecha mayor) primero
+      if (da > db) return -1;
+
+      const ha = a.horaEntrada || "00:00:00";
+      const hb = b.horaEntrada || "00:00:00";
+
+      if (ha < hb) return 1;   // hora más alta primero
+      if (ha > hb) return -1;
+      return 0;
+    });
+
 
   return (
     <div
@@ -35,7 +51,7 @@ export default function AsistenciaTable({ registros = [], desde, hasta, onDateCh
         border: "1px solid #e0e0e0",
         padding: "18px 22px",
         minHeight: 0,
-        position: "relative" // Necesario para el popup absoluto
+        position: "relative"
       }}
     >
       {/* Header con botón Filtrar */}
@@ -94,15 +110,17 @@ export default function AsistenciaTable({ registros = [], desde, hasta, onDateCh
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontWeight: "600", fontSize: "14px" }}>Filtros</span>
-            <FaTimes 
-              style={{ cursor: "pointer", color: "#9ca3af" }} 
+            <FaTimes
+              style={{ cursor: "pointer", color: "#9ca3af" }}
               onClick={() => setShowFilters(false)}
             />
           </div>
 
           {/* Filtro de Fechas (Afecta a la API) */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontSize: "12px", fontWeight: "500", color: "#6b7280" }}>Rango de Fechas</label>
+            <label style={{ fontSize: "12px", fontWeight: "500", color: "#6b7280" }}>
+              Rango de Fechas
+            </label>
             <div style={{ display: "flex", gap: "8px" }}>
               <input
                 type="date"
@@ -133,9 +151,11 @@ export default function AsistenciaTable({ registros = [], desde, hasta, onDateCh
               <option value="FALTA">Falta</option>
             </select>
           </div>
-          
-          <button 
-            onClick={() => { setStatusFilter("TODOS"); }}
+
+          <button
+            onClick={() => {
+              setStatusFilter("TODOS");
+            }}
             style={{
               marginTop: "5px",
               padding: "6px",
@@ -219,8 +239,8 @@ export default function AsistenciaTable({ registros = [], desde, hasta, onDateCh
                     textAlign: "center"
                   }}
                 >
-                  {registros.length > 0 
-                    ? "No hay coincidencias con el filtro de estado." 
+                  {registros.length > 0
+                    ? "No hay coincidencias con el filtro de estado."
                     : "No hay registros en el rango de fechas seleccionado."}
                 </td>
               </tr>
@@ -253,5 +273,5 @@ const inputStyle = {
   borderRadius: "6px",
   border: "1px solid #d1d5db",
   fontSize: "13px",
-  outline: "none"
+  outline: "none"
 };
