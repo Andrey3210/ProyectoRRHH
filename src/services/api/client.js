@@ -5,9 +5,17 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
 
+function normalizeBaseUrl(url = '') {
+  const trimmed = url.endsWith('/') ? url.slice(0, -1) : url
+  const hasApiContext = trimmed.endsWith('/api') || trimmed.includes('/api/')
+
+  if (hasApiContext) return trimmed
+  return `${trimmed}/api`
+}
+
 class ApiClient {
   constructor() {
-    this.baseURL = API_BASE_URL
+    this.baseURL = normalizeBaseUrl(API_BASE_URL)
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
