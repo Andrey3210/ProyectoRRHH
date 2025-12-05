@@ -10,6 +10,7 @@ import com.rrhh.gestionEmpleados.repository.GesEmpleadoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +29,18 @@ public class GesEmpleadoService {
 
         mapDtoToEntity(dto, empleado);
         empleado.setEstado("ACTIVO");
+        empleado.setFechaIngreso(LocalDate.now());
         empleado.setFechaCreacion(LocalDateTime.now());
         empleado.setFechaActualizacion(LocalDateTime.now());
 
+        Integer ultimoId = empleadoRepository.findTopByOrderByIdEmpleadoDesc()
+                .map(GesEmpleado::getIdEmpleado)
+                .orElse(0);
+        String codigo = String.format("EMP-%03d", ultimoId + 1);
+
+        empleado.setCodigoEmpleado(codigo);
+
+        // Guardar nuevamente con el código actualizado
         return empleadoRepository.save(empleado);
     }
 
