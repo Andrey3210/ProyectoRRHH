@@ -44,4 +44,34 @@ public class GesEmpleadoPuestoService {
 
         return empleadoPuestoRepository.save(empPuesto);
     }
+
+    public GesEmpleadoPuesto actualizarPuesto(GesAsignarPuestoRequest request) {
+        GesEmpleado empleado = empleadoRepository.findById(request.getIdEmpleado())
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+        GesPuesto puesto = puestoRepository.findById(request.getIdPuesto())
+                .orElseThrow(() -> new RuntimeException("Puesto no encontrado"));
+
+        // Buscar el puesto activo actual
+        GesEmpleadoPuesto actualActivo = empleadoPuestoRepository.obtenerPuestoActual(empleado.getIdEmpleado());
+
+        if (actualActivo != null) {
+            // Marcar como inactivo y asignar fecha fin
+            actualActivo.setActivo(false);
+            actualActivo.setFechaFin(LocalDate.now());
+            empleadoPuestoRepository.save(actualActivo);
+        }
+
+        // Crear nuevo registro de puesto
+        GesEmpleadoPuesto nuevoPuesto = new GesEmpleadoPuesto();
+        nuevoPuesto.setEmpleado(empleado);
+        nuevoPuesto.setPuesto(puesto);
+        nuevoPuesto.setFechaInicio(request.getFechaInicio() != null ? request.getFechaInicio() : LocalDate.now());
+        nuevoPuesto.setSalario(request.getSalario());
+        nuevoPuesto.setMotivoCambio(request.getMotivoCambio());
+        nuevoPuesto.setActivo(true);
+        nuevoPuesto.setFechaAsignacion(LocalDateTime.now());
+
+        return empleadoPuestoRepository.save(nuevoPuesto);
+    }
 }

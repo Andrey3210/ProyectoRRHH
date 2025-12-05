@@ -12,9 +12,20 @@ public interface GesEmpleadoHorarioRepository extends JpaRepository<GesEmpleadoH
     @Query("""
         SELECT eh
         FROM GesEmpleadoHorario eh
-        JOIN FETCH eh.empleado
-        JOIN FETCH eh.horario
+        JOIN FETCH eh.empleado e
+        JOIN FETCH eh.horario h
         WHERE eh.activo = true
     """)
     List<GesEmpleadoHorario> listarHorariosEmpleadoActivo();
+
+    @Query("""
+        SELECT eh
+        FROM GesEmpleadoHorario eh
+        JOIN FETCH eh.empleado e
+        JOIN FETCH eh.horario h
+        WHERE eh.empleado.idEmpleado = :idEmpleado
+         AND eh.activo = true
+    """)
+    GesEmpleadoHorario obtenerHorariosEmpleadoActivo(Integer idEmpleado);
+    boolean existsByEmpleadoIdEmpleadoAndActivoTrue(Integer idEmpleado);
 }
