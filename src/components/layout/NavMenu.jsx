@@ -6,6 +6,7 @@ const NavMenu = () => {
   const location = useLocation()
 
   const menuItems = [
+    { path: '/reclutamiento/resumen', label: 'Resumen' },
     { path: '/posiciones', label: 'Posiciones Abiertas' },
     { path: '/candidatos', label: 'Lista de Candidatos' },
     { path: '/pipeline', label: 'Pipeline' },
@@ -18,6 +19,7 @@ const NavMenu = () => {
 
   // Rutas del módulo de Reclutamiento y Selección (sin recepción de CVs)
   const rutasReclutamiento = [
+    '/reclutamiento/resumen',
     '/posiciones',
     '/candidatos',
     '/pipeline',

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useRRHH } from '../../store/RRHHContext'
 import vacanteService from '../../services/api/vacanteService'
 
 const Pipeline = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { candidatesData, pipelineStages } = useRRHH()
   const [filterPuesto, setFilterPuesto] = useState('')
   const [vacantes, setVacantes] = useState([])
@@ -14,12 +15,16 @@ const Pipeline = () => {
       try {
         const data = await vacanteService.obtenerVacantes()
         setVacantes(data)
+        if (location.state?.puesto) {
+          setFilterPuesto(location.state.puesto)
+          window.history.replaceState({}, document.title)
+        }
       } catch (err) {
         console.error('Error al cargar vacantes:', err)
       }
     }
     cargarVacantes()
-  }, [])
+  }, [location.state])
 
   const stageColors = {
     "Nuevo": "#6c757d",

@@ -8,6 +8,7 @@ import ListaCandidatos from '../modules/reclutamiento/ListaCandidatos'
 import DetalleCandidato from '../modules/reclutamiento/DetalleCandidato'
 import FormularioPuesto from '../modules/reclutamiento/FormularioPuesto'
 import Pipeline from '../modules/reclutamiento/Pipeline'
+import ResumenReclutamiento from '../modules/reclutamiento/ResumenReclutamiento'
 import RecepcionCV from '../modules/recepcion/RecepcionCV'
 import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
@@ -154,8 +155,16 @@ const Routes = () => {
       />
       
       {/* Módulo de Reclutamiento y Selección */}
-      <Route 
-        path="/posiciones" 
+      <Route
+        path="/reclutamiento/resumen"
+        element={
+          <ProtectedRoute>
+            <ResumenReclutamiento />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/posiciones"
         element={
           <ProtectedRoute>
             <PosicionesAbiertas />

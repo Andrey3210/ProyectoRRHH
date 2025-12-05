@@ -17,7 +17,12 @@ const Sidebar = () => {
 
   // Determinar sección activa según la ruta actual
   const isRecepcionActive = isActive('/recepcion-cv')
-  const isReclutamientoActive = !isRecepcionActive && (isActive('/pipeline') || isActive('/candidatos') || isActive('/posiciones'))
+  const isReclutamientoActive = !isRecepcionActive && (
+    isActive('/reclutamiento/resumen') ||
+    isActive('/pipeline') ||
+    isActive('/candidatos') ||
+    isActive('/posiciones')
+  )
   const isInicioActive = isActive('/inicio')
   const isAsistenciaActive = isActive('/control-asistencia')
   const isIncentivosActive = isActive('/incentivos-reconocimientos')
