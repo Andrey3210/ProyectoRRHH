@@ -1,9 +1,14 @@
-const API_BASE = "http://localhost:8080/api/asistencia";
-const API_BASER = "http://localhost:8080/api/reporte"
+import apiClient from "./client";
+
+const API_BASE = "/asistencia";
+const API_BASER = "/reporte";
 
 export async function marcarAsistencia(idEmpleado) {
   const url = `${API_BASE}/marcar?idEmpleado=${idEmpleado}`;
-  const resp = await fetch(url, { method: "POST" });
+  const resp = await fetch(`${apiClient.baseURL}${url}`, {
+    method: "POST",
+    headers: apiClient.getHeaders({ "Content-Type": "application/json" }),
+  });
   if (!resp.ok) {
     const text = await resp.text();
     throw new Error(`HTTP ${resp.status}: ${text}`);
@@ -14,8 +19,9 @@ export async function marcarAsistencia(idEmpleado) {
 export async function obtenerHistorialAsistencia(idEmpleado, desde, hasta) {
   const params = new URLSearchParams({ desde, hasta }).toString();
   const url = `${API_BASE}/empleado/${idEmpleado}?${params}`;
-  console.log('URL solicitada:', url);
-  const resp = await fetch(url);
+  const resp = await fetch(`${apiClient.baseURL}${url}`, {
+    headers: apiClient.getHeaders(),
+  });
   if (!resp.ok) {
     const text = await resp.text();
     throw new Error(`HTTP ${resp.status}: ${text}`);
@@ -25,7 +31,9 @@ export async function obtenerHistorialAsistencia(idEmpleado, desde, hasta) {
 
 export async function obtenerEstadoActual(idEmpleado) {
   const url = `${API_BASE}/estado-actual/${idEmpleado}`;
-  const resp = await fetch(url);
+  const resp = await fetch(`${apiClient.baseURL}${url}`, {
+    headers: apiClient.getHeaders(),
+  });
   if (!resp.ok) {
     const text = await resp.text();
     throw new Error(`HTTP ${resp.status}: ${text}`);
@@ -35,7 +43,9 @@ export async function obtenerEstadoActual(idEmpleado) {
 
 export async function obtenerAsistenciaHoyTimeline() {
   const url = `${API_BASE}/hoy/timeline`;
-  const resp = await fetch(url);
+  const resp = await fetch(`${apiClient.baseURL}${url}`, {
+    headers: apiClient.getHeaders(),
+  });
   if (!resp.ok) {
     const text = await resp.text();
     throw new Error(`HTTP ${resp.status}: ${text}`);
@@ -44,7 +54,12 @@ export async function obtenerAsistenciaHoyTimeline() {
 }
 
 export async function obtenerMiEmpleado(idUsuario) {
-  const resp = await fetch(`${API_BASE}/mi-empleado?idUsuario=${idUsuario}`);
+  const resp = await fetch(
+    `${apiClient.baseURL}${API_BASE}/mi-empleado?idUsuario=${idUsuario}`,
+    {
+      headers: apiClient.getHeaders(),
+    }
+  );
   if (!resp.ok) {
     const text = await resp.text();
     throw new Error(`HTTP ${resp.status}: ${text}`);
@@ -64,8 +79,9 @@ export async function guardarCorreccionAsistencia(payload) {
   if (payload.horaEntrada) params.append("horaEntrada", payload.horaEntrada);
   if (payload.horaSalida) params.append("horaSalida", payload.horaSalida);
 
-  const resp = await fetch(`${API_BASE}/correcciones`, {
+  const resp = await fetch(`${apiClient.baseURL}${API_BASE}/correcciones`, {
     method: "POST",
+    headers: apiClient.getHeaders({ "Content-Type": "application/x-www-form-urlencoded" }),
     body: params,
   });
   if (!resp.ok) {
@@ -86,9 +102,9 @@ export async function obtenerReporteResumenAsistencia(filtros) {
     incluirSinRegistro: filtros.incluirDiasSinRegistro
   });
 
-  const url = `http://localhost:8080/api/reporte/resumen-empleado?${params.toString()}`;
+  const url = `${apiClient.baseURL}${API_BASER}/resumen-empleado?${params.toString()}`;
 
-  const resp = await fetch(url);
+  const resp = await fetch(url, { headers: apiClient.getHeaders() });
   if (!resp.ok) {
     const text = await resp.text();
     throw new Error(`HTTP ${resp.status}: ${text}`);
@@ -104,8 +120,8 @@ export async function obtenerReporteDetallePorDia(filtros) {
     area: filtros.area === "Todos" ? "" : filtros.area
   });
 
-  const url = `http://localhost:8080/api/reporte/detalle-dia?${params.toString()}`;
-  const resp = await fetch(url);
+  const url = `${apiClient.baseURL}${API_BASER}/detalle-dia?${params.toString()}`;
+  const resp = await fetch(url, { headers: apiClient.getHeaders() });
   if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
   return await resp.json(); // array de DetalleDiaDTO
 }
