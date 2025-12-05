@@ -20,13 +20,16 @@ import ReglasIncentivos from '../modules/incentivos/admin/ReglasIncentivos'
 import MetasPeriodo from '../modules/incentivos/admin/metasPeriodo'
 import AprobacionesBonos from '../modules/incentivos/admin/AprobacionesBonos'
 import ReportesIncentivos from '../modules/incentivos/admin/ReportesIncentivos'
-import IncentivosRouter from '../modules/incentivos/IncentivosRouter'  
+import IncentivosRouter from '../modules/incentivos/IncentivosRouter'
 import DashboardEmpleado from '../modules/incentivos/empleado/DashboardEmpleado'
 import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'
+import AsistenciaDashboard from '../modules/asistencia/AsistenciaDashboard'
+import EmployeeTimelinePage from '../modules/asistencia/EmployeeTimelinePage'
+import ReportesAsistenciaPage from '../modules/asistencia/ReportesAsistenciaPage'
 import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
 import VistaEmpleado from '../modules/vacaciones/VistaEmpleado'
 import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
-import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'  
+import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'
 
 const Routes = () => {
   return (
@@ -35,26 +38,42 @@ const Routes = () => {
       <Route path="/" element={<Navigate to="/posiciones" replace />} />
       
       {/* Módulos pendientes de implementación */}
-      <Route 
-        path="/inicio" 
+      <Route
+        path="/inicio"
         element={
           <ProtectedRoute>
             <ComingSoon title="Inicio" />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/control-asistencia" 
+      <Route
+        path="/control-asistencia"
         element={
           <ProtectedRoute>
-            <ComingSoon title="Control de Asistencia" />
+            <AsistenciaDashboard />
           </ProtectedRoute>
-        } 
+        }
+      />
+      <Route
+        path="/control-asistenciaLineaTiempo"
+        element={
+          <ProtectedRoute>
+            <EmployeeTimelinePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/control-asistenciaReporte"
+        element={
+          <ProtectedRoute>
+            <ReportesAsistenciaPage />
+          </ProtectedRoute>
+        }
       />
 
-      <Route   
-       path="/incentivos-reconocimientos"   
-      element={  
+      <Route
+       path="/incentivos-reconocimientos"
+      element={
       <ProtectedRoute>  
         <IncentivosRouter />  
       </ProtectedRoute>  
