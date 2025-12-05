@@ -361,6 +361,14 @@ const MenuInicio = () => {
 
               <div style={styles.buttonGroup}>
                 <a
+                  href="/reclutamiento/resumen"
+                  style={getBtnStyle('outline', -1)}
+                  onMouseEnter={() => setHoveredBtn(-1)}
+                  onMouseLeave={() => setHoveredBtn(null)}
+                >
+                  Resumen de reclutamiento
+                </a>
+                <a
                   href="/posiciones"
                   style={getBtnStyle('primary', 0)}
                   onMouseEnter={() => setHoveredBtn(0)}

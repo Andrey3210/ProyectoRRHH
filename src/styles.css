@@ -2004,3 +2004,104 @@ body {
     font-weight: var(--font-weight-medium);
     font-size: var(--font-size-base);
 }
+
+/* Resumen de reclutamiento */
+.resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.resumen-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--radius-base);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.resumen-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.pipeline-resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+}
+
+.pipeline-resumen-card {
+    background: var(--color-background);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.posiciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.posicion-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    padding: 1rem;
+    background: var(--color-background);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.posicion-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.posicion-meta {
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.posicion-stats {
+    display: flex;
+    gap: 1rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+}
+
+.posicion-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
