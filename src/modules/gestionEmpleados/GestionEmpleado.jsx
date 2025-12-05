@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { List, Grid } from "lucide-react";
 import "./GestionEmpleado.css";
 import { useGestionEmpleado } from "../../store/GestionEmpleadoContext";
+import {useNavigate} from "react-router-dom";
 
 export default function GestionEmpleados() {
+    const navigate = useNavigate();
     const [vista, setVista] = useState("grid");
     const [busqueda, setBusqueda] = useState("");
     const [areaFiltro, setAreaFiltro] = useState("Todas las áreas");
@@ -142,7 +144,9 @@ export default function GestionEmpleados() {
                             <td>{emp.email}</td>
                             <td>{emp.telefono}</td>
                             <td>{emp.documentoIdentidad}</td>
-                            <td><button title="Detalle Empleado">👤</button></td>
+                            <td><button title="Detalle Empleado"
+                                        onClick={() => navigate(`/empleado/${emp.idEmpleado}`)}>
+                                👤</button></td>
                         </tr>
                     ))}
                     </tbody>
@@ -163,7 +167,9 @@ export default function GestionEmpleados() {
                                     <p className="area">{emp.area || "Sin área"}</p>
                                 </div>
                                 <div className="boton-detalle">
-                                    <button title="Detalle Empleado">👤</button>
+                                    <button title="Detalle Empleado"
+                                            onClick={() => navigate(`/empleado/${emp.idEmpleado}`)}
+                                    >👤</button>
                                 </div>
                             </div>
                         </div>
