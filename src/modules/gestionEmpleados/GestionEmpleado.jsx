@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { List, Grid } from "lucide-react";
 import "./GestionEmpleado.css";
+import EmpleadoModal from "./EmpleadoModal";
 import { useGestionEmpleado } from "../../store/GestionEmpleadoContext";
 import {useNavigate} from "react-router-dom";
 
@@ -13,7 +14,8 @@ export default function GestionEmpleados() {
     const [puestosPorArea, setPuestosPorArea] = useState([]);
     const [horarioFiltro, setHorarioFiltro] = useState("Todos los horarios");
     const [horariosDisponibles, setHorariosDisponibles] = useState(["Todos los horarios"]);
-
+    const [modalOpen, setModalOpen] = useState(false);
+    const { cargarEmpleados } = useGestionEmpleado();
     const { empleados, areas } = useGestionEmpleado();
 
     // Obtener puestos según área seleccionada
@@ -71,6 +73,10 @@ export default function GestionEmpleados() {
         return coincideBusqueda && coincideArea && coincidePuesto && coincideHorario;
     });
 
+    const handleEmpleadoCreado = (nuevoEmpleado) => {
+        cargarEmpleados(); // recargar lista después de crear
+    };
+
     return (
         <div className="gestion-empleados">
             <h1>Gestión de empleados</h1>
@@ -82,7 +88,7 @@ export default function GestionEmpleados() {
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
                 />
-                <button>+ Agregar</button>
+                <button onClick={() => setModalOpen(true)}>+ Agregar</button>
             </div>
 
             <div className="filtros">
@@ -176,6 +182,11 @@ export default function GestionEmpleados() {
                     ))}
                 </div>
             )}
+            <EmpleadoModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                onEmpleadoCreado={handleEmpleadoCreado}
+            />
         </div>
     );
 }

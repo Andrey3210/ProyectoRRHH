@@ -22,4 +22,10 @@ public class GesEmpleadoPuestoController {
         GesEmpleadoPuesto empPuesto = empleadoPuestoService.asignarPuesto(request);
         return ResponseEntity.ok(empPuesto);
     }
+
+    @PostMapping("/actualizarPuesto")
+    public ResponseEntity<GesEmpleadoPuesto> actualizarPuesto(@RequestBody GesAsignarPuestoRequest request) {
+        GesEmpleadoPuesto empPuesto = empleadoPuestoService.actualizarPuesto(request);
+        return ResponseEntity.ok(empPuesto);
+    }
 }

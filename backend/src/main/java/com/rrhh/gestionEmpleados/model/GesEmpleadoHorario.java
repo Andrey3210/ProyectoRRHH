@@ -19,7 +19,7 @@ public class GesEmpleadoHorario {
     @JoinColumn(name = "id_empleado")
     private GesEmpleado empleado;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "id_horario")
     private GesHorario horario;
 

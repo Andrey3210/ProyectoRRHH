@@ -17,7 +17,7 @@ public class GesEmpleadoController {
     private final GesEmpleadoService empleadoService;
 
     // -------- Crear --------
-    @PostMapping
+    @PostMapping("/crear")
     public GesEmpleado crear(@RequestBody GesEmpleadoRequestDTO dto) {
         return empleadoService.crear(dto);
     }
