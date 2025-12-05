@@ -9,18 +9,30 @@ import java.util.List;
 public interface GesEmpleadoPuestoRepository extends JpaRepository<GesEmpleadoPuesto, Integer> {
     // Puesto actual = registro activo y sin fecha_fin o con fecha_fin futura
     @Query("""
-           SELECT ep FROM GesEmpleadoPuesto ep
-           WHERE ep.empleado.idEmpleado = :idEmpleado
-             AND ep.activo = true
-           ORDER BY ep.fechaInicio DESC
-           LIMIT 1
-           """)
+        SELECT ep FROM GesEmpleadoPuesto ep
+        WHERE ep.empleado.idEmpleado = :idEmpleado
+         AND ep.activo = true
+        ORDER BY ep.fechaInicio DESC
+        LIMIT 1
+    """)
     GesEmpleadoPuesto obtenerPuestoActual(Integer idEmpleado);
 
     @Query("""
-       SELECT ep
-       FROM GesEmpleadoPuesto ep
-       WHERE ep.activo = true
-       """)
+        SELECT ep
+        FROM GesEmpleadoPuesto ep
+        JOIN FETCH ep.empleado e
+        JOIN FETCH ep.puesto p
+        WHERE ep.activo = true
+    """)
     List<GesEmpleadoPuesto> listarPuestosActivos();
+
+    @Query("""
+        SELECT ep
+        FROM GesEmpleadoPuesto ep
+        JOIN FETCH ep.empleado e
+        JOIN FETCH ep.puesto p
+        WHERE ep.activo = true
+          AND p.area = :area
+    """)
+    List<GesEmpleadoPuesto> listarPuestosActivosPorArea(String area);
 }

@@ -4,6 +4,7 @@ import com.rrhh.gestionEmpleados.dto.GesEmpleadoConPuestoDTO;
 import com.rrhh.gestionEmpleados.dto.GesEmpleadoRequestDTO;
 import com.rrhh.gestionEmpleados.model.GesEmpleado;
 import com.rrhh.gestionEmpleados.model.GesEmpleadoPuesto;
+import com.rrhh.gestionEmpleados.model.GesPuesto;
 import com.rrhh.gestionEmpleados.repository.GesEmpleadoPuestoRepository;
 import com.rrhh.gestionEmpleados.repository.GesEmpleadoRepository;
 import lombok.RequiredArgsConstructor;
@@ -121,19 +122,15 @@ public class GesEmpleadoService {
 
     public List<GesEmpleadoConPuestoDTO> listarEmpleadosConPuestoActual() {
 
-        List<GesEmpleado> empleados = empleadoRepository.listarEmpleadosConPuestoActual();
-
+        // Trae todo lo necesario con JOIN FETCH
         List<GesEmpleadoPuesto> puestosActivos = empleadoPuestoRepository.listarPuestosActivos();
 
-        Map<Integer, GesEmpleadoPuesto> mapPuestos = puestosActivos.stream()
-                .collect(Collectors.toMap(
-                        ep -> ep.getEmpleado().getIdEmpleado(),
-                        ep -> ep,
-                        (a, b) -> a // si hubiera duplicados, se queda con el primero
-                ));
+        return puestosActivos.stream()
+                .map(ep -> {
 
-        return empleados.stream()
-                .map(emp -> {
+                    GesEmpleado emp = ep.getEmpleado();
+                    GesPuesto puesto = ep.getPuesto();
+
                     GesEmpleadoConPuestoDTO dto = new GesEmpleadoConPuestoDTO();
 
                     // ------- Datos del empleado -------
@@ -158,24 +155,19 @@ public class GesEmpleadoService {
                     dto.setTipoContrato(emp.getTipoContrato());
                     dto.setModalidadTrabajo(emp.getModalidadTrabajo());
 
-                    // ------- Puesto actual -------
-                    GesEmpleadoPuesto ep = mapPuestos.get(emp.getIdEmpleado());
-                    if (ep != null) {
-                        var puesto = ep.getPuesto();
+                    // ------- Datos del puesto -------
+                    dto.setIdPuesto(puesto.getIdPuesto());
+                    dto.setNombrePuesto(puesto.getNombrePuesto());
+                    dto.setDepartamento(puesto.getDepartamento());
+                    dto.setArea(puesto.getArea());
+                    dto.setNivelJerarquico(puesto.getNivelJerarquico());
+                    dto.setSalarioMinimo(puesto.getSalarioMinimo());
+                    dto.setSalarioMaximo(puesto.getSalarioMaximo());
 
-                        dto.setIdPuesto(puesto.getIdPuesto());
-                        dto.setNombrePuesto(puesto.getNombrePuesto());
-                        dto.setDepartamento(puesto.getDepartamento());
-                        dto.setArea(puesto.getArea());
-                        dto.setNivelJerarquico(puesto.getNivelJerarquico());
-                        dto.setSalarioMinimo(puesto.getSalarioMinimo());
-                        dto.setSalarioMaximo(puesto.getSalarioMaximo());
-
-                        // ------- Datos de empleado_puesto -------
-                        dto.setFechaInicioPuesto(ep.getFechaInicio());
-                        dto.setFechaFinPuesto(ep.getFechaFin());
-                        dto.setSalarioAsignado(ep.getSalario());
-                    }
+                    // ------- Datos del empleado_puesto -------
+                    dto.setFechaInicioPuesto(ep.getFechaInicio());
+                    dto.setFechaFinPuesto(ep.getFechaFin());
+                    dto.setSalarioAsignado(ep.getSalario());
 
                     return dto;
                 })
@@ -183,11 +175,53 @@ public class GesEmpleadoService {
     }
 
     public List<GesEmpleadoConPuestoDTO> listarEmpleadosPorArea(String area) {
-        List<GesEmpleado> empleados = empleadoRepository.listarEmpleadosPorArea(area);
+        List<GesEmpleadoPuesto> lista = empleadoPuestoRepository.listarPuestosActivosPorArea(area);
 
-        return empleados.stream()
-                .map(emp -> obtenerEmpleadoConPuestoDTO(emp.getIdEmpleado()))
-                .filter(dto -> dto.getIdPuesto() != null) // seguridad extra
+        return lista.stream()
+                .map(ep -> {
+                    GesEmpleado emp = ep.getEmpleado();
+                    GesPuesto pst = ep.getPuesto();
+
+                    GesEmpleadoConPuestoDTO dto = new GesEmpleadoConPuestoDTO();
+
+                    // ---------- Datos del Empleado ----------
+                    dto.setIdEmpleado(emp.getIdEmpleado());
+                    dto.setCodigoEmpleado(emp.getCodigoEmpleado());
+                    dto.setNombres(emp.getNombres());
+                    dto.setApellidoPaterno(emp.getApellidoPaterno());
+                    dto.setApellidoMaterno(emp.getApellidoMaterno());
+                    dto.setDocumentoIdentidad(emp.getDocumentoIdentidad());
+                    dto.setTipoDocumento(emp.getTipoDocumento());
+                    dto.setFechaNacimiento(emp.getFechaNacimiento());
+                    dto.setGenero(emp.getGenero());
+                    dto.setEstadoCivil(emp.getEstadoCivil());
+                    dto.setNacionalidad(emp.getNacionalidad());
+                    dto.setDireccion(emp.getDireccion());
+                    dto.setTelefono(emp.getTelefono());
+                    dto.setEmail(emp.getEmail());
+                    dto.setEmailCorporativo(emp.getEmailCorporativo());
+                    dto.setFechaIngreso(emp.getFechaIngreso());
+                    dto.setFechaCese(emp.getFechaCese());
+                    dto.setEstado(emp.getEstado());
+                    dto.setTipoContrato(emp.getTipoContrato());
+                    dto.setModalidadTrabajo(emp.getModalidadTrabajo());
+
+                    // ---------- Datos del Puesto ----------
+                    dto.setIdPuesto(pst.getIdPuesto());
+                    dto.setNombrePuesto(pst.getNombrePuesto());
+                    dto.setDepartamento(pst.getDepartamento());
+                    dto.setArea(pst.getArea());
+                    dto.setNivelJerarquico(pst.getNivelJerarquico());
+                    dto.setSalarioMinimo(pst.getSalarioMinimo());
+                    dto.setSalarioMaximo(pst.getSalarioMaximo());
+
+                    // ---------- Datos del EmpleadoPuesto ----------
+                    dto.setFechaInicioPuesto(ep.getFechaInicio());
+                    dto.setFechaFinPuesto(ep.getFechaFin());
+                    dto.setSalarioAsignado(ep.getSalario());
+
+                    return dto;
+                })
                 .toList();
     }
 
