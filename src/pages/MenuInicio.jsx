@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const MenuInicio = () => {
   const styles = {
@@ -30,14 +30,14 @@ const MenuInicio = () => {
     headerP: {
       fontSize: '18px',
       color: '#6b7280',
-      maxWidth: '800px',
+      maxWidth: '820px',
       margin: '0 auto',
       lineHeight: 1.6,
     },
     grid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
-      gap: '32px',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
+      gap: '24px',
       marginBottom: '40px',
     },
     card: {
@@ -47,17 +47,18 @@ const MenuInicio = () => {
       border: '2px solid #e5e7eb',
       transition: 'all 0.3s ease',
       overflow: 'hidden',
+      height: '100%',
     },
     cardHeader: {
-      padding: '32px 32px 24px 32px',
+      padding: '28px 28px 20px 28px',
       borderBottom: '1px solid #f3f4f6',
       display: 'flex',
       alignItems: 'flex-start',
-      gap: '20px',
+      gap: '16px',
     },
     iconBox: {
-      width: '64px',
-      height: '64px',
+      width: '60px',
+      height: '60px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -71,8 +72,11 @@ const MenuInicio = () => {
     iconBoxDark: {
       background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
     },
+    iconBoxBlue: {
+      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+    },
     cardTitleH2: {
-      fontSize: '24px',
+      fontSize: '22px',
       fontWeight: 700,
       color: '#1f2937',
       marginBottom: '6px',
@@ -83,7 +87,7 @@ const MenuInicio = () => {
       fontWeight: 500,
     },
     cardContent: {
-      padding: '32px',
+      padding: '28px',
     },
     cardText: {
       fontSize: '15px',
@@ -94,13 +98,13 @@ const MenuInicio = () => {
     divider: {
       height: '1px',
       background: '#e5e7eb',
-      margin: '24px 0',
+      margin: '20px 0',
     },
     sectionSubtitle: {
       fontSize: '16px',
       fontWeight: 700,
       color: '#1f2937',
-      marginBottom: '16px',
+      marginBottom: '14px',
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
@@ -108,19 +112,19 @@ const MenuInicio = () => {
     listItem: {
       display: 'flex',
       alignItems: 'flex-start',
-      gap: '16px',
-      padding: '18px',
+      gap: '12px',
+      padding: '16px',
       background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)',
       border: '1px solid #e5e7eb',
       borderRadius: '12px',
-      marginBottom: '16px',
+      marginBottom: '12px',
       transition: 'all 0.2s',
       cursor: 'pointer',
     },
     listIcon: {
-      width: '40px',
-      height: '40px',
-      minWidth: '40px',
+      width: '38px',
+      height: '38px',
+      minWidth: '38px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -139,6 +143,9 @@ const MenuInicio = () => {
     listIconPurple: {
       background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
     },
+    listIconGray: {
+      background: 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)',
+    },
     listContentH3: {
       fontSize: '15px',
       fontWeight: 700,
@@ -153,16 +160,18 @@ const MenuInicio = () => {
     },
     buttonGroup: {
       display: 'flex',
-      gap: '16px',
+      gap: '12px',
       flexWrap: 'wrap',
     },
     btnBase: {
-      padding: '14px 24px',
+      padding: '12px 18px',
       borderRadius: '12px',
       fontSize: '14px',
       fontWeight: 700,
       textDecoration: 'none',
-      display: 'inline-block',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '8px',
       transition: 'all 0.3s',
       cursor: 'pointer',
       border: 'none',
@@ -178,11 +187,64 @@ const MenuInicio = () => {
       color: '#16a34a',
       border: '2px solid #7ec856',
     },
-  };
+    tagRow: {
+      display: 'flex',
+      gap: '10px',
+      flexWrap: 'wrap',
+      marginTop: '8px',
+    },
+    tag: {
+      fontSize: '12px',
+      fontWeight: 700,
+      color: '#065f46',
+      background: 'rgba(22,163,74,0.1)',
+      padding: '6px 10px',
+      borderRadius: '9999px',
+      border: '1px solid rgba(22,163,74,0.18)',
+    },
+  }
 
-  const [hoveredCard, setHoveredCard] = React.useState(null);
-  const [hoveredItem, setHoveredItem] = React.useState(null);
-  const [hoveredBtn, setHoveredBtn] = React.useState(null);
+  const [hoveredCard, setHoveredCard] = React.useState(null)
+  const [hoveredItem, setHoveredItem] = React.useState(null)
+  const [hoveredBtn, setHoveredBtn] = React.useState(null)
+  const modules = [
+    {
+      title: 'Reclutamiento y selección',
+      desc: 'Visualiza posiciones abiertas, candidatos y etapas de pipeline.',
+      color: 'Blue',
+      href: '/posiciones',
+    },
+    {
+      title: 'Recepción de CV',
+      desc: 'Administra postulaciones recibidas y revisa CVs detallados.',
+      color: 'Purple',
+      href: '/recepcion-cv',
+    },
+    {
+      title: 'Incentivos y reconocimientos',
+      desc: 'Consulta dashboards, reglas y pagos del programa de bonos.',
+      color: 'Orange',
+      href: '/incentivos-reconocimientos',
+    },
+    {
+      title: 'Vacaciones y permisos',
+      desc: 'Solicita, aprueba y da seguimiento a ausencias programadas.',
+      color: 'Green',
+      href: '/vacaciones-permisos',
+    },
+    {
+      title: 'Control de asistencia',
+      desc: 'Reportes de puntualidad y línea de tiempo por colaborador.',
+      color: 'Gray',
+      href: '/control-asistencia',
+    },
+    {
+      title: 'Gestión de empleados',
+      desc: 'Directorio interno, datos de colaboradores y expedientes.',
+      color: 'Blue',
+      href: '/gestion-empleados',
+    },
+  ]
 
   const getCardStyle = (index) => ({
     ...styles.card,
@@ -191,7 +253,7 @@ const MenuInicio = () => {
       boxShadow: '0 12px 28px rgba(126, 200, 86, 0.2)',
       borderColor: '#7ec856',
     }),
-  });
+  })
 
   const getListItemStyle = (index) => ({
     ...styles.listItem,
@@ -200,10 +262,10 @@ const MenuInicio = () => {
       transform: 'translateX(4px)',
       boxShadow: '0 4px 12px rgba(126, 200, 86, 0.1)',
     }),
-  });
+  })
 
   const getBtnStyle = (type, index) => {
-    const base = { ...styles.btnBase };
+    const base = { ...styles.btnBase }
     if (type === 'primary') {
       return {
         ...base,
@@ -213,7 +275,7 @@ const MenuInicio = () => {
           transform: 'translateY(-2px)',
           boxShadow: '0 6px 16px rgba(126, 200, 86, 0.4)',
         }),
-      };
+      }
     }
     return {
       ...base,
@@ -225,8 +287,8 @@ const MenuInicio = () => {
         transform: 'translateY(-2px)',
         boxShadow: '0 6px 16px rgba(126, 200, 86, 0.3)',
       }),
-    };
-  };
+    }
+  }
 
   return (
     <div style={styles.body}>
@@ -242,17 +304,14 @@ const MenuInicio = () => {
         `}
       </style>
       <div style={styles.container}>
-        {/* Header */}
         <div style={styles.header}>
           <h1 style={styles.h1}>Bienvenido(a) al Portal RRHH – ConectaTel</h1>
           <p style={styles.headerP}>
-            Tu espacio como colaborador de nuestra empresa de telefonía. Aquí encontrarás información clave sobre la organización y recursos para tu día a día.
+            Organiza tu día a día con accesos rápidos a los módulos clave y conoce cómo nuestra empresa de telefonía sigue conectando a más de 2.5 millones de clientes en todo el país.
           </p>
         </div>
 
-        {/* Grid */}
         <div style={styles.grid} className="grid">
-          {/* Card 1: Quiénes Somos */}
           <div
             style={getCardStyle(0)}
             onMouseEnter={() => setHoveredCard(0)}
@@ -260,7 +319,7 @@ const MenuInicio = () => {
           >
             <div style={styles.cardHeader}>
               <div style={{ ...styles.iconBox, ...styles.iconBoxGreen }}>
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="white">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="white">
                   <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
                   <line x1="12" y1="18" x2="12.01" y2="18" stroke="#7ec856" strokeWidth="2" />
                 </svg>
@@ -273,11 +332,17 @@ const MenuInicio = () => {
 
             <div style={styles.cardContent}>
               <p style={styles.cardText}>
-                En <strong>ConectaTel</strong> nos dedicamos a brindar soluciones integrales de telefonía y conectividad, acercando a las personas y empresas a lo que más importa: estar siempre comunicados.
+                En <strong>ConectaTel</strong> desplegamos redes móviles y de fibra óptica que acercan a las personas con lo que más importa: su familia, sus clientes y sus ideas.
               </p>
               <p style={styles.cardText}>
-                Nuestro propósito es ofrecer un servicio confiable, accesible y humano, apoyándonos en la innovación tecnológica y en el compromiso de nuestros colaboradores.
+                Somos más de 1,200 colaboradores comprometidos con brindar señal estable, cobertura nacional y atención cercana para hogares y empresas.
               </p>
+
+              <div style={styles.tagRow}>
+                <span style={styles.tag}>Cobertura 98% zonas urbanas</span>
+                <span style={styles.tag}>4 centros de atención</span>
+                <span style={styles.tag}>Red 5G en expansión</span>
+              </div>
 
               <div style={styles.divider}></div>
 
@@ -307,7 +372,6 @@ const MenuInicio = () => {
             </div>
           </div>
 
-          {/* Card 2: Información del Colaborador */}
           <div
             style={getCardStyle(1)}
             onMouseEnter={() => setHoveredCard(1)}
@@ -315,7 +379,7 @@ const MenuInicio = () => {
           >
             <div style={styles.cardHeader}>
               <div style={{ ...styles.iconBox, ...styles.iconBoxDark }}>
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75" />
@@ -329,16 +393,13 @@ const MenuInicio = () => {
 
             <div style={styles.cardContent}>
               <p style={styles.cardText}>
-                Aquí encontrarás accesos a los módulos internos relacionados a tu experiencia como colaborador: procesos de selección, incentivos, vacaciones y más.
+                Gestiona tus procesos internos con accesos directos a los módulos de RRHH. Desde postulaciones hasta pagos de incentivos, todo en un solo lugar.
               </p>
 
-              {[
-                { title: 'Reclutamiento y selección', desc: 'Visualiza posiciones abiertas y seguimiento a procesos de selección.', color: 'Blue' },
-                { title: 'Incentivos y reconocimientos', desc: 'Consulta tus bonos, metas y resultados del programa de incentivos.', color: 'Orange' },
-                { title: 'Vacaciones y permisos', desc: 'Revisa y gestiona tus solicitudes de vacaciones y permisos.', color: 'Purple' },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
+              {modules.map((item, idx) => (
+                <a
+                  key={item.title}
+                  href={item.href}
                   style={getListItemStyle(`info-${idx}`)}
                   onMouseEnter={() => setHoveredItem(`info-${idx}`)}
                   onMouseLeave={() => setHoveredItem(null)}
@@ -352,7 +413,7 @@ const MenuInicio = () => {
                     <h3 style={styles.listContentH3}>{item.title}</h3>
                     <p style={styles.listContentP}>{item.desc}</p>
                   </div>
-                </div>
+                </a>
               ))}
 
               <div style={styles.divider}></div>
@@ -361,20 +422,12 @@ const MenuInicio = () => {
 
               <div style={styles.buttonGroup}>
                 <a
-                  href="/reclutamiento/resumen"
-                  style={getBtnStyle('outline', -1)}
-                  onMouseEnter={() => setHoveredBtn(-1)}
-                  onMouseLeave={() => setHoveredBtn(null)}
-                >
-                  Resumen de reclutamiento
-                </a>
-                <a
                   href="/posiciones"
                   style={getBtnStyle('primary', 0)}
                   onMouseEnter={() => setHoveredBtn(0)}
                   onMouseLeave={() => setHoveredBtn(null)}
                 >
-                  Ver posiciones abiertas
+                  <span>Posiciones abiertas</span>
                 </a>
                 <a
                   href="/incentivos-reconocimientos"
@@ -382,7 +435,7 @@ const MenuInicio = () => {
                   onMouseEnter={() => setHoveredBtn(1)}
                   onMouseLeave={() => setHoveredBtn(null)}
                 >
-                  Incentivos y bonos
+                  <span>Incentivos y bonos</span>
                 </a>
                 <a
                   href="/vacaciones-permisos"
@@ -390,7 +443,83 @@ const MenuInicio = () => {
                   onMouseEnter={() => setHoveredBtn(2)}
                   onMouseLeave={() => setHoveredBtn(null)}
                 >
-                  Vacaciones y permisos
+                  <span>Vacaciones y permisos</span>
+                </a>
+                <a
+                  href="/control-asistencia"
+                  style={getBtnStyle('outline', 3)}
+                  onMouseEnter={() => setHoveredBtn(3)}
+                  onMouseLeave={() => setHoveredBtn(null)}
+                >
+                  <span>Control de asistencia</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={getCardStyle(2)}
+            onMouseEnter={() => setHoveredCard(2)}
+            onMouseLeave={() => setHoveredCard(null)}
+          >
+            <div style={styles.cardHeader}>
+              <div style={{ ...styles.iconBox, ...styles.iconBoxBlue }}>
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                  <path d="M22 16.92V21a1 1 0 0 1-1.1 1 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 3 2.1 1 1 0 0 1 4 1h4.09a1 1 0 0 1 1 .75 12.44 12.44 0 0 0 .7 2.22 1 1 0 0 1-.23 1L8.21 6.79a16 16 0 0 0 6 6l1.82-1.32a1 1 0 0 1 1-.12 12.44 12.44 0 0 0 2.22.7 1 1 0 0 1 .75 1v3.87z" />
+                </svg>
+              </div>
+              <div>
+                <h2 style={styles.cardTitleH2}>Operación de telefonía</h2>
+                <p style={styles.cardTitleP}>Datos rápidos del negocio</p>
+              </div>
+            </div>
+
+            <div style={styles.cardContent}>
+              <p style={styles.cardText}>
+                Mantenemos una red híbrida móvil y de fibra con nodos en 18 ciudades. Nuestro equipo técnico monitorea 24/7 la disponibilidad para garantizar comunicación continua a clientes residenciales y corporativos.
+              </p>
+
+              {[
+                { text: 'Tiempo de disponibilidad promedio 99.4%', color: 'Blue' },
+                { text: 'Centros de monitoreo en Lima, Trujillo y Arequipa', color: 'Purple' },
+                { text: 'Programas de portabilidad y planes familiares adaptables', color: 'Orange' },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  style={getListItemStyle(`tel-${idx}`)}
+                  onMouseEnter={() => setHoveredItem(`tel-${idx}`)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <div style={{ ...styles.listIcon, ...styles[`listIcon${item.color}`] }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 style={styles.listContentH3}>{item.text}</h3>
+                  </div>
+                </div>
+              ))}
+
+              <div style={styles.divider}></div>
+
+              <h3 style={styles.sectionSubtitle}>Soporte interno:</h3>
+              <div style={styles.buttonGroup}>
+                <a
+                  href="mailto:soporte.redes@conectatel.com"
+                  style={getBtnStyle('outline', 4)}
+                  onMouseEnter={() => setHoveredBtn(4)}
+                  onMouseLeave={() => setHoveredBtn(null)}
+                >
+                  soporte.redes@conectatel.com
+                </a>
+                <a
+                  href="tel:+51180012345"
+                  style={getBtnStyle('primary', 5)}
+                  onMouseEnter={() => setHoveredBtn(5)}
+                  onMouseLeave={() => setHoveredBtn(null)}
+                >
+                  0-800-CONNECT
                 </a>
               </div>
             </div>
@@ -398,7 +527,7 @@ const MenuInicio = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default MenuInicio;
+export default MenuInicio
