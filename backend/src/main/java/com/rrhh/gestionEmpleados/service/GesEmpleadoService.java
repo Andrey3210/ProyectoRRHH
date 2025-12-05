@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -121,9 +123,62 @@ public class GesEmpleadoService {
 
         List<GesEmpleado> empleados = empleadoRepository.listarEmpleadosConPuestoActual();
 
+        List<GesEmpleadoPuesto> puestosActivos = empleadoPuestoRepository.listarPuestosActivos();
+
+        Map<Integer, GesEmpleadoPuesto> mapPuestos = puestosActivos.stream()
+                .collect(Collectors.toMap(
+                        ep -> ep.getEmpleado().getIdEmpleado(),
+                        ep -> ep,
+                        (a, b) -> a // si hubiera duplicados, se queda con el primero
+                ));
+
         return empleados.stream()
-                .map(emp -> obtenerEmpleadoConPuestoDTO(emp.getIdEmpleado()))
-                .filter(dto -> dto.getIdPuesto() != null) // evita nulos
+                .map(emp -> {
+                    GesEmpleadoConPuestoDTO dto = new GesEmpleadoConPuestoDTO();
+
+                    // ------- Datos del empleado -------
+                    dto.setIdEmpleado(emp.getIdEmpleado());
+                    dto.setCodigoEmpleado(emp.getCodigoEmpleado());
+                    dto.setNombres(emp.getNombres());
+                    dto.setApellidoPaterno(emp.getApellidoPaterno());
+                    dto.setApellidoMaterno(emp.getApellidoMaterno());
+                    dto.setDocumentoIdentidad(emp.getDocumentoIdentidad());
+                    dto.setTipoDocumento(emp.getTipoDocumento());
+                    dto.setFechaNacimiento(emp.getFechaNacimiento());
+                    dto.setGenero(emp.getGenero());
+                    dto.setEstadoCivil(emp.getEstadoCivil());
+                    dto.setNacionalidad(emp.getNacionalidad());
+                    dto.setDireccion(emp.getDireccion());
+                    dto.setTelefono(emp.getTelefono());
+                    dto.setEmail(emp.getEmail());
+                    dto.setEmailCorporativo(emp.getEmailCorporativo());
+                    dto.setFechaIngreso(emp.getFechaIngreso());
+                    dto.setFechaCese(emp.getFechaCese());
+                    dto.setEstado(emp.getEstado());
+                    dto.setTipoContrato(emp.getTipoContrato());
+                    dto.setModalidadTrabajo(emp.getModalidadTrabajo());
+
+                    // ------- Puesto actual -------
+                    GesEmpleadoPuesto ep = mapPuestos.get(emp.getIdEmpleado());
+                    if (ep != null) {
+                        var puesto = ep.getPuesto();
+
+                        dto.setIdPuesto(puesto.getIdPuesto());
+                        dto.setNombrePuesto(puesto.getNombrePuesto());
+                        dto.setDepartamento(puesto.getDepartamento());
+                        dto.setArea(puesto.getArea());
+                        dto.setNivelJerarquico(puesto.getNivelJerarquico());
+                        dto.setSalarioMinimo(puesto.getSalarioMinimo());
+                        dto.setSalarioMaximo(puesto.getSalarioMaximo());
+
+                        // ------- Datos de empleado_puesto -------
+                        dto.setFechaInicioPuesto(ep.getFechaInicio());
+                        dto.setFechaFinPuesto(ep.getFechaFin());
+                        dto.setSalarioAsignado(ep.getSalario());
+                    }
+
+                    return dto;
+                })
                 .toList();
     }
 
