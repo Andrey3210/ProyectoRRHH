@@ -1,3 +1,40 @@
+.volver-btn {
+    padding: 0.5rem 1rem;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.volver-btn:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+.detalle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.botones-accion button {
+    padding: 0.5rem 1rem;
+    margin-left: 0.5rem;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.botones-accion button:hover {
+    background-color: #357ab8;
+    transform: translateY(-2px);
+}
+
 .empleado-detalle {
     padding: 1rem;
 }
@@ -6,7 +43,7 @@
     margin-bottom: 1rem;
 }
 
-.detalle-grid {
+.empleado-detalle .detalle-grid {
     display: grid;
     grid-template-columns: 250px 1fr;
     gap: 1.5rem;
@@ -26,12 +63,28 @@
     margin-bottom: 1rem;
 }
 
+.detalle-izquierda .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* centra verticalmente */
+    align-items: center;      /* centra horizontalmente */
+    text-align: center;       /* centra el texto */
+}
+
 .card {
     background: #f9f9f9;
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+    display: flex;           /* Activamos flexbox */
+    flex-direction: column;  /* Columnas (label arriba, valor abajo) */
+    justify-content: center;  /* Centrado vertical */
+}
+
+.card p {
+    margin: 0;  /* elimina el margin por defecto */
 }
 
 .card strong {
@@ -43,8 +96,8 @@
 /* Información básica en grid */
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* menos ancho */
+    gap: 0.5rem;  /* menos espacio entre cards */
     margin-bottom: 1rem;
 }
 

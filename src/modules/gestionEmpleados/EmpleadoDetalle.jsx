@@ -64,9 +64,19 @@ export default function EmpleadoDetalle() {
 
     return (
         <div className="empleado-detalle">
-            <button onClick={() => navigate(-1)} className="volver-btn">← Volver a la lista</button>
+            <button onClick={() => navigate(-1)} className="volver-btn">Volver</button>
 
-            <h2>Detalle de empleado</h2>
+            <div className="detalle-header">
+                <h2>Detalle de empleado</h2>
+                <div className="botones-accion">
+                    <button>
+                        {empleado.nombrePuesto === "Sin Asignar" ? "Asignar Puesto" : "Actualizar Puesto"}
+                    </button>
+                    <button>
+                        {empleado.nombreHorario === "Sin horario" ? "Asignar Horario" : "Actualizar Horario"}
+                    </button>
+                </div>
+            </div>
 
             <div className="detalle-grid">
                 {/* Sección izquierda */}
@@ -136,37 +146,52 @@ export default function EmpleadoDetalle() {
 
                     {/* Sección Puesto y Horario */}
                     <div className="subsecciones">
-                        {/* Puesto actual */}
                         <div className="subseccion">
                             <h3>Puesto actual</h3>
-                            <div className="card">
-                                <strong>Nombre</strong>
-                                <p>{empleado.nombrePuesto}</p>
-                                <strong>Departamento</strong>
-                                <p>{empleado.departamento}</p>
-                                <strong>Nivel jerárquico</strong>
-                                <p>{empleado.nivelJerarquico}</p>
-                                <strong>Salario asignado</strong>
-                                <p>{empleado.salarioAsignado}</p>
-                                <strong>Fecha inicio</strong>
-                                <p>{empleado.fechaInicioPuesto}</p>
-                                <strong>Fecha fin</strong>
-                                <p>{empleado.fechaFinPuesto}</p>
+                            <div className="info-grid">
+                                <div className="card">
+                                    <strong>Nombre</strong>
+                                    <p>{empleado.nombrePuesto}</p>
+                                </div>
+                                <div className="card">
+                                    <strong>Departamento</strong>
+                                    <p>{empleado.departamento}</p>
+                                </div>
+                                <div className="card">
+                                    <strong>Nivel jerárquico</strong>
+                                    <p>{empleado.nivelJerarquico}</p>
+                                </div>
+                                <div className="card">
+                                    <strong>Salario asignado</strong>
+                                    <p>{empleado.salarioAsignado}</p>
+                                </div>
+                                <div className="card">
+                                    <strong>Fecha inicio</strong>
+                                    <p>{empleado.fechaInicioPuesto}</p>
+                                </div>
                             </div>
                         </div>
 
                         {/* Horario */}
                         <div className="subseccion">
                             <h3>Horario</h3>
-                            <div className="card">
-                                <strong>Nombre</strong>
-                                <p>{empleado.nombreHorario}</p>
-                                <strong>Hora entrada</strong>
-                                <p>{empleado.horaEntrada || "-"}</p>
-                                <strong>Hora salida</strong>
-                                <p>{empleado.horaSalida || "-"}</p>
-                                <strong>Días</strong>
-                                <p>{empleado.diasSemana || "-"}</p>
+                            <div className="info-grid">
+                                <div className="card">
+                                    <strong>Nombre</strong>
+                                    <p>{empleado.nombreHorario}</p>
+                                </div>
+                                <div className="card">
+                                    <strong>Hora entrada</strong>
+                                    <p>{empleado.horaEntrada || "-"}</p>
+                                </div>
+                                <div className="card">
+                                    <strong>Hora salida</strong>
+                                    <p>{empleado.horaSalida || "-"}</p>
+                                </div>
+                                <div className="card">
+                                    <strong>Días</strong>
+                                    <p>{empleado.diasSemana || "-"}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
