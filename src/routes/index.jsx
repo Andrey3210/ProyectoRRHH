@@ -2,7 +2,7 @@ import React from 'react'
 import { Routes as RouterRoutes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '../components/common/ProtectedRoute'
 import Login from '../pages/Login'
-import ComingSoon from '../pages/ComingSoon'
+import MenuInicio from '../pages/MenuInicio'
 import PosicionesAbiertas from '../modules/reclutamiento/PosicionesAbiertas'
 import ListaCandidatos from '../modules/reclutamiento/ListaCandidatos'
 import DetalleCandidato from '../modules/reclutamiento/DetalleCandidato'
@@ -45,7 +45,7 @@ const Routes = () => {
         path="/inicio"
         element={
           <ProtectedRoute>
-            <ComingSoon title="Inicio" />
+            <MenuInicio />
           </ProtectedRoute>
         }
       />
