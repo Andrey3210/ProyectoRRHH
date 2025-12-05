@@ -70,13 +70,13 @@ public class GesEmpleadoService {
     }
 
     public GesEmpleadoConPuestoDTO obtenerEmpleadoConPuestoDTO(Integer idEmpleado) {
-        GesEmpleado empleado = empleadoRepository.findById(idEmpleado).orElse(null);
         GesEmpleadoPuesto empPuesto = empleadoPuestoRepository.obtenerPuestoActual(idEmpleado);
 
-        if (empleado == null) return null;
+        if (empPuesto == null) return null;
 
         GesEmpleadoConPuestoDTO dto = new GesEmpleadoConPuestoDTO();
 
+        var empleado = empPuesto.getEmpleado();
         // ------- datos del empleado -------
         dto.setIdEmpleado(empleado.getIdEmpleado());
         dto.setCodigoEmpleado(empleado.getCodigoEmpleado());
@@ -99,9 +99,6 @@ public class GesEmpleadoService {
         dto.setTipoContrato(empleado.getTipoContrato());
         dto.setModalidadTrabajo(empleado.getModalidadTrabajo());
 
-        // Si no hay puesto, devolver solo los datos del empleado
-        if (empPuesto == null) return dto;
-
         // ------- datos del puesto -------
         var puesto = empPuesto.getPuesto();
         dto.setIdPuesto(puesto.getIdPuesto());
@@ -122,7 +119,7 @@ public class GesEmpleadoService {
 
     public List<GesEmpleadoConPuestoDTO> listarEmpleadosConPuestoActual() {
 
-        // Trae todo lo necesario con JOIN FETCH
+        // Trae lo necesario con JOIN FETCH
         List<GesEmpleadoPuesto> puestosActivos = empleadoPuestoRepository.listarPuestosActivos();
 
         return puestosActivos.stream()

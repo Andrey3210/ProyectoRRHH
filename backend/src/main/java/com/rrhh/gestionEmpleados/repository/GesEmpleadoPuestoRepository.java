@@ -10,10 +10,10 @@ public interface GesEmpleadoPuestoRepository extends JpaRepository<GesEmpleadoPu
     // Puesto actual = registro activo y sin fecha_fin o con fecha_fin futura
     @Query("""
         SELECT ep FROM GesEmpleadoPuesto ep
+        JOIN FETCH ep.empleado e
+        JOIN FETCH ep.puesto p
         WHERE ep.empleado.idEmpleado = :idEmpleado
          AND ep.activo = true
-        ORDER BY ep.fechaInicio DESC
-        LIMIT 1
     """)
     GesEmpleadoPuesto obtenerPuestoActual(Integer idEmpleado);
 
