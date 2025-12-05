@@ -298,6 +298,15 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
         if (lower.contains("crm")) {
             posibles.add("Manejo de CRM");
         }
+        if (lower.contains("power bi")) {
+            posibles.add("Power BI");
+            if (lower.contains("visual")) {
+                posibles.add("Visualización de datos");
+            }
+            if (lower.contains("anal")) {
+                posibles.add("Análisis de datos");
+            }
+        }
         if (lower.contains("excel")) {
             posibles.add("Excel Avanzado");
         }
@@ -307,11 +316,18 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
         if (lower.contains("venta")) {
             posibles.add("Ventas");
         }
+        if (lower.contains("gestion") && lower.contains("equipo")) {
+            posibles.add("Gestión de equipos");
+            posibles.add("Liderazgo");
+        }
         if (lower.contains("cliente")) {
             posibles.add("Atención al Cliente");
         }
         if (lower.contains("comunic")) {
             posibles.add("Comunicación");
+        }
+        if (lower.contains("negoci")) {
+            posibles.add("Negociación");
         }
         if (lower.contains("herramienta") && lower.contains("gest")) {
             posibles.add("Manejo de Herramientas de Gestión");
@@ -330,6 +346,12 @@ public class ServicioRecepcionCV implements IRecepcionCVService {
         }
         if (lower.contains("organiz")) {
             posibles.add("Organización");
+        }
+        if (lower.contains("planific")) {
+            posibles.add("Planificación");
+        }
+        if (lower.contains("adaptab")) {
+            posibles.add("Adaptabilidad");
         }
         if (lower.contains("responsab")) {
             posibles.add("Responsabilidad");
