@@ -17,7 +17,12 @@ import java.util.Optional;
 public class GesHorarioService {
 
     private final GesEmpleadoHorarioRepository empleadoHorarioRepo;
-    private final GesHorarioRepository horarioRepo;
+    private final GesHorarioRepository horarioRepository;
+
+    public List<GesHorario> listarTodos() {
+        return horarioRepository.findAll();
+        // Para solo activos: return horarioRepository.findByActivo(true);
+    }
 
     public List<GesEmpleadoConHorarioDTO> listarEmpleadosConHorarioActual() {
 

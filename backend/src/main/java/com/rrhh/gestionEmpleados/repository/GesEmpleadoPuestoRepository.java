@@ -35,4 +35,6 @@ public interface GesEmpleadoPuestoRepository extends JpaRepository<GesEmpleadoPu
           AND p.area = :area
     """)
     List<GesEmpleadoPuesto> listarPuestosActivosPorArea(String area);
+
+    boolean existsByEmpleadoIdEmpleadoAndActivoTrue(Integer idEmpleado);
 }
