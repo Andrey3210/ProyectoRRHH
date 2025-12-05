@@ -3,11 +3,35 @@
  * Implementa manejo de errores, autenticación y configuración centralizada
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const API_CONTEXT_PATH = import.meta.env.VITE_API_CONTEXT_PATH || '/api'
+
+const normalizeBaseUrl = (rawBase = '', rawContext = '') => {
+  const base = rawBase || 'http://localhost:8080'
+  const context = rawContext || '/api'
+
+  const normalizedContext = context
+    ? `/${context.replace(/^\/+|\/+$/g, '')}`
+    : ''
+
+  const url = new URL(base)
+  const basePath = url.pathname.replace(/\/+$/, '')
+  const sanitizedPath = basePath === '/' ? '' : basePath
+
+  const hasContext =
+    !!normalizedContext &&
+    (sanitizedPath === normalizedContext || sanitizedPath.endsWith(`${normalizedContext}`))
+
+  const finalPath = hasContext ? sanitizedPath : `${sanitizedPath}${normalizedContext}`
+
+  url.pathname = finalPath || '/'
+
+  return url.toString().replace(/\/+$/, '')
+}
 
 class ApiClient {
   constructor() {
-    this.baseURL = API_BASE_URL
+    this.baseURL = normalizeBaseUrl(API_BASE_URL, API_CONTEXT_PATH)
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
