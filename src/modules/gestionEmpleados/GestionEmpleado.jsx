@@ -1,45 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { List, Grid } from "lucide-react";
-import "./GestionEmpleados.css";
+import "./GestionEmpleado.css";
+import { useGestionEmpleado } from "../../store/GestionEmpleadoContext";
 
 export default function GestionEmpleados() {
     const [vista, setVista] = useState("grid");
     const [busqueda, setBusqueda] = useState("");
     const [areaFiltro, setAreaFiltro] = useState("Todas las áreas");
     const [puestoFiltro, setPuestoFiltro] = useState("Todos los puestos");
-    const [empleados, setEmpleados] = useState([]);
-    const [areas, setAreas] = useState([]);
     const [puestosPorArea, setPuestosPorArea] = useState([]);
+    const [horarioFiltro, setHorarioFiltro] = useState("Todos los horarios");
+    const [horariosDisponibles, setHorariosDisponibles] = useState(["Todos los horarios"]);
 
-    useEffect(() => { cargarEmpleados(); }, []);
-
-    const cargarEmpleados = async () => {
-        try {
-            const [respTodos, respConPuesto] = await Promise.all([
-                fetch("http://localhost:8080/api/gempleados"),
-                fetch("http://localhost:8080/api/gempleados/con-puesto")
-            ]);
-
-            const empleadosTodos = await respTodos.json();
-            const empleadosConPuesto = await respConPuesto.json();
-
-            const mapa = new Map();
-            empleadosTodos.forEach(e => mapa.set(e.idEmpleado, { ...e, area: "" }));
-            empleadosConPuesto.forEach(e => {
-                if (mapa.has(e.idEmpleado)) {
-                    mapa.set(e.idEmpleado, { ...mapa.get(e.idEmpleado), ...e });
-                }
-            });
-
-            const combinados = Array.from(mapa.values());
-            setEmpleados(combinados);
-
-            const distinctAreas = [...new Set(combinados.map((e) => e.area || ""))];
-            setAreas(["Todas las áreas", ...distinctAreas.map(a => a === "" || a == null ? "Sin área" : a)]);
-        } catch (error) {
-            console.error("Error cargando empleados", error);
-        }
-    };
+    const { empleados, areas } = useGestionEmpleado();
 
     // Obtener puestos según área seleccionada
     useEffect(() => {
@@ -56,6 +29,27 @@ export default function GestionEmpleados() {
         }
     }, [areaFiltro, empleados]);
 
+    // Actualizar lista de horarios según filtro de área
+    useEffect(() => {
+        const empleadosFiltradosPorArea = empleados.filter(e =>
+            areaFiltro === "Todas las áreas" || (e.area || "Sin área") === areaFiltro
+        );
+
+        const horariosUnicos = [
+            "Todos los horarios",
+            ...Array.from(new Set(
+                empleadosFiltradosPorArea.map(e => e.nombreHorario || "Sin horario")
+            ))
+        ];
+
+        setHorariosDisponibles(horariosUnicos);
+
+        // Reiniciar el filtro de horario si el valor actual ya no existe
+        if (!horariosUnicos.includes(horarioFiltro)) {
+            setHorarioFiltro("Todos los horarios");
+        }
+    }, [areaFiltro, empleados]);
+
     const empleadosFiltrados = empleados.filter((emp) => {
         const coincideBusqueda =
             emp.nombres.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -69,7 +63,10 @@ export default function GestionEmpleados() {
         const coincidePuesto =
             puestoFiltro === "Todos los puestos" || emp.nombrePuesto === puestoFiltro;
 
-        return coincideBusqueda && coincideArea && coincidePuesto;
+        const coincideHorario =
+            horarioFiltro === "Todos los horarios" || (emp.nombreHorario || "Sin horario") === horarioFiltro;
+
+        return coincideBusqueda && coincideArea && coincidePuesto && coincideHorario;
     });
 
     return (
@@ -87,14 +84,11 @@ export default function GestionEmpleados() {
             </div>
 
             <div className="filtros">
-                {/* Contenedor de filtros con gap reducido */}
                 <div className="filtros-area-puesto">
-                    {/* Filtro Área */}
                     <select value={areaFiltro} onChange={(e) => setAreaFiltro(e.target.value)}>
                         {areas.map(area => <option key={area} value={area}>{area}</option>)}
                     </select>
 
-                    {/* Filtro Puesto, solo visible si hay área seleccionada */}
                     {puestosPorArea.length > 0 && (
                         <select value={puestoFiltro} onChange={(e) => setPuestoFiltro(e.target.value)}>
                             {puestosPorArea.map(puesto => <option key={puesto} value={puesto}>{puesto}</option>)}
@@ -102,8 +96,18 @@ export default function GestionEmpleados() {
                     )}
                 </div>
 
-                {/* Selector de vista */}
-                <div className="flex gap-2">
+                <div className="filtro-horario-container">
+                    <select
+                        value={horarioFiltro}
+                        onChange={(e) => setHorarioFiltro(e.target.value)}
+                        className="filtro-horario"
+                    >
+                        {horariosDisponibles.map(h => <option key={h} value={h}>{h}</option>)}
+                    </select>
+                </div>
+
+                {/* Horario a la izquierda de los botones de vista */}
+                <div className="flex gap-2 items-center">
                     <div
                         className={`vista-boton lista ${vista === "lista" ? "activo" : ""}`}
                         onClick={() => setVista("lista")}

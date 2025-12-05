@@ -278,3 +278,21 @@
     background-color: white;
     color: #1F2937;
 }
+.filtro-horario-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* empuja hacia la derecha, dejando espacio entre Área/Puesto y Botones */
+}
+
+.filtro-horario {
+    display: flex;
+    gap: 2rem; /* espacio pequeño entre los select */
+}
+
+.filtro-horario select {
+    border: 1px solid #D9D9D9;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: white;
+    color: #1F2937;
+}

@@ -12,6 +12,7 @@ import RecepcionCV from '../modules/recepcion/RecepcionCV'
 import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
 import GestionEmpleado from "../modules/gestionEmpleados/GestionEmpleado";
+import { GestionEmpleadoProvider } from "../store/GestionEmpleadoContext";
 
 const Routes = () => {
   return (
@@ -56,7 +57,7 @@ const Routes = () => {
         path="/gestion-empleados" 
         element={
           <ProtectedRoute>
-            <GestionEmpleado />
+              <GestionEmpleado />
           </ProtectedRoute>
         } 
       />

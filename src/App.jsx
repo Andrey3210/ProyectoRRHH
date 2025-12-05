@@ -4,6 +4,7 @@ import { RRHHProvider } from './store/RRHHContext'
 import { NotificationProvider } from './components/common/NotificationProvider'
 import RRHHApp from './components/RRHHApp'
 import Routes from './routes'
+import {GestionEmpleadoProvider} from "./store/GestionEmpleadoContext";
 
 // Componente interno para manejar el layout condicional
 const AppContent = () => {
@@ -16,7 +17,9 @@ const AppContent = () => {
 
   return (
     <RRHHApp>
-      <Routes />
+        <GestionEmpleadoProvider>
+            <Routes />
+        </GestionEmpleadoProvider>
     </RRHHApp>
   )
 }
