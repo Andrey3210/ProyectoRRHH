@@ -19,7 +19,10 @@ const Sidebar = () => {
   const isRecepcionActive = isActive('/recepcion-cv')
   const isReclutamientoActive = !isRecepcionActive && (isActive('/pipeline') || isActive('/candidatos') || isActive('/posiciones'))
   const isInicioActive = isActive('/inicio')
-  const isAsistenciaActive = isActive('/control-asistencia')
+  const isAsistenciaActive =
+    isActive('/control-asistencia') ||
+    isActive('/control-asistenciaReporte') ||
+    isActive('/control-asistenciaLineaTiempo')
   const isIncentivosActive = isActive('/incentivos-reconocimientos')
   const isVacacionesActive = isActive('/vacaciones-permisos')
   const isEmpleadosActive = isActive('/gestion-empleados')
