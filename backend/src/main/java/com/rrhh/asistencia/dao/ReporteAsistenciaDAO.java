@@ -59,7 +59,7 @@ public class ReporteAsistenciaDAO {
                 "SELECT " +
                         "  COUNT(*) AS dias_trabajados, " +
                         "  SUM(CASE WHEN tipo_registro = 'FALTA' THEN 1 ELSE 0 END) AS faltas, " +
-                        "  SUM(CASE WHEN tipo_registro = 'TARDANZA' THEN 1 ELSE 0 END) AS tardanzas, " +
+                        "  SUM(CASE WHEN tipo_registro = 'TARDE' THEN 1 ELSE 0 END) AS tardanzas, " +
                         "  SUM(minutos_extra) AS minutos_extra " +
                         "FROM registros_asistencia " +
                         "WHERE fecha BETWEEN :inicio AND :fin";
@@ -98,7 +98,7 @@ public class ReporteAsistenciaDAO {
                         "  COALESCE(p.area, p.departamento, 'Sin área') AS area_nombre, " +
                         "  COUNT(*) AS dias_trabajados, " +
                         "  SUM(CASE WHEN r.tipo_registro = 'FALTA' THEN 1 ELSE 0 END) AS faltas, " +
-                        "  SUM(CASE WHEN r.tipo_registro = 'TARDANZA' THEN 1 ELSE 0 END) AS tardanzas, " +
+                        "  SUM(CASE WHEN r.tipo_registro = 'TARDE' THEN 1 ELSE 0 END) AS tardanzas, " +
                         "  SUM(r.minutos_extra) AS minutos_extra " +
                         "FROM registros_asistencia r " +
                         "JOIN empleados e ON e.id_empleado = r.id_empleado " +
