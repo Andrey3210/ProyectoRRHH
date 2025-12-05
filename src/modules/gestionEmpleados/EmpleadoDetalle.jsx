@@ -79,7 +79,7 @@ export default function EmpleadoDetalle() {
                         <p>{empleado.nombres} {empleado.apellidoPaterno} {empleado.apellidoMaterno}</p>
                     </div>
                     <div className="card">
-                        <strong>ID  {empleado.idEmpleado}</strong>
+                        <strong>ID {empleado.idEmpleado}</strong>
                     </div>
                     <div className="card">
                         <strong>Código</strong>
