@@ -11,6 +11,7 @@ import Pipeline from '../modules/reclutamiento/Pipeline'
 import RecepcionCV from '../modules/recepcion/RecepcionCV'
 import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
+import GestionEmpleado from "../modules/gestionEmpleados/GestionEmpleado";
 
 const Routes = () => {
   return (
@@ -55,7 +56,7 @@ const Routes = () => {
         path="/gestion-empleados" 
         element={
           <ProtectedRoute>
-            <ComingSoon title="Gestión de Empleados" />
+            <GestionEmpleado />
           </ProtectedRoute>
         } 
       />

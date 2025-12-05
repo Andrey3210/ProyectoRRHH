@@ -3,11 +3,13 @@ import { List, Grid } from "lucide-react";
 import "./GestionEmpleados.css";
 
 export default function GestionEmpleados() {
-    const [vista, setVista] = useState("grid"); // Vista inicial en Grid
+    const [vista, setVista] = useState("grid");
     const [busqueda, setBusqueda] = useState("");
-    const [areaFiltro, setAreaFiltro] = useState("Todos");
+    const [areaFiltro, setAreaFiltro] = useState("Todas las áreas");
+    const [puestoFiltro, setPuestoFiltro] = useState("Todos los puestos");
     const [empleados, setEmpleados] = useState([]);
     const [areas, setAreas] = useState([]);
+    const [puestosPorArea, setPuestosPorArea] = useState([]);
 
     useEffect(() => { cargarEmpleados(); }, []);
 
@@ -33,11 +35,26 @@ export default function GestionEmpleados() {
             setEmpleados(combinados);
 
             const distinctAreas = [...new Set(combinados.map((e) => e.area || ""))];
-            setAreas(["Todos", ...distinctAreas.map(a => a === "" || a == null ? "Sin área" : a)]);
+            setAreas(["Todas las áreas", ...distinctAreas.map(a => a === "" || a == null ? "Sin área" : a)]);
         } catch (error) {
             console.error("Error cargando empleados", error);
         }
     };
+
+    // Obtener puestos según área seleccionada
+    useEffect(() => {
+        if (areaFiltro !== "Todas las áreas") {
+            const puestos = empleados
+                .filter(e => (e.area || "Sin área") === areaFiltro)
+                .map(e => e.nombrePuesto)
+                .filter((v, i, a) => v && a.indexOf(v) === i); // únicos
+            setPuestosPorArea(["Todos los puestos", ...puestos]);
+            setPuestoFiltro("Todos los puestos");
+        } else {
+            setPuestosPorArea([]);
+            setPuestoFiltro("Todos los puestos");
+        }
+    }, [areaFiltro, empleados]);
 
     const empleadosFiltrados = empleados.filter((emp) => {
         const coincideBusqueda =
@@ -46,12 +63,13 @@ export default function GestionEmpleados() {
             emp.apellidoMaterno.toLowerCase().includes(busqueda.toLowerCase()) ||
             emp.idEmpleado.toString().includes(busqueda);
 
-        let areaEmpleado = emp.area;
-        if (!areaEmpleado) areaEmpleado = "Sin área";
+        let areaEmpleado = emp.area || "Sin área";
+        const coincideArea = areaFiltro === "Todas las áreas" || areaEmpleado === areaFiltro;
 
-        const coincideArea = areaFiltro === "Todos" || areaEmpleado === areaFiltro;
+        const coincidePuesto =
+            puestoFiltro === "Todos los puestos" || emp.nombrePuesto === puestoFiltro;
 
-        return coincideBusqueda && coincideArea;
+        return coincideBusqueda && coincideArea && coincidePuesto;
     });
 
     return (
@@ -69,10 +87,22 @@ export default function GestionEmpleados() {
             </div>
 
             <div className="filtros">
-                <select value={areaFiltro} onChange={(e) => setAreaFiltro(e.target.value)}>
-                    {areas.map((area) => <option key={area} value={area}>{area}</option>)}
-                </select>
+                {/* Contenedor de filtros con gap reducido */}
+                <div className="filtros-area-puesto">
+                    {/* Filtro Área */}
+                    <select value={areaFiltro} onChange={(e) => setAreaFiltro(e.target.value)}>
+                        {areas.map(area => <option key={area} value={area}>{area}</option>)}
+                    </select>
 
+                    {/* Filtro Puesto, solo visible si hay área seleccionada */}
+                    {puestosPorArea.length > 0 && (
+                        <select value={puestoFiltro} onChange={(e) => setPuestoFiltro(e.target.value)}>
+                            {puestosPorArea.map(puesto => <option key={puesto} value={puesto}>{puesto}</option>)}
+                        </select>
+                    )}
+                </div>
+
+                {/* Selector de vista */}
                 <div className="flex gap-2">
                     <div
                         className={`vista-boton lista ${vista === "lista" ? "activo" : ""}`}
@@ -85,6 +115,7 @@ export default function GestionEmpleados() {
                 </div>
             </div>
 
+            {/* Vista Lista */}
             {vista === "lista" && (
                 <table>
                     <thead>
@@ -95,7 +126,7 @@ export default function GestionEmpleados() {
                         <th>Email</th>
                         <th>Teléfono</th>
                         <th>DNI</th>
-                        <th>Más info</th>
+                        <th>Detalle</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -107,30 +138,29 @@ export default function GestionEmpleados() {
                             <td>{emp.email}</td>
                             <td>{emp.telefono}</td>
                             <td>{emp.documentoIdentidad}</td>
-                            <td><button>👤</button></td>
+                            <td><button title="Detalle Empleado">👤</button></td>
                         </tr>
                     ))}
                     </tbody>
                 </table>
             )}
 
+            {/* Vista Grid */}
             {vista === "grid" && (
                 <div className="grid-container">
                     {empleadosFiltrados.map(emp => (
                         <div key={emp.idEmpleado} className="grid-item">
-                            {/* Foto centrada */}
                             <div className="avatar"></div>
 
-                            {/* Datos agrupados izquierda debajo de la foto */}
-                            <div className="datos-empleado">
-                                <p className="id">{emp.idEmpleado}</p>
-                                <p className="nombre">{emp.nombres} {emp.apellidoPaterno}</p>
-                                <p className="area">{emp.area || "Sin área"}</p>
-                            </div>
-
-                            {/* Botón detalle a la derecha */}
-                            <div className="boton-detalle">
-                                <button title="Detalle Empleado">👤</button>
+                            <div className="grid-footer">
+                                <div className="datos-empleado">
+                                    <p className="id">ID {emp.idEmpleado}</p>
+                                    <p className="nombre">{emp.nombres} {emp.apellidoPaterno}</p>
+                                    <p className="area">{emp.area || "Sin área"}</p>
+                                </div>
+                                <div className="boton-detalle">
+                                    <button title="Detalle Empleado">👤</button>
+                                </div>
                             </div>
                         </div>
                     ))}
