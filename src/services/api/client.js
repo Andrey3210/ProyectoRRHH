@@ -6,33 +6,36 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 const API_CONTEXT_PATH = import.meta.env.VITE_API_CONTEXT_PATH || '/api'
 
-// Precalcular la URL base normalizada en un IIFE para evitar redeclaraciones
-const API_CLIENT_BASE_URL = (() => {
-  const base = API_BASE_URL || 'http://localhost:8080'
-  const context = API_CONTEXT_PATH || '/api'
-
-  const normalizedContext = context
-    ? `/${context.replace(/^\/+|\/+$/g, '')}`
-    : ''
+function normalizeBaseUrl(rawBase = '') {
+  const base = rawBase || 'http://localhost:8080'
+  const context = API_CONTEXT_PATH.startsWith('/')
+    ? API_CONTEXT_PATH
+    : `/${API_CONTEXT_PATH}`
 
   const url = new URL(base)
-  const basePath = url.pathname.replace(/\/+$/, '')
-  const sanitizedPath = basePath === '/' ? '' : basePath
+  const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname
 
   const hasContext =
-    !!normalizedContext &&
-    (sanitizedPath === normalizedContext || sanitizedPath.endsWith(`${normalizedContext}`))
+    pathname === context ||
+    pathname.endsWith(`${context}`) ||
+    pathname.includes(`${context}/`)
 
-  const finalPath = hasContext ? sanitizedPath : `${sanitizedPath}${normalizedContext}`
+  url.pathname = hasContext ? pathname : `${pathname}${context}`
 
-  url.pathname = finalPath || '/'
+  return url.toString().replace(/\/$/, '')
+}
 
-  return url.toString().replace(/\/+$/, '')
-})()
+function normalizeBaseUrl(url = '') {
+  const trimmed = url.endsWith('/') ? url.slice(0, -1) : url
+  const hasApiContext = trimmed.endsWith('/api') || trimmed.includes('/api/')
+
+  if (hasApiContext) return trimmed
+  return `${trimmed}/api`
+}
 
 class ApiClient {
   constructor() {
-    this.baseURL = API_CLIENT_BASE_URL
+    this.baseURL = normalizeBaseUrl(API_BASE_URL)
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       Accept: 'application/json'
