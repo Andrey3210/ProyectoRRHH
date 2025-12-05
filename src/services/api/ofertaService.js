@@ -36,6 +36,19 @@ class OfertaService {
   }
 
   /**
+   * Obtener todas las ofertas
+   */
+  async obtenerOfertas(filtros = {}) {
+    try {
+      const data = await apiClient.get('/ofertas', filtros)
+      return Array.isArray(data) ? data.map(o => new Oferta(o)) : []
+    } catch (error) {
+      console.error('Error al obtener ofertas:', error)
+      throw error
+    }
+  }
+
+  /**
    * Obtener ofertas pendientes
    */
   async obtenerOfertasPendientes(filtros = {}) {

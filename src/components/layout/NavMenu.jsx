@@ -6,11 +6,14 @@ const NavMenu = () => {
   const location = useLocation()
 
   const menuItems = [
-    { path: '/reclutamiento/resumen', label: 'Resumen' },
     { path: '/posiciones', label: 'Posiciones Abiertas' },
     { path: '/candidatos', label: 'Lista de Candidatos' },
     { path: '/pipeline', label: 'Pipeline' },
-    { path: '/entrevistas', label: 'Entrevistas' }
+    { path: '/entrevistas', label: 'Entrevistas' },
+    { path: '/evaluaciones', label: 'Pruebas Técnicas' },
+    { path: '/ofertas', label: 'Ofertas' },
+    { path: '/contrataciones', label: 'Contrataciones' },
+    { path: '/rechazados', label: 'Rechazados' }
   ]
 
   const isActive = (path) => {
@@ -19,11 +22,14 @@ const NavMenu = () => {
 
   // Rutas del módulo de Reclutamiento y Selección (sin recepción de CVs)
   const rutasReclutamiento = [
-    '/reclutamiento/resumen',
     '/posiciones',
     '/candidatos',
     '/pipeline',
-    '/entrevistas'
+    '/entrevistas',
+    '/evaluaciones',
+    '/ofertas',
+    '/contrataciones',
+    '/rechazados'
   ]
 
   // Verificar si la ruta actual pertenece al módulo de Reclutamiento

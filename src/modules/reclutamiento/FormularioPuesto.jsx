@@ -23,7 +23,8 @@ const FormularioPuesto = () => {
     priority: '',
     modalidad: '',
     tipoContrato: '',
-    requisitos: ''
+    requisitos: '',
+    rangoSalarial: ''
   })
 
   const [availablePositions, setAvailablePositions] = useState([])
@@ -39,7 +40,8 @@ const FormularioPuesto = () => {
           priority: position.priority,
           modalidad: position.modalidad,
           tipoContrato: position.tipoContrato,
-          requisitos: position.requisitos || ''
+          requisitos: position.requisitos || '',
+          rangoSalarial: position.rangoSalarial || ''
         })
         setEditingPositionId(parseInt(id))
       }
@@ -76,6 +78,7 @@ const FormularioPuesto = () => {
       modalidad: formData.modalidad,
       tipoContrato: formData.tipoContrato,
       requisitos: formData.requisitos || '',
+      rangoSalarial: formData.rangoSalarial || '',
       candidates: 0,
       selected: 0,
       interviews: 0
@@ -196,6 +199,16 @@ const FormularioPuesto = () => {
               value={formData.requisitos}
               onChange={(e) => setFormData({ ...formData, requisitos: e.target.value })}
               placeholder="Ingrese los requisitos para esta oportunidad de trabajo (opcional, pero necesario para publicar)"
+            />
+          </div>
+          <div className="form-group">
+            <label>Rango Salarial</label>
+            <input
+              type="text"
+              id="form-rango-salarial"
+              value={formData.rangoSalarial}
+              onChange={(e) => setFormData({ ...formData, rangoSalarial: e.target.value })}
+              placeholder="Ej: S/ 3,000 - S/ 5,000"
             />
           </div>
           <div className="form-actions">

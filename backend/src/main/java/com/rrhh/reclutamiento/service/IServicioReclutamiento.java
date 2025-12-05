@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IServicioReclutamiento {
-    PostulanteProceso vincularCandidatoVacante(Integer idCandidato, Integer idVacante);
+    PostulanteProceso vincularCandidatoVacante(Integer idCandidato, Integer idVacante, Integer idPuesto);
     List<PostulanteProceso> filtrarCandidatos(Map<String, Object> criterios);
     void evaluarCandidato(Integer idCandidato, Integer idProceso, Map<String, Object> evaluacion);
     PostulanteProceso moverCandidatoEtapa(Integer idPostulanteProceso, EtapaProceso nuevaEtapa);

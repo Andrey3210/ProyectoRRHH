@@ -8,10 +8,13 @@ import ListaCandidatos from '../modules/reclutamiento/ListaCandidatos'
 import DetalleCandidato from '../modules/reclutamiento/DetalleCandidato'
 import FormularioPuesto from '../modules/reclutamiento/FormularioPuesto'
 import Pipeline from '../modules/reclutamiento/Pipeline'
-import ResumenReclutamiento from '../modules/reclutamiento/ResumenReclutamiento'
 import RecepcionCV from '../modules/recepcion/RecepcionCV'
 import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
+import GestionEvaluaciones from '../modules/reclutamiento/GestionEvaluaciones'
+import GestionOfertas from '../modules/reclutamiento/GestionOfertas'
+import GestionContrataciones from '../modules/reclutamiento/GestionContrataciones'
+import EstadisticasRechazados from '../modules/reclutamiento/EstadisticasRechazados'
 import DashboardIncentivos from '../modules/incentivos/DashboardIncentivos'  
 import ReglasIncentivos from '../modules/incentivos/admin/ReglasIncentivos' 
 import MetasPeriodo from '../modules/incentivos/admin/metasPeriodo'
@@ -19,39 +22,32 @@ import AprobacionesBonos from '../modules/incentivos/admin/AprobacionesBonos'
 import ReportesIncentivos from '../modules/incentivos/admin/ReportesIncentivos'
 import IncentivosRouter from '../modules/incentivos/IncentivosRouter'  
 import DashboardEmpleado from '../modules/incentivos/empleado/DashboardEmpleado'
-import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'  
+import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'
 import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
-import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
-import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'
 import VistaEmpleado from '../modules/vacaciones/VistaEmpleado'
-import AsistenciaDashboard from '../modules/asistencia/AsistenciaDashboard'
-import EmployeeTimelinePage from '../modules/asistencia/EmployeeTimelinePage'
-import ReportesAsistenciaPage from '../modules/asistencia/ReportesAsistenciaPage'
-import AuditoriaPage from '../modules/asistencia/AuditoriaPage';
-
-import MenuInicio from "../pages/MenuInicio";
+import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
+import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'  
 
 const Routes = () => {
   return (
     <RouterRoutes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Navigate to="/inicio" replace />} />
+      <Route path="/" element={<Navigate to="/posiciones" replace />} />
       
       {/* Módulos pendientes de implementación */}
       <Route 
         path="/inicio" 
         element={
           <ProtectedRoute>
-            <MenuInicio />
+            <ComingSoon title="Inicio" />
           </ProtectedRoute>
         } 
       />
-      {/* INICIO Módulo de Asistencia INICIO*/}
       <Route 
         path="/control-asistencia" 
         element={
           <ProtectedRoute>
-            <AsistenciaDashboard />
+            <ComingSoon title="Control de Asistencia" />
           </ProtectedRoute>
         } 
       />
@@ -73,41 +69,6 @@ const Routes = () => {
          <Route path="empleado/dashboard" element={<DashboardEmpleado />} />  
          <Route path="empleado/pagos" element={<DetallePagosEmpleado />} />
       </Route>
-      <Route 
-        path="/control-asistenciaLineaTiempo" 
-        element={
-          <ProtectedRoute>
-            <EmployeeTimelinePage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/control-asistenciaReporte" 
-        element={
-          <ProtectedRoute>
-            <ReportesAsistenciaPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/control-asistenciaSistema" 
-        element={
-          <ProtectedRoute>
-            <AuditoriaPage />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* FIN Módulo de Asistencia FIN*/}
-      <Route 
-        path="/incentivos-reconocimientos" 
-        element={
-          <ProtectedRoute>
-            <ComingSoon title="Gestión de Incentivos y Reconocimientos" />
-          </ProtectedRoute>
-        } 
-      />
-      {/* Gestion de vacaciones y permisos======================= */}
       <Route 
         path="/vacaciones-permisos" 
         element={
@@ -155,16 +116,8 @@ const Routes = () => {
       />
       
       {/* Módulo de Reclutamiento y Selección */}
-      <Route
-        path="/reclutamiento/resumen"
-        element={
-          <ProtectedRoute>
-            <ResumenReclutamiento />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/posiciones"
+      <Route 
+        path="/posiciones" 
         element={
           <ProtectedRoute>
             <PosicionesAbiertas />
@@ -232,6 +185,38 @@ const Routes = () => {
         element={
           <ProtectedRoute>
             <GestionEntrevistas />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/evaluaciones" 
+        element={
+          <ProtectedRoute>
+            <GestionEvaluaciones />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/ofertas" 
+        element={
+          <ProtectedRoute>
+            <GestionOfertas />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/contrataciones" 
+        element={
+          <ProtectedRoute>
+            <GestionContrataciones />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/rechazados" 
+        element={
+          <ProtectedRoute>
+            <EstadisticasRechazados />
           </ProtectedRoute>
         } 
       />

@@ -6,6 +6,8 @@ import entrevistaService from '../../services/api/entrevistaService'
 import reclutamientoService from '../../services/api/reclutamientoService'
 import vacanteService from '../../services/api/vacanteService'
 import candidatoService from '../../services/api/candidatoService'
+import apiClient from '../../services/api/client'
+import { EtapaProceso } from '../../types'
 import ProcesoSeleccion from './ProcesoSeleccion'
 
 const DetalleCandidato = () => {
@@ -18,6 +20,9 @@ const DetalleCandidato = () => {
   const [showEntrevistaModal, setShowEntrevistaModal] = useState(false)
   const [cargandoProceso, setCargandoProceso] = useState(false)
   const [idProceso, setIdProceso] = useState(null)
+  const [cargandoDetalle, setCargandoDetalle] = useState(true)
+  const [detallePostulante, setDetallePostulante] = useState(null)
+  const [habilidades, setHabilidades] = useState([])
   
   const [formDataEntrevista, setFormDataEntrevista] = useState({
     fecha: '',
@@ -28,6 +33,53 @@ const DetalleCandidato = () => {
   })
 
   const candidate = candidatesData.find(c => c.id === parseInt(id))
+  const [etapaActual, setEtapaActual] = useState(null)
+  const [estadoCandidato, setEstadoCandidato] = useState(null)
+
+  // Cargar datos completos del postulante desde el backend
+  useEffect(() => {
+    if (!id) return
+
+    const cargarDetalle = async () => {
+      setCargandoDetalle(true)
+      try {
+        // Cargar postulante completo con formaciones y experiencias
+        const data = await apiClient.get(`/rrhh/postulantes/${id}`)
+        setDetallePostulante(data)
+      } catch (err) {
+        console.error('Error cargando postulante:', err)
+        error('No se pudo cargar la información del candidato')
+      } finally {
+        setCargandoDetalle(false)
+      }
+    }
+
+    const cargarHabilidades = async () => {
+      try {
+        const data = await apiClient.get(`/candidatos/${id}/habilidades`)
+        if (Array.isArray(data)) {
+          const habilidadesNormalizadas = data.map(h => ({
+            id: h.idPostulanteHabilidad || h.id_postulante_habilidad || h.idHabilidad || h.id_habilidad,
+            nombre: h.nombreHabilidad || h.nombre_habilidad || h.habilidad?.nombreHabilidad || h.habilidad?.nombre_habilidad || '',
+            tipo: h.tipo || h.tipoHabilidad || h.tipo_habilidad || h.habilidad?.tipoHabilidad || h.habilidad?.tipo_habilidad || '',
+            categoria: h.categoria || h.habilidad?.categoria || '',
+            nivelDominio: h.nivelDominio || h.nivel_dominio || '',
+            anosExperiencia: h.anosExperiencia ?? h.anos_experiencia ?? null,
+            descripcion: h.descripcion || h.habilidad?.descripcion || ''
+          }))
+          setHabilidades(habilidadesNormalizadas)
+        } else {
+          setHabilidades([])
+        }
+      } catch (err) {
+        console.error('Error cargando habilidades:', err)
+        setHabilidades([])
+      }
+    }
+
+    cargarDetalle()
+    cargarHabilidades()
+  }, [id, error])
 
   // Cargar el proceso del candidato cuando se abre el modal
   useEffect(() => {
@@ -35,6 +87,47 @@ const DetalleCandidato = () => {
       cargarProcesoDelCandidato()
     }
   }, [showEntrevistaModal, candidate])
+
+  // Determinar etapa actual y estado del candidato
+  useEffect(() => {
+    if (candidate) {
+      const etapa = candidate.etapa || candidate.status
+      const estado = candidate.estado || candidate.status
+      setEtapaActual(etapa)
+      setEstadoCandidato(estado)
+    }
+    
+    // También cargar desde el proceso si está disponible
+    const cargarEstadoProceso = async () => {
+      try {
+        const vacantes = await vacanteService.obtenerVacantes()
+        for (const v of vacantes) {
+          try {
+            const procesos = await reclutamientoService.obtenerCandidatosPorVacante(v.idVacante)
+            const procesoCandidato = procesos.find(pp => {
+              const ppId = pp.idPostulante?.toString()
+              const candidatoId = id?.toString()
+              return ppId === candidatoId
+            })
+            
+            if (procesoCandidato) {
+              setEstadoCandidato(procesoCandidato.estado)
+              setEtapaActual(procesoCandidato.etapaActual)
+              break
+            }
+          } catch (err) {
+            console.warn(`Error al buscar proceso en vacante ${v.idVacante}:`, err)
+          }
+        }
+      } catch (err) {
+        console.error('Error al cargar estado del proceso:', err)
+      }
+    }
+    
+    if (id) {
+      cargarEstadoProceso()
+    }
+  }, [candidate, id])
 
   const cargarProcesoDelCandidato = async () => {
     if (!candidate) return
@@ -109,7 +202,20 @@ const DetalleCandidato = () => {
     }
   }
 
-  if (!candidate) {
+  if (cargandoDetalle) {
+    return (
+      <div className="view-container active">
+        <button className="btn-back" onClick={() => navigate('/candidatos')}>
+          ← Volver
+        </button>
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          <p>Cargando información del candidato...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!candidate && !detallePostulante) {
     return (
       <div className="view-container active">
         <p>Candidato no encontrado</p>
@@ -120,7 +226,14 @@ const DetalleCandidato = () => {
     )
   }
 
+  // Usar datos del backend si están disponibles, sino usar del contexto
+  const postulante = detallePostulante || candidate
+  const nombreCompleto = detallePostulante 
+    ? `${detallePostulante.nombres || ''} ${detallePostulante.apellidoPaterno || ''} ${detallePostulante.apellidoMaterno || ''}`.trim()
+    : candidate?.name || 'Sin nombre'
+  
   const calculateAge = (birthDate) => {
+    if (!birthDate) return null
     const today = new Date()
     const birth = new Date(birthDate)
     let age = today.getFullYear() - birth.getFullYear()
@@ -130,6 +243,10 @@ const DetalleCandidato = () => {
     }
     return age
   }
+
+  // Separar habilidades técnicas y blandas
+  const habilidadesTecnicas = habilidades.filter(h => h.tipo === 'TECNICA' || h.tipo === 'TÉCNICA')
+  const habilidadesBlandas = habilidades.filter(h => h.tipo === 'BLANDA' || h.tipo === 'BLANDA')
 
   const statuses = ["Nuevo", "En Proceso", "Entrevistado", "En Entrevista", "Prueba Técnica", "Entrevista Final", "Oferta", "Rechazado", "Contratado"]
 
@@ -156,18 +273,69 @@ const DetalleCandidato = () => {
       
       <div className="detalle-container">
         <div className="detalle-header">
-          <h2 id="detalle-nombre">{candidate.name}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h2 id="detalle-nombre">{nombreCompleto}</h2>
+            {(estadoCandidato === 'DESCARTADO' || estadoCandidato === 'DESCARTADO') && (
+              <span style={{ 
+                padding: '6px 16px', 
+                backgroundColor: '#dc3545', 
+                color: 'white', 
+                borderRadius: '16px',
+                fontSize: '13px',
+                fontWeight: 'bold'
+              }}>
+                ❌ RECHAZADO
+              </span>
+            )}
+            {(estadoCandidato === 'CONTRATADO' || estadoCandidato === 'CONTRATADO') && (
+              <span style={{ 
+                padding: '6px 16px', 
+                backgroundColor: '#28a745', 
+                color: 'white', 
+                borderRadius: '16px',
+                fontSize: '13px',
+                fontWeight: 'bold'
+              }}>
+                ✅ CONTRATADO
+              </span>
+            )}
+          </div>
           <div className="detalle-actions">
-            <button 
-              className="btn-primary" 
-              onClick={() => setShowEntrevistaModal(true)}
-              style={{ marginRight: '10px' }}
-            >
-              Programar Entrevista
-            </button>
-            <button className="btn-secondary" onClick={handleChangeStatus}>
-              Cambiar Estado
-            </button>
+            {/* Solo mostrar acciones si NO está rechazado */}
+            {estadoCandidato !== 'DESCARTADO' && estadoCandidato !== 'DESCARTADO' && (
+              <>
+                {/* Si está en REVISION_CV, mostrar botón para ir a recepción de CVs */}
+                {etapaActual === EtapaProceso.REVISION_CV && (
+                  <button 
+                    className="btn-primary" 
+                    onClick={() => {
+                      navigate(`/postulantes/${id}/cv`, {
+                        state: {
+                          postulante: detallePostulante || candidate,
+                          nombrePuesto: candidate?.position
+                        }
+                      })
+                    }}
+                    style={{ marginRight: '10px', backgroundColor: '#6c757d' }}
+                  >
+                    📄 Revisar CV
+                  </button>
+                )}
+                {/* Para otras etapas, mostrar botón de entrevista */}
+                {etapaActual !== EtapaProceso.REVISION_CV && etapaActual !== EtapaProceso.CONTRATACION && (
+                  <button 
+                    className="btn-primary" 
+                    onClick={() => setShowEntrevistaModal(true)}
+                    style={{ marginRight: '10px' }}
+                  >
+                    Programar Entrevista
+                  </button>
+                )}
+                <button className="btn-secondary" onClick={handleChangeStatus}>
+                  Cambiar Estado
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -217,7 +385,7 @@ const DetalleCandidato = () => {
                   <label><strong>Candidato:</strong></label>
                   <input
                     type="text"
-                    value={candidate.name}
+                    value={nombreCompleto}
                     disabled
                     style={{ width: '100%', padding: '0.5rem', marginTop: '0.5rem', background: '#f5f5f5' }}
                   />
@@ -334,87 +502,150 @@ const DetalleCandidato = () => {
             <h3>Información Personal</h3>
             <div className="info-row">
               <span className="label">Email:</span>
-              <span>{candidate.email}</span>
+              <span>{detallePostulante?.email || candidate?.email || 'No especificado'}</span>
             </div>
             <div className="info-row">
               <span className="label">Teléfono:</span>
-              <span>{candidate.phone}</span>
+              <span>{detallePostulante?.telefono || candidate?.phone || 'No especificado'}</span>
             </div>
             <div className="info-row">
               <span className="label">Edad:</span>
-              <span>{calculateAge(candidate.birthDate)} años</span>
+              <span>
+                {detallePostulante?.edad 
+                  ? `${detallePostulante.edad} años`
+                  : calculateAge(detallePostulante?.fechaNacimiento || candidate?.birthDate)
+                    ? `${calculateAge(detallePostulante?.fechaNacimiento || candidate?.birthDate)} años`
+                    : 'No especificado'}
+              </span>
             </div>
             <div className="info-row">
               <span className="label">Género:</span>
-              <span>{candidate.gender}</span>
+              <span>{detallePostulante?.genero || candidate?.gender || 'No especificado'}</span>
             </div>
             <div className="info-row">
               <span className="label">Estado Civil:</span>
-              <span>{candidate.maritalStatus}</span>
+              <span>{detallePostulante?.estadoCivil || candidate?.maritalStatus || 'No especificado'}</span>
             </div>
+            {detallePostulante?.direccion && (
+              <div className="info-row">
+                <span className="label">Dirección:</span>
+                <span>{detallePostulante.direccion}</span>
+              </div>
+            )}
           </div>
 
           <div className="detalle-section">
-            <h3>Formación</h3>
-            <div className="info-row">
-              <span className="label">Nivel:</span>
-              <span>{candidate.education}</span>
-            </div>
-            <div className="info-row">
-              <span className="label">Institución:</span>
-              <span>{candidate.institution}</span>
-            </div>
-            <div className="info-row">
-              <span className="label">Carrera:</span>
-              <span>{candidate.career}</span>
-            </div>
-            <div className="info-row">
-              <span className="label">Año Graduación:</span>
-              <span>{candidate.graduationYear}</span>
-            </div>
+            <h3>Formación Académica</h3>
+            {Array.isArray(detallePostulante?.formacionesAcademicas) && detallePostulante.formacionesAcademicas.length > 0 ? (
+              detallePostulante.formacionesAcademicas.map((formacion, index) => (
+                <div key={formacion.idFormacion || index} style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: index < detallePostulante.formacionesAcademicas.length - 1 ? '1px solid #e3e6e8' : 'none' }}>
+                  <div style={{ fontWeight: 600, color: '#2c3e50', marginBottom: '4px' }}>
+                    {formacion.carrera || 'Carrera no especificada'}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#6c757d', marginBottom: '4px' }}>
+                    {formacion.institucion || 'Institución no especificada'}
+                  </div>
+                  {formacion.nivelEstudios && (
+                    <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>
+                      Nivel: {formacion.nivelEstudios}
+                    </div>
+                  )}
+                  {formacion.fechaInicio && formacion.fechaFin && (
+                    <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                      {new Date(formacion.fechaInicio).toLocaleDateString()} - {new Date(formacion.fechaFin).toLocaleDateString()}
+                    </div>
+                  )}
+                  {formacion.situacion && (
+                    <div style={{ marginTop: '4px' }}>
+                      <span style={{ 
+                        padding: '2px 8px', 
+                        borderRadius: '4px', 
+                        fontSize: '11px', 
+                        backgroundColor: formacion.situacion === 'CONCLUIDO' ? '#d4edda' : '#fff3cd',
+                        color: formacion.situacion === 'CONCLUIDO' ? '#155724' : '#856404'
+                      }}>
+                        {formacion.situacion}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div style={{ color: '#6c757d', fontSize: '13px' }}>
+                {candidate?.education !== 'No especificado' ? candidate?.education : 'Sin formación registrada'}
+              </div>
+            )}
           </div>
 
           <div className="detalle-section">
             <h3>Experiencia Laboral</h3>
-            {candidate.experience.map((exp, index) => (
-              <div key={index} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #e3e6e8' }}>
-                <div style={{ fontWeight: 600, color: '#2c3e50' }}>{exp.company}</div>
-                <div style={{ fontSize: '13px', color: '#6c757d' }}>{exp.position}</div>
-                <div style={{ fontSize: '12px', color: '#6c757d' }}>{exp.startDate} - {exp.endDate}</div>
-                <div style={{ fontSize: '13px', marginTop: '6px' }}>{exp.description}</div>
+            {Array.isArray(detallePostulante?.experiencias) && detallePostulante.experiencias.length > 0 ? (
+              detallePostulante.experiencias.map((exp, index) => (
+                <div key={exp.idExperiencia || index} style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: index < detallePostulante.experiencias.length - 1 ? '1px solid #e3e6e8' : 'none' }}>
+                  <div style={{ fontWeight: 600, color: '#2c3e50', marginBottom: '4px' }}>
+                    {exp.cargo || exp.puesto || 'Cargo no especificado'}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#6c757d', marginBottom: '4px' }}>
+                    {exp.empresa || exp.nombreEmpresa || 'Empresa no especificada'}
+                  </div>
+                  {exp.fechaInicio && exp.fechaFin && (
+                    <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '6px' }}>
+                      {new Date(exp.fechaInicio).toLocaleDateString()} - {new Date(exp.fechaFin).toLocaleDateString()}
+                    </div>
+                  )}
+                  {exp.descripcion && (
+                    <div style={{ fontSize: '13px', marginTop: '6px', whiteSpace: 'pre-wrap' }}>
+                      {exp.descripcion}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div style={{ color: '#6c757d', fontSize: '13px' }}>
+                {candidate?.experience?.length > 0 ? 'Ver experiencia en contexto' : 'Sin experiencia registrada'}
               </div>
-            ))}
+            )}
           </div>
 
           <div className="detalle-section">
             <h3>Habilidades Técnicas</h3>
             <div className="skills-list">
-              {candidate.techSkills.map((skill, index) => (
-                <span key={index} className="skill-badge">{skill}</span>
-              ))}
+              {habilidadesTecnicas.length > 0 ? (
+                habilidadesTecnicas.map((skill, index) => (
+                  <span key={skill.id || index} className="skill-badge">
+                    {skill.nombre}
+                  </span>
+                ))
+              ) : (
+                <div style={{ color: '#6c757d', fontSize: '13px' }}>
+                  {candidate?.techSkills?.length > 0 ? candidate.techSkills.join(', ') : 'Sin habilidades técnicas registradas'}
+                </div>
+              )}
             </div>
           </div>
 
           <div className="detalle-section">
             <h3>Habilidades Blandas</h3>
             <div className="skills-list">
-              {candidate.softSkills.map((skill, index) => (
-                <span key={index} className="skill-badge">{skill}</span>
-              ))}
+              {habilidadesBlandas.length > 0 ? (
+                habilidadesBlandas.map((skill, index) => (
+                  <span key={skill.id || index} className="skill-badge">
+                    {skill.nombre}
+                  </span>
+                ))
+              ) : (
+                <div style={{ color: '#6c757d', fontSize: '13px' }}>
+                  {candidate?.softSkills?.length > 0 ? candidate.softSkills.join(', ') : 'Sin habilidades blandas registradas'}
+                </div>
+              )}
             </div>
           </div>
 
           <div className="detalle-section">
             <h3>Certificaciones</h3>
-            {candidate.certifications.length > 0 ? (
-              candidate.certifications.map((cert, index) => (
-                <div key={index} style={{ padding: '8px 0', fontSize: '13px' }}>
-                  ✓ {cert}
-                </div>
-              ))
-            ) : (
-              <div style={{ color: '#6c757d', fontSize: '13px' }}>Sin certificaciones</div>
-            )}
+            <div style={{ color: '#6c757d', fontSize: '13px' }}>
+              Sin certificaciones registradas
+            </div>
           </div>
         </div>
 

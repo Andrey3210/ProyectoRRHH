@@ -3,7 +3,6 @@
  */
 import apiClient from './client'
 
-
 class AuthService {
   /**
    * Iniciar sesión
@@ -14,7 +13,7 @@ class AuthService {
         username,
         password
       })
-     
+      
       // Guardar token en localStorage
       if (data.token) {
         localStorage.setItem('authToken', data.token)
@@ -49,7 +48,6 @@ class AuthService {
     }
   }
 
-
   /**
    * Cerrar sesión
    */
@@ -65,7 +63,6 @@ class AuthService {
     }
   }
 
-
   /**
    * Validar token
    */
@@ -75,17 +72,16 @@ class AuthService {
       if (!token) {
         return false
       }
-     
+      
       // El token ya se envía automáticamente por el cliente API
       const data = await apiClient.get('/auth/validate')
-     
+      
       return data.valid === true
     } catch (error) {
       console.error('Error al validar token:', error)
       return false
     }
   }
-
 
   /**
    * Obtener usuario actual
@@ -102,14 +98,12 @@ class AuthService {
     return null
   }
 
-
   /**
    * Obtener token
    */
   getToken() {
     return localStorage.getItem('authToken')
   }
-
 
   /**
    * Verificar si está autenticado
@@ -119,5 +113,5 @@ class AuthService {
   }
 }
 
-
 export default new AuthService()
+

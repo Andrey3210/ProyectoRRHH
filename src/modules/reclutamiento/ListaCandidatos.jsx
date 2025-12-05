@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useRRHH } from '../../store/RRHHContext'
+import reclutamientoService from '../../services/api/reclutamientoService'
 import CandidatosTable from './components/CandidatosTable'
 import FiltrosCandidatos from './components/FiltrosCandidatos'
 import Paginacion from './components/Paginacion'
@@ -9,6 +10,9 @@ import ErrorMessage from '../../components/common/ErrorMessage'
 
 const ListaCandidatos = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { idVacante, nombreVacante } = location.state || {}
+  
   const { 
     candidatesData, 
     currentPage, 
@@ -25,20 +29,70 @@ const ListaCandidatos = () => {
   const [search, setSearch] = useState('')
   const [estado, setEstado] = useState('')
   const [puesto, setPuesto] = useState('')
+  const [candidatosVacante, setCandidatosVacante] = useState([])
+  const [cargandoVacante, setCargandoVacante] = useState(false)
+
+  // Cargar candidatos de la vacante específica si se proporcionó idVacante
+  useEffect(() => {
+    if (idVacante) {
+      setCargandoVacante(true)
+      const cargarCandidatosVacante = async () => {
+        try {
+          const candidatos = await reclutamientoService.obtenerCandidatosPorVacante(idVacante)
+          // Mapear a formato compatible con el contexto
+          const candidatosMapeados = candidatos.map(pp => {
+            const postulante = pp.postulante || {}
+            return {
+              id: postulante.idPostulante || pp.idPostulante,
+              name: postulante.nombres && postulante.apellidoPaterno
+                ? `${postulante.nombres} ${postulante.apellidoPaterno} ${postulante.apellidoMaterno || ''}`.trim()
+                : `Candidato ${pp.idPostulante}`,
+              email: postulante.email || 'N/A',
+              phone: postulante.telefono || 'N/A',
+              position: nombreVacante || 'No especificado',
+              status: pp.etapaActual || 'REVISION_CV',
+              etapa: pp.etapaActual || 'REVISION_CV',
+              estado: pp.estado
+            }
+          })
+          setCandidatosVacante(candidatosMapeados)
+          // Auto-filtrar por esta vacante
+          setPuesto(nombreVacante || '')
+        } catch (err) {
+          console.error('Error al cargar candidatos de la vacante:', err)
+          setCandidatosVacante([])
+        } finally {
+          setCargandoVacante(false)
+        }
+      }
+      cargarCandidatosVacante()
+      // Limpiar el state después de usarlo
+      window.history.replaceState({}, document.title)
+    }
+  }, [idVacante, nombreVacante])
+
+  // Si hay idVacante, usar candidatosVacante, sino usar candidatesData del contexto
+  const datosAConsultar = idVacante ? candidatosVacante : candidatesData
 
   useEffect(() => {
-    const filtered = candidatesData.filter(candidate => {
+    const filtered = datosAConsultar.filter(candidate => {
       const searchMatch = candidate.name.toLowerCase().includes(search.toLowerCase()) ||
                         candidate.email.toLowerCase().includes(search.toLowerCase()) ||
                         candidate.position.toLowerCase().includes(search.toLowerCase())
-      const estadoMatch = !estado || candidate.status === estado
+      
+      // Filtrar por etapa (puede venir como etapa o status)
+      const etapaCandidato = candidate.etapa || candidate.status
+      const estadoMatch = !estado || etapaCandidato === estado || candidate.status === estado
+      
+      // Filtrar por vacante/puesto
       const puestoMatch = !puesto || candidate.position === puesto
+      
       return searchMatch && estadoMatch && puestoMatch
     })
 
     setFilteredCandidates(filtered)
     setCurrentPage(1)
-  }, [search, estado, puesto, candidatesData, setFilteredCandidates, setCurrentPage])
+  }, [search, estado, puesto, datosAConsultar, setFilteredCandidates, setCurrentPage])
 
   const handleViewDetail = (candidateId) => {
     navigate(`/candidatos/${candidateId}`)
@@ -60,10 +114,53 @@ const ListaCandidatos = () => {
     )
   }
 
+  if (cargandoVacante) {
+    return (
+      <div className="view-container active">
+        <div className="view-header">
+          <h1>Reclutamiento y selección de personal</h1>
+          {nombreVacante && (
+            <p style={{ marginTop: '8px', color: '#666', fontSize: '14px' }}>
+              Candidatos de: <strong>{nombreVacante}</strong>
+            </p>
+          )}
+        </div>
+        <LoadingSpinner message="Cargando candidatos de la vacante..." />
+      </div>
+    )
+  }
+
   return (
     <div className="view-container active">
       <div className="view-header">
-        <h1>Reclutamiento y selección de personal</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div>
+            <h1>Reclutamiento y selección de personal</h1>
+            {nombreVacante && (
+              <p style={{ marginTop: '8px', color: '#666', fontSize: '14px', marginBottom: 0 }}>
+                Candidatos de: <strong>{nombreVacante}</strong>
+                <button 
+                  onClick={() => {
+                    setPuesto('')
+                    window.history.replaceState({}, document.title)
+                    navigate('/candidatos', { replace: true })
+                  }}
+                  style={{
+                    marginLeft: '12px',
+                    padding: '4px 12px',
+                    fontSize: '12px',
+                    background: '#f0f0f0',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Ver todos los candidatos
+                </button>
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       {error && (

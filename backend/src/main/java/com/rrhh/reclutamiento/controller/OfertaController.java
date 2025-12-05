@@ -58,7 +58,8 @@ public class OfertaController {
             return ResponseEntity.ok(servicioOferta.obtenerOfertasPorCandidato(idCandidato));
         }
         
-        return ResponseEntity.ok(servicioOferta.obtenerOfertasPendientes());
+        // Si no hay filtros específicos, retornar todas las ofertas
+        return ResponseEntity.ok(servicioOferta.obtenerTodasLasOfertas());
     }
     
     @GetMapping("/{id}")

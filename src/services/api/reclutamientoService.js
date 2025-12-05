@@ -8,13 +8,22 @@ import { PostulanteProceso, FiltrarCandidatosDTO, EtapaProceso, EstadoPostulante
 class ReclutamientoService {
   /**
    * Vincular candidato a una vacante
+   * @param {number} idCandidato - ID del candidato
+   * @param {number} idVacante - ID de la vacante
+   * @param {number} [idPuesto] - ID del puesto (opcional) - permite que recepción de CVs encuentre el candidato
    */
-  async vincularCandidatoVacante(idCandidato, idVacante) {
+  async vincularCandidatoVacante(idCandidato, idVacante, idPuesto = null) {
     try {
-      const data = await apiClient.post('/reclutamiento/vincular', {
+      const payload = {
         idCandidato,
         idVacante
-      })
+      }
+      // Agregar idPuesto si se proporciona - esto permite que recepción de CVs 
+      // pueda encontrar candidatos por puesto
+      if (idPuesto != null) {
+        payload.idPuesto = idPuesto
+      }
+      const data = await apiClient.post('/reclutamiento/vincular', payload)
       return new PostulanteProceso(data)
     } catch (error) {
       console.error('Error al vincular candidato:', error)
@@ -23,7 +32,7 @@ class ReclutamientoService {
   }
 
   /**
-   * Filtrar y calificar candidatos según criterios
+   * Filtrar candidatos según criterios
    */
   async filtrarCandidatos(filtroDTO) {
     try {

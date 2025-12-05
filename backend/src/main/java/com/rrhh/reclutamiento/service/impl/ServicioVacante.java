@@ -76,8 +76,18 @@ public class ServicioVacante implements IServicioVacante {
     }
 
     @Override
+    public List<Vacante> buscarVacantesPorEstado(EstadoVacante estado) {
+        return vacanteRepository.findByEstado(estado);
+    }
+
+    @Override
     public List<Vacante> buscarVacantesPorEstadoYEtapa(EstadoVacante estado, EtapaProceso etapa) {
         return vacanteRepository.findByEstadoAndEtapa(estado, etapa);
+    }
+
+    @Override
+    public List<Vacante> obtenerTodasLasVacantes() {
+        return vacanteRepository.findAll();
     }
     
     @Override

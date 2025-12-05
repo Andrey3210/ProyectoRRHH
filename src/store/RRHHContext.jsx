@@ -8,7 +8,8 @@ import {
   mapearEstadoFrontend, 
   mapearEstadoBackend,
   CrearVacanteDTO,
-  EtapaProceso
+  EtapaProceso,
+  EstadoPostulante
 } from '../types'
 import { useNotification } from '../components/common/NotificationProvider'
 
@@ -132,62 +133,65 @@ export const RRHHProvider = ({ children }) => {
         
         const resultados = await Promise.all(procesosPromises)
         
-        // Mapear todos los procesos a un Map
-        resultados.forEach(({ vacante, procesos }) => {
-          if (procesos && Array.isArray(procesos)) {
-            procesos.forEach(pp => {
-              if (pp && pp.idPostulante) {
-                // Si ya existe un proceso para este postulante, mantener el primero (o el más reciente)
-                const existente = postulantesProcesoMap.get(pp.idPostulante)
-                if (!existente) {
-                  postulantesProcesoMap.set(pp.idPostulante, {
-                    etapa: pp.etapaActual || EtapaProceso.REVISION_CV,
-                    idVacante: vacante.idVacante,
-                    nombreVacante: vacante.nombre
-                  })
+          // Mapear todos los procesos a un Map
+          resultados.forEach(({ vacante, procesos }) => {
+            if (procesos && Array.isArray(procesos)) {
+              procesos.forEach(pp => {
+                if (pp && pp.idPostulante) {
+                  // Si ya existe un proceso para este postulante, mantener el primero (o el más reciente)
+                  const existente = postulantesProcesoMap.get(pp.idPostulante)
+                  if (!existente) {
+                    postulantesProcesoMap.set(pp.idPostulante, {
+                      etapa: pp.etapaActual || EtapaProceso.REVISION_CV,
+                      estado: pp.estado || EstadoPostulante.ACTIVO,
+                      idVacante: vacante.idVacante,
+                      nombreVacante: vacante.nombre
+                    })
+                  }
                 }
-              }
-            })
-          }
-        })
+              })
+            }
+          })
         
         console.log(`Mapeados ${postulantesProcesoMap.size} postulantes con procesos de ${vacantes.length} vacantes`)
       } catch (err) {
         console.error('Error al obtener procesos de selección:', err)
       }
       
-      // Mapear datos del backend al formato del frontend
-      const mappedCandidates = candidatos.map(c => {
-        const procesoInfo = postulantesProcesoMap.get(c.idPostulante)
-        const etapa = procesoInfo?.etapa || EtapaProceso.REVISION_CV
-        const nombreVacante = procesoInfo?.nombreVacante || 'No especificado'
-        
-        // Log para debug si no se encuentra el puesto
-        if (!procesoInfo) {
-          console.warn(`No se encontró proceso para candidato ${c.idPostulante} (${c.nombreCompleto})`)
-        }
-        
-        return {
-          id: c.idPostulante,
-          name: c.nombreCompleto,
-          email: c.email,
-          phone: c.telefono,
-          birthDate: c.fechaNacimiento,
-          gender: c.genero || 'No especificado',
-          maritalStatus: c.estadoCivil || 'No especificado',
-          education: c.educacion || 'No especificado',
-          institution: c.institucion || 'No especificado',
-          career: c.carrera || 'No especificado',
-          graduationYear: c.anioGraduacion || null,
-          position: nombreVacante,
-          status: mapearEstadoFrontend(etapa),
-          etapa: etapa,
-          experience: c.experiencias || [],
-          techSkills: c.habilidades?.filter(h => h.tipo === 'TECNICA').map(h => h.nombreHabilidad) || [],
-          softSkills: c.habilidades?.filter(h => h.tipo === 'BLANDA').map(h => h.nombreHabilidad) || [],
-          certifications: c.certificaciones || []
-        }
-      })
+        // Mapear datos del backend al formato del frontend
+        const mappedCandidates = candidatos.map(c => {
+          const procesoInfo = postulantesProcesoMap.get(c.idPostulante)
+          const etapa = procesoInfo?.etapa || EtapaProceso.REVISION_CV
+          const nombreVacante = procesoInfo?.nombreVacante || 'No especificado'
+          const estado = procesoInfo?.estado || EstadoPostulante.ACTIVO
+          
+          // Log para debug si no se encuentra el puesto
+          if (!procesoInfo) {
+            console.warn(`No se encontró proceso para candidato ${c.idPostulante} (${c.nombreCompleto})`)
+          }
+          
+          return {
+            id: c.idPostulante,
+            name: c.nombreCompleto,
+            email: c.email,
+            phone: c.telefono,
+            birthDate: c.fechaNacimiento,
+            gender: c.genero || 'No especificado',
+            maritalStatus: c.estadoCivil || 'No especificado',
+            education: c.educacion || 'No especificado',
+            institution: c.institucion || 'No especificado',
+            career: c.carrera || 'No especificado',
+            graduationYear: c.anioGraduacion || null,
+            position: nombreVacante,
+            status: mapearEstadoFrontend(etapa),
+            etapa: etapa,
+            estado: estado, // Agregar estado del proceso
+            experience: c.experiencias || [],
+            techSkills: c.habilidades?.filter(h => h.tipo === 'TECNICA').map(h => h.nombreHabilidad) || [],
+            softSkills: c.habilidades?.filter(h => h.tipo === 'BLANDA').map(h => h.nombreHabilidad) || [],
+            certifications: c.certificaciones || []
+          }
+        })
       
       setCandidatesData(mappedCandidates)
       setFilteredCandidates(mappedCandidates)
@@ -252,6 +256,7 @@ export const RRHHProvider = ({ children }) => {
               priority: vacante.prioridad || 'Media',
               modalidad: vacante.modalidad,
               tipoContrato: vacante.tipoContrato,
+              estado: vacante.estado || 'PAUSADA',
               candidates: stats?.totalCandidatos || 0,
               selected: stats?.candidatosSeleccionados || 0,
               interviews: stats?.entrevistasProgramadas || 0
@@ -266,6 +271,7 @@ export const RRHHProvider = ({ children }) => {
               priority: vacante.prioridad || 'Media',
               modalidad: vacante.modalidad,
               tipoContrato: vacante.tipoContrato,
+              estado: vacante.estado || 'PAUSADA',
               candidates: 0,
               selected: 0,
               interviews: 0
@@ -303,14 +309,8 @@ export const RRHHProvider = ({ children }) => {
       
       const nuevaVacante = await vacanteService.crearVacante(vacanteDTO)
       
-      // Intentar publicar automáticamente (no bloquear si falla)
-      try {
-        await vacanteService.publicarVacante(nuevaVacante.idVacante)
-        success('Oportunidad de trabajo creada y publicada exitosamente')
-      } catch (pubError) {
-        console.warn('No se pudo publicar automáticamente, pero la vacante fue creada:', pubError)
-        success('Oportunidad de trabajo creada exitosamente')
-      }
+      // No publicar automáticamente - el usuario debe hacerlo manualmente
+      success('Oportunidad de trabajo creada exitosamente. Puedes publicarla desde la lista de posiciones.')
       
       // Recargar posiciones
       await loadPositions()

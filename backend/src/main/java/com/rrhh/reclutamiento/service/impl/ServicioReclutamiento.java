@@ -30,7 +30,7 @@ public class ServicioReclutamiento implements IServicioReclutamiento {
     
     @Override
     @Transactional
-    public PostulanteProceso vincularCandidatoVacante(Integer idCandidato, Integer idVacante) {
+    public PostulanteProceso vincularCandidatoVacante(Integer idCandidato, Integer idVacante, Integer idPuesto) {
         // Validar que el candidato existe
         Postulante postulante = postulanteRepository.findById(idCandidato)
             .orElseThrow(() -> new ResourceNotFoundException("Candidato", idCandidato));
@@ -50,9 +50,20 @@ public class ServicioReclutamiento implements IServicioReclutamiento {
                 ProcesoSeleccion nuevoProceso = new ProcesoSeleccion();
                 nuevoProceso.setIdVacante(idVacante);
                 nuevoProceso.setNombreProceso("Proceso de Selección - " + vacante.getNombre());
+                // Asociar puesto si se proporciona - esto permite que recepción de CVs 
+                // pueda encontrar candidatos por puesto usando findByPuestoYEtapa
+                if (idPuesto != null) {
+                    nuevoProceso.setIdPuesto(idPuesto);
+                }
                 nuevoProceso.iniciar();
                 return procesoSeleccionRepository.save(nuevoProceso);
             });
+        
+        // Si el proceso ya existe pero no tiene puesto y se proporciona uno, actualizarlo
+        if (proceso.getIdPuesto() == null && idPuesto != null) {
+            proceso.setIdPuesto(idPuesto);
+            procesoSeleccionRepository.save(proceso);
+        }
         
         // Verificar si ya está vinculado
         Optional<PostulanteProceso> existente = postulanteProcesoRepository

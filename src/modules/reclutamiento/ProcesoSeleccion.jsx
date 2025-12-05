@@ -6,12 +6,12 @@ import entrevistaService from '../../services/api/entrevistaService'
 import ofertaService from '../../services/api/ofertaService'
 import candidatoService from '../../services/api/candidatoService'
 import vacanteService from '../../services/api/vacanteService'
-import { EtapaProceso } from '../../types'
+import { EtapaProceso, EstadoPostulante } from '../../types'
 import './ProcesoSeleccion.css'
 
 /**
  * Componente que gestiona todo el flujo del proceso de selección según el diagrama
- * Permite: calificar, mover etapas, registrar entrevistas, evaluaciones, ofertas, etc.
+ * Permite: mover etapas, registrar entrevistas, evaluaciones, ofertas, etc.
  */
 const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
   const { success, error: showError } = useNotification()
@@ -19,17 +19,15 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
   const [procesoInfo, setProcesoInfo] = useState(null)
   const [vacante, setVacante] = useState(null)
   const [etapaActual, setEtapaActual] = useState(null)
-  const [calificacion, setCalificacion] = useState(null)
+  const [estadoCandidato, setEstadoCandidato] = useState(null)
   const [loading, setLoading] = useState(true)
 
   // Estados para modales
-  const [showCalificarModal, setShowCalificarModal] = useState(false)
   const [showEvaluacionModal, setShowEvaluacionModal] = useState(false)
   const [showOfertaModal, setShowOfertaModal] = useState(false)
   const [showRechazarModal, setShowRechazarModal] = useState(false)
 
   // Formularios
-  const [formCalificacion, setFormCalificacion] = useState({ calificacion: 3, observaciones: '' })
   const [formEvaluacion, setFormEvaluacion] = useState({ tipo: 'TECNICA', puntuacion: 0, observaciones: '' })
   const [formOferta, setFormOferta] = useState({ salario: '', beneficios: '', condiciones: '', fechaInicio: '' })
   const [motivoRechazo, setMotivoRechazo] = useState('')
@@ -57,7 +55,7 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
           if (procesoCandidato) {
             setProcesoInfo(procesoCandidato)
             setEtapaActual(procesoCandidato.etapaActual || EtapaProceso.REVISION_CV)
-            setCalificacion(procesoCandidato.calificacion)
+            setEstadoCandidato(procesoCandidato.estado || EstadoPostulante.ACTIVO)
             setVacante(vacantesData.find(vac => vac.idVacante === v.idVacante))
             break
           }
@@ -73,32 +71,7 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
     }
   }
 
-  // 1. FILTRAR Y CALIFICAR (1-5)
-  const handleCalificar = async () => {
-    if (!procesoInfo || !procesoInfo.idProcesoActual) {
-      showError('No se encontró el proceso del candidato')
-      return
-    }
-
-    try {
-      await reclutamientoService.evaluarCandidato(
-        candidato.idPostulante,
-        procesoInfo.idProcesoActual,
-        {
-          calificacion: formCalificacion.calificacion,
-          observaciones: formCalificacion.observaciones
-        }
-      )
-      success(`Candidato calificado con ${formCalificacion.calificacion}/5`)
-      setShowCalificarModal(false)
-      await cargarDatos()
-      if (onUpdate) onUpdate()
-    } catch (err) {
-      showError(err.message || 'Error al calificar el candidato')
-    }
-  }
-
-  // 2. Mover a siguiente etapa
+  // 1. Mover a siguiente etapa
   const handleMoverEtapa = async (nuevaEtapa) => {
     if (!procesoInfo || !procesoInfo.idPostulanteProceso) {
       showError('No se encontró el proceso del candidato')
@@ -115,7 +88,7 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
     }
   }
 
-  // 3. Rechazar candidato
+  // 2. Rechazar candidato
   const handleRechazar = async () => {
     if (!procesoInfo || !procesoInfo.idPostulanteProceso) {
       showError('No se encontró el proceso del candidato')
@@ -139,7 +112,7 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
     }
   }
 
-  // 4. Registrar evaluación
+  // 3. Registrar evaluación
   const handleRegistrarEvaluacion = async () => {
     if (!procesoInfo || !procesoInfo.idProcesoActual) {
       showError('No se encontró el proceso del candidato')
@@ -167,7 +140,7 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
     }
   }
 
-  // 5. Emitir oferta
+  // 4. Emitir oferta
   const handleEmitirOferta = async () => {
     if (!vacante || !candidato) {
       showError('No se encontró la vacante o el candidato')
@@ -193,7 +166,7 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
     }
   }
 
-  // 6. Cerrar contratación
+  // 5. Cerrar contratación
   const handleCerrarContratacion = async () => {
     if (!procesoInfo || !procesoInfo.idPostulanteProceso) {
       showError('No se encontró el proceso del candidato')
@@ -223,10 +196,14 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
     )
   }
 
-  const puedeMoverAEntrevista = etapaActual === EtapaProceso.REVISION_CV && calificacion && calificacion >= 3
-  const puedeMoverAPrueba = etapaActual === EtapaProceso.ENTREVISTA
-  const puedeMoverAOferta = etapaActual === EtapaProceso.PRUEBA
-  const puedeCerrarContratacion = etapaActual === EtapaProceso.OFERTA
+  // Verificar si el candidato está rechazado
+  const estaRechazado = estadoCandidato === EstadoPostulante.DESCARTADO || estadoCandidato === 'DESCARTADO'
+  const estaContratado = estadoCandidato === EstadoPostulante.CONTRATADO || estadoCandidato === 'CONTRATADO'
+
+  const puedeMoverAEntrevista = etapaActual === EtapaProceso.REVISION_CV && !estaRechazado && !estaContratado
+  const puedeMoverAPrueba = etapaActual === EtapaProceso.ENTREVISTA && !estaRechazado && !estaContratado
+  const puedeMoverAOferta = etapaActual === EtapaProceso.PRUEBA && !estaRechazado && !estaContratado
+  const puedeCerrarContratacion = etapaActual === EtapaProceso.OFERTA && !estaRechazado && !estaContratado
 
   return (
     <div className="proceso-seleccion-container">
@@ -234,34 +211,81 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
         <h3>Proceso de Selección</h3>
         <div className="proceso-seleccion-info">
           <span><strong>Etapa Actual:</strong> {etapaActual}</span>
-          {calificacion && <span><strong>Calificación:</strong> {calificacion}/5</span>}
+          {estaRechazado && (
+            <span style={{ 
+              marginLeft: '16px', 
+              padding: '4px 12px', 
+              backgroundColor: '#dc3545', 
+              color: 'white', 
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              ❌ RECHAZADO
+            </span>
+          )}
+          {estaContratado && (
+            <span style={{ 
+              marginLeft: '16px', 
+              padding: '4px 12px', 
+              backgroundColor: '#28a745', 
+              color: 'white', 
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              ✅ CONTRATADO
+            </span>
+          )}
         </div>
       </div>
 
       <div className="proceso-seleccion-etapas">
-        {/* ETAPA 1: REVISION_CV - Filtrar y Calificar */}
-        {etapaActual === EtapaProceso.REVISION_CV && (
-          <div className="proceso-etapa-card">
-            <h4>1. Filtrar y Calificar Candidato</h4>
-            <p>Califique al candidato de 1 a 5 según los requisitos mínimos.</p>
-            {!calificacion ? (
-              <button className="btn-primary" onClick={() => setShowCalificarModal(true)}>
-                Calificar Candidato
-              </button>
-            ) : (
-              <div>
-                <p><strong>Calificación actual:</strong> {calificacion}/5</p>
-                {calificacion >= 3 ? (
-                  <button className="btn-success" onClick={() => handleMoverEtapa(EtapaProceso.ENTREVISTA)}>
-                    ✓ Cumple requisitos - Mover a Entrevista
-                  </button>
-                ) : (
-                  <button className="btn-danger" onClick={() => setShowRechazarModal(true)}>
-                    ✗ No cumple requisitos - Rechazar
-                  </button>
-                )}
+        {/* Mostrar mensaje si está rechazado */}
+        {estaRechazado && (
+          <div className="proceso-etapa-card" style={{ 
+            backgroundColor: '#fff3cd', 
+            borderLeft: '4px solid #dc3545',
+            padding: '1.5rem'
+          }}>
+            <h4 style={{ color: '#dc3545', marginBottom: '0.5rem' }}>❌ Candidato Rechazado</h4>
+            <p style={{ color: '#856404', marginBottom: '0.5rem' }}>
+              Este candidato fue rechazado en la etapa: <strong>{etapaActual}</strong>
+            </p>
+            {procesoInfo.motivoRechazo && (
+              <div style={{ 
+                marginTop: '1rem', 
+                padding: '0.75rem', 
+                backgroundColor: 'white', 
+                borderRadius: '4px',
+                border: '1px solid #dc3545'
+              }}>
+                <strong>Motivo del rechazo:</strong>
+                <p style={{ marginTop: '0.5rem', color: '#333' }}>{procesoInfo.motivoRechazo}</p>
               </div>
             )}
+            <p style={{ marginTop: '1rem', fontSize: '13px', color: '#856404' }}>
+              No se pueden realizar más acciones sobre este candidato en el proceso de selección.
+            </p>
+          </div>
+        )}
+
+        {/* Mostrar proceso normal solo si NO está rechazado */}
+        {!estaRechazado && (
+          <>
+            {/* ETAPA 1: REVISION_CV */}
+            {etapaActual === EtapaProceso.REVISION_CV && (
+          <div className="proceso-etapa-card">
+            <h4>1. Revisión de CV</h4>
+            <p>Revise el CV del candidato y determine si cumple con los requisitos mínimos.</p>
+            <div className="proceso-acciones">
+              <button className="btn-success" onClick={() => handleMoverEtapa(EtapaProceso.ENTREVISTA)}>
+                ✓ Cumple requisitos - Mover a Entrevista
+              </button>
+              <button className="btn-danger" onClick={() => setShowRechazarModal(true)}>
+                ✗ No cumple requisitos - Rechazar
+              </button>
+            </div>
           </div>
         )}
 
@@ -329,39 +353,9 @@ const ProcesoSeleccion = ({ candidatoId, onUpdate }) => {
             <p>El candidato ha sido contratado y debe integrarse con el módulo de Gestión de Empleados.</p>
           </div>
         )}
+          </>
+        )}
       </div>
-
-      {/* MODAL: Calificar */}
-      {showCalificarModal && (
-        <div className="modal-overlay" onClick={() => setShowCalificarModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Calificar Candidato</h3>
-            <div className="form-group">
-              <label>Calificación (1-5) *</label>
-              <input
-                type="number"
-                min="1"
-                max="5"
-                value={formCalificacion.calificacion}
-                onChange={(e) => setFormCalificacion({ ...formCalificacion, calificacion: parseInt(e.target.value) })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Observaciones</label>
-              <textarea
-                value={formCalificacion.observaciones}
-                onChange={(e) => setFormCalificacion({ ...formCalificacion, observaciones: e.target.value })}
-                rows="3"
-              />
-            </div>
-            <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setShowCalificarModal(false)}>Cancelar</button>
-              <button className="btn-primary" onClick={handleCalificar}>Guardar</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* MODAL: Evaluación */}
       {showEvaluacionModal && (
