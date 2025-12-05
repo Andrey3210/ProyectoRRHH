@@ -1,0 +1,47 @@
+export const mockAsistencia = [
+{ fecha: "05/11/2025", ingreso: "07:45", salida: "14:10", estado: "Presente" },
+{ fecha: "06/11/2025", ingreso: "07:40", salida: "14:10", estado: "Puntual" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" },
+{ fecha: "07/11/2025", ingreso: "09:20", salida: "14:10", estado: "Tarde" },
+{ fecha: "08/11/2025", ingreso: "-", salida: "-", estado: "Falta" }
+];
+
+
+export const mockResumenMensual = {
+puntual: 10,
+tarde: 3,
+falta: 1
+};
