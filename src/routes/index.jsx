@@ -30,6 +30,9 @@ import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
 import VistaEmpleado from '../modules/vacaciones/VistaEmpleado'
 import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
 import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'
+import GestionEmpleado from "../modules/gestionEmpleados/GestionEmpleado";
+import { GestionEmpleadoProvider } from "../store/GestionEmpleadoContext";
+import EmpleadoDetalle from "../modules/gestionEmpleados/EmpleadoDetalle";
 
 const Routes = () => {
   return (
@@ -129,11 +132,19 @@ const Routes = () => {
         path="/gestion-empleados" 
         element={
           <ProtectedRoute>
-            <ComingSoon title="Gestión de Empleados" />
+              <GestionEmpleado />
           </ProtectedRoute>
         } 
       />
-      
+
+    <Route path="/empleado/:id"
+           element={
+           <ProtectedRoute>
+               <EmpleadoDetalle />
+           </ProtectedRoute>
+        }
+    />
+
       {/* Módulo de Reclutamiento y Selección */}
       <Route 
         path="/posiciones" 

@@ -1,0 +1,298 @@
+/* Fondo principal */
+.gestion-empleados {
+    background-color: #D9D9D9;
+    padding: 24px;
+    min-height: 100vh;
+    color: white;
+    font-family: sans-serif;
+}
+
+/* Título */
+.gestion-empleados h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+/* Barra de búsqueda y botón */
+.gestion-empleados .barra-busqueda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.gestion-empleados .barra-busqueda input {
+    flex: 1 1 250px;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #D9D9D9;
+    outline: none;
+}
+
+.gestion-empleados .barra-busqueda input:focus {
+    border-color: #3C83F6;
+    box-shadow: 0 0 0 2px rgba(60, 131, 246, 0.3);
+}
+
+.gestion-empleados .barra-busqueda button {
+    background-color: #3C83F6;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+}
+
+.gestion-empleados .barra-busqueda button:hover {
+    background-color: #1E6CD6;
+}
+
+/* Filtro y selector de vista */
+.gestion-empleados .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.gestion-empleados .filtros select {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid #D9D9D9;
+    outline: none;
+}
+
+.gestion-empleados .filtros select:focus {
+    border-color: #3C83F6;
+    box-shadow: 0 0 0 2px rgba(60, 131, 246, 0.3);
+}
+
+/* Botones de vista */
+.gestion-empleados .vista-boton {
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gestion-empleados .vista-boton.lista {
+    background-color: #D9D9D9;
+    color: #1F2937;
+}
+
+.gestion-empleados .vista-boton.lista.activo,
+.gestion-empleados .vista-boton.grid.activo {
+    background-color: #84CC16;
+    color: white;
+}
+
+/* Tabla lista */
+.gestion-empleados table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    color: #1F2937;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.gestion-empleados thead tr {
+    background-color: #84CC16;
+    color: white;
+    text-align: center;
+}
+
+.gestion-empleados th,
+.gestion-empleados td {
+    padding: 0.5rem 0.75rem;
+    text-align: center;
+    border-bottom: 1px solid #D9D9D9;
+}
+
+.gestion-empleados tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
+.gestion-empleados tbody td button {
+    background-color: #84CC16;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+}
+
+.gestion-empleados tbody td button:hover {
+    background-color: #76B30F;
+}
+
+/* Grid */
+.gestion-empleados .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.gestion-empleados .grid-item {
+    background-color: white;
+    border: 1px solid #D9D9D9;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    color: #1F2937;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s;
+}
+
+.gestion-empleados .grid-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.gestion-empleados .grid-item .avatar {
+    width: 80px;
+    height: 80px;
+    background-color: #D9D9D9;
+    border-radius: 50%;
+    margin-bottom: 0.75rem;
+}
+
+.gestion-empleados .grid-item button {
+    background-color: #84CC16;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+}
+
+.gestion-empleados .grid-item button:hover {
+    background-color: #76B30F;
+}
+
+/* Grid actualizado */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.grid-item {
+    background-color: white;
+    border: 1px solid #D9D9D9;
+    border-radius: 1rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* fuerza que el footer esté abajo */
+    color: #1F2937;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s;
+}
+
+.grid-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Foto centrada */
+.grid-item .avatar {
+    width: 80px;
+    height: 80px;
+    background-color: #D9D9D9;
+    border-radius: 50%;
+    margin: 0 auto 1rem auto;
+}
+
+/* Footer del card */
+.grid-item .grid-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+/* Datos del empleado (65%) */
+.grid-item .grid-footer .datos-empleado {
+    width: 65%;
+    display: flex;
+    flex-direction: column;
+    word-wrap: break-word; /* texto se ajusta al ancho */
+}
+
+/* Estilos de los campos */
+.grid-item .datos-empleado .id {
+    font-weight: bold;
+    color: #3C83F6;
+}
+
+.grid-item .datos-empleado .nombre {
+    font-weight: 500;
+}
+
+.grid-item .datos-empleado .area {
+    font-size: 0.9rem;
+    color: #1F2937;
+}
+
+/* Botón detalle (35%) */
+.grid-item .grid-footer .boton-detalle {
+    width: 35%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center; /* centrado vertical */
+}
+
+.grid-item .boton-detalle button {
+    background-color: #84CC16;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    font-size: 1.1rem;
+}
+
+.grid-item .boton-detalle button:hover {
+    background-color: #76B30F;
+}
+
+/* Contenedor de filtros (Área + Puesto) */
+.filtros-area-puesto {
+    display: flex;
+    gap: 0.5rem; /* espacio pequeño entre los select */
+}
+
+/* Mantener estilo de select existente */
+.filtros-area-puesto select {
+    border: 1px solid #D9D9D9;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: white;
+    color: #1F2937;
+}
+.filtro-horario-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* empuja hacia la derecha, dejando espacio entre Área/Puesto y Botones */
+}
+
+.filtro-horario {
+    display: flex;
+    gap: 2rem; /* espacio pequeño entre los select */
+}
+
+.filtro-horario select {
+    border: 1px solid #D9D9D9;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: white;
+    color: #1F2937;
+}
