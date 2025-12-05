@@ -19,19 +19,24 @@ import ReportesIncentivos from '../modules/incentivos/admin/ReportesIncentivos'
 import IncentivosRouter from '../modules/incentivos/IncentivosRouter'  
 import DashboardEmpleado from '../modules/incentivos/empleado/DashboardEmpleado'
 import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'  
+import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
+import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
+import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'
+import VistaEmpleado from '../modules/vacaciones/VistaEmpleado'
+import MenuInicio from "../pages/MenuInicio";
 
 const Routes = () => {
   return (
     <RouterRoutes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Navigate to="/posiciones" replace />} />
+      <Route path="/" element={<Navigate to="/inicio" replace />} />
       
       {/* Módulos pendientes de implementación */}
       <Route 
         path="/inicio" 
         element={
           <ProtectedRoute>
-            <ComingSoon title="Inicio" />
+            <MenuInicio />
           </ProtectedRoute>
         } 
       />
