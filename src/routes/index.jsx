@@ -28,19 +28,20 @@ import EmployeeTimelinePage from '../modules/asistencia/EmployeeTimelinePage'
 import ReportesAsistenciaPage from '../modules/asistencia/ReportesAsistenciaPage'
 import AuditoriaPage from '../modules/asistencia/AuditoriaPage';
 
+import MenuInicio from "../pages/MenuInicio";
 
 const Routes = () => {
   return (
     <RouterRoutes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Navigate to="/posiciones" replace />} />
+      <Route path="/" element={<Navigate to="/inicio" replace />} />
       
       {/* Módulos pendientes de implementación */}
       <Route 
         path="/inicio" 
         element={
           <ProtectedRoute>
-            <ComingSoon title="Inicio" />
+            <MenuInicio />
           </ProtectedRoute>
         } 
       />
