@@ -4,7 +4,6 @@ import com.rrhh.shared.domain.enums.EstadoOferta;
 import com.rrhh.shared.domain.enums.EtapaProceso;
 import com.rrhh.shared.domain.model.Oferta;
 import com.rrhh.shared.domain.model.PostulanteProceso;
-import com.rrhh.shared.domain.model.Vacante;
 import com.rrhh.reclutamiento.dto.EmitirOfertaDTO;
 import com.rrhh.shared.exception.BusinessException;
 import com.rrhh.shared.exception.ResourceNotFoundException;
@@ -108,6 +107,11 @@ public class ServicioOferta implements IServicioOferta {
     @Override
     public List<Oferta> obtenerOfertasPendientes() {
         return ofertaRepository.findOfertasPendientes();
+    }
+    
+    @Override
+    public List<Oferta> obtenerTodasLasOfertas() {
+        return ofertaRepository.findAll();
     }
     
     @Override

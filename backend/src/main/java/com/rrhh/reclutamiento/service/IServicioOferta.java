@@ -9,6 +9,7 @@ public interface IServicioOferta {
     Oferta emitirOferta(EmitirOfertaDTO dto);
     Oferta registrarRespuestaOferta(Integer idOferta, boolean aceptada, String motivo);
     List<Oferta> obtenerOfertasPendientes();
+    List<Oferta> obtenerTodasLasOfertas();
     Oferta obtenerOfertaPorId(Integer idOferta);
     List<Oferta> obtenerOfertasPorCandidato(Integer idCandidato);
     Oferta cancelarOferta(Integer idOferta, String motivo);

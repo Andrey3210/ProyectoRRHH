@@ -31,25 +31,33 @@ public class VacanteController {
             @RequestParam(required = false) String prioridad,
             @RequestParam(required = false) String etapa) {
 
-        if (estado != null && estado.equals("ABIERTA")) {
-            if (etapa != null) {
-                try {
-                    EtapaProceso etapaEnum = EtapaProceso.valueOf(etapa);
-                    return ResponseEntity.ok(
-                        servicioVacante.buscarVacantesPorEstadoYEtapa(
-                            EstadoVacante.ABIERTA,
-                            etapaEnum
-                        )
-                    );
-                } catch (IllegalArgumentException e) {
-                    log.warn("Etapa de proceso inválida recibida: {}", etapa);
-                }
+        // Si se especifica estado ABIERTA y etapa, buscar por ambos
+        if (estado != null && estado.equals("ABIERTA") && etapa != null) {
+            try {
+                EtapaProceso etapaEnum = EtapaProceso.valueOf(etapa);
+                return ResponseEntity.ok(
+                    servicioVacante.buscarVacantesPorEstadoYEtapa(
+                        EstadoVacante.ABIERTA,
+                        etapaEnum
+                    )
+                );
+            } catch (IllegalArgumentException e) {
+                log.warn("Etapa de proceso inválida recibida: {}", etapa);
             }
-            return ResponseEntity.ok(servicioVacante.buscarVacantesActivas());
         }
         
-        List<Vacante> vacantes = servicioVacante.buscarVacantesActivas();
-        return ResponseEntity.ok(vacantes);
+        // Si se especifica estado, filtrar por estado
+        if (estado != null && !estado.isEmpty()) {
+            try {
+                EstadoVacante estadoEnum = EstadoVacante.valueOf(estado);
+                return ResponseEntity.ok(servicioVacante.buscarVacantesPorEstado(estadoEnum));
+            } catch (IllegalArgumentException e) {
+                log.warn("Estado de vacante inválido recibido: {}", estado);
+            }
+        }
+        
+        // Si no se especifica estado, devolver todas las vacantes
+        return ResponseEntity.ok(servicioVacante.obtenerTodasLasVacantes());
     }
     
     @GetMapping("/{id}")

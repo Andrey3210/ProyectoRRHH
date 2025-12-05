@@ -60,7 +60,13 @@ public class ServicioCV implements ICVService {
 
         if (dto.getIdVacante() != null) {
             try {
-                servicioReclutamiento.vincularCandidatoVacante(postulante.getIdPostulante(), dto.getIdVacante());
+                // Vincular candidato a vacante sin idPuesto (se puede asociar después)
+                // Esto permite que el candidato esté disponible en el proceso de selección
+                servicioReclutamiento.vincularCandidatoVacante(
+                    postulante.getIdPostulante(), 
+                    dto.getIdVacante(), 
+                    null // idPuesto se puede asociar después si es necesario
+                );
             } catch (BusinessException ex) {
                 if (!"CANDIDATO_YA_VINCULADO".equals(ex.getCode())) {
                     throw ex;

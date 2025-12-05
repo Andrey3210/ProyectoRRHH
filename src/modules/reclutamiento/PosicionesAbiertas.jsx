@@ -5,6 +5,7 @@ import PosicionCard from './components/PosicionCard'
 import Paginacion from './components/Paginacion'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
+import { EstadoVacante } from '../../types'
 
 const PosicionesAbiertas = () => {
   const navigate = useNavigate()
@@ -17,22 +18,32 @@ const PosicionesAbiertas = () => {
   } = useRRHH()
 
   const [currentPage, setCurrentPage] = useState(1)
+  const [filtroEstado, setFiltroEstado] = useState('TODAS')
   const itemsPerPage = 10
 
   const handleAgregarPuesto = () => {
     navigate('/puesto/nuevo')
   }
 
+  // Filtrar posiciones por estado
+  const posicionesFiltradas = positionsData.filter(position => {
+    if (filtroEstado === 'TODAS') return true
+    if (filtroEstado === 'ABIERTA') return position.estado === EstadoVacante.ABIERTA || position.estado === 'ABIERTA'
+    if (filtroEstado === 'CERRADA') return position.estado === EstadoVacante.CERRADA || position.estado === 'CERRADA'
+    if (filtroEstado === 'PAUSADA') return position.estado === EstadoVacante.PAUSADA || position.estado === 'PAUSADA'
+    return true
+  })
+
   // Calcular paginación
   const start = (currentPage - 1) * itemsPerPage
   const end = start + itemsPerPage
-  const pagePositions = positionsData.slice(start, end)
-  const totalPages = Math.ceil(positionsData.length / itemsPerPage)
+  const pagePositions = posicionesFiltradas.slice(start, end)
+  const totalPages = Math.ceil(posicionesFiltradas.length / itemsPerPage)
 
-  // Resetear a página 1 cuando cambian los datos
+  // Resetear a página 1 cuando cambian los datos o el filtro
   React.useEffect(() => {
     setCurrentPage(1)
-  }, [positionsData.length])
+  }, [positionsData.length, filtroEstado])
 
   if (loading.positions) {
     return (
@@ -50,7 +61,7 @@ const PosicionesAbiertas = () => {
       <div className="view-header">
         <h1>Posiciones Abiertas</h1>
         <button className="btn-primary" onClick={handleAgregarPuesto}>
-          + Agregar Oportunidad
+          + Agregar Vacante
         </button>
       </div>
 
@@ -61,6 +72,37 @@ const PosicionesAbiertas = () => {
           onDismiss={() => setError(null)}
         />
       )}
+
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '1rem',
+        padding: '0 1rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <label style={{ fontWeight: '500', fontSize: '14px' }}>Filtrar por estado:</label>
+          <select
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px',
+              minWidth: '150px'
+            }}
+          >
+            <option value="TODAS">Todas</option>
+            <option value="ABIERTA">Abiertas</option>
+            <option value="PAUSADA">Pausadas</option>
+            <option value="CERRADA">Cerradas</option>
+          </select>
+        </div>
+        <div style={{ fontSize: '14px', color: '#666' }}>
+          Mostrando {posicionesFiltradas.length} de {positionsData.length} vacantes
+        </div>
+      </div>
 
       <div id="posiciones-grid" className="posiciones-grid">
         {pagePositions.length > 0 ? (
@@ -79,7 +121,7 @@ const PosicionesAbiertas = () => {
         )}
       </div>
 
-      {positionsData.length > itemsPerPage && (
+      {posicionesFiltradas.length > itemsPerPage && (
         <Paginacion
           currentPage={currentPage}
           totalPages={totalPages}

@@ -22,11 +22,17 @@ public class ReclutamientoController {
     
     @PostMapping("/vincular")
     public ResponseEntity<PostulanteProceso> vincularCandidatoVacante(
-            @RequestBody Map<String, Integer> request) {
+            @RequestBody Map<String, Object> request) {
         try {
+            Integer idCandidato = (Integer) request.get("idCandidato");
+            Integer idVacante = (Integer) request.get("idVacante");
+            Integer idPuesto = request.get("idPuesto") != null ? 
+                (Integer) request.get("idPuesto") : null;
+            
             PostulanteProceso resultado = servicioReclutamiento.vincularCandidatoVacante(
-                request.get("idCandidato"),
-                request.get("idVacante")
+                idCandidato,
+                idVacante,
+                idPuesto
             );
             return ResponseEntity.status(HttpStatus.CREATED).body(resultado);
         } catch (Exception e) {

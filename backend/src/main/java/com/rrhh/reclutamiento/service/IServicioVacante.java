@@ -11,7 +11,9 @@ public interface IServicioVacante {
     Vacante publicarVacante(Integer idVacante);
     Vacante cerrarVacante(Integer idVacante);
     List<Vacante> buscarVacantesActivas();
+    List<Vacante> buscarVacantesPorEstado(EstadoVacante estado);
     List<Vacante> buscarVacantesPorEstadoYEtapa(EstadoVacante estado, EtapaProceso etapa);
+    List<Vacante> obtenerTodasLasVacantes();
     Vacante actualizarVacante(Integer idVacante, Vacante vacante);
     Vacante obtenerVacantePorId(Integer idVacante);
     void eliminarVacante(Integer idVacante);

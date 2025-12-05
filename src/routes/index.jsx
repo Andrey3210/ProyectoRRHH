@@ -11,6 +11,10 @@ import Pipeline from '../modules/reclutamiento/Pipeline'
 import RecepcionCV from '../modules/recepcion/RecepcionCV'
 import DetalleCV from '../modules/recepcion/DetalleCV'
 import GestionEntrevistas from '../modules/reclutamiento/GestionEntrevistas'
+import GestionEvaluaciones from '../modules/reclutamiento/GestionEvaluaciones'
+import GestionOfertas from '../modules/reclutamiento/GestionOfertas'
+import GestionContrataciones from '../modules/reclutamiento/GestionContrataciones'
+import EstadisticasRechazados from '../modules/reclutamiento/EstadisticasRechazados'
 import DashboardIncentivos from '../modules/incentivos/DashboardIncentivos'  
 import ReglasIncentivos from '../modules/incentivos/admin/ReglasIncentivos' 
 import MetasPeriodo from '../modules/incentivos/admin/metasPeriodo'
@@ -18,7 +22,11 @@ import AprobacionesBonos from '../modules/incentivos/admin/AprobacionesBonos'
 import ReportesIncentivos from '../modules/incentivos/admin/ReportesIncentivos'
 import IncentivosRouter from '../modules/incentivos/IncentivosRouter'  
 import DashboardEmpleado from '../modules/incentivos/empleado/DashboardEmpleado'
-import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'  
+import DetallePagosEmpleado from '../modules/incentivos/empleado/DetallePagosEmpleado'
+import VistaAdministrador from '../modules/vacaciones/VistaAdministrador'
+import VistaEmpleado from '../modules/vacaciones/VistaEmpleado'
+import DetalleSolicitudAdmin from '../modules/vacaciones/DetalleSolicitudAdmin'
+import RegistrarSolicitudAdmin from '../modules/vacaciones/RegistrarSolicitudAdmin'  
 
 const Routes = () => {
   return (
@@ -177,6 +185,38 @@ const Routes = () => {
         element={
           <ProtectedRoute>
             <GestionEntrevistas />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/evaluaciones" 
+        element={
+          <ProtectedRoute>
+            <GestionEvaluaciones />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/ofertas" 
+        element={
+          <ProtectedRoute>
+            <GestionOfertas />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/contrataciones" 
+        element={
+          <ProtectedRoute>
+            <GestionContrataciones />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/rechazados" 
+        element={
+          <ProtectedRoute>
+            <EstadisticasRechazados />
           </ProtectedRoute>
         } 
       />
