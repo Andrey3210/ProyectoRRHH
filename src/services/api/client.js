@@ -38,7 +38,7 @@ class ApiClient {
     this.baseURL = normalizeBaseUrl(API_BASE_URL)
     this.defaultHeaders = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Accept: 'application/json'
     }
   }
 
@@ -55,11 +55,11 @@ class ApiClient {
   getHeaders(customHeaders = {}) {
     const headers = { ...this.defaultHeaders, ...customHeaders }
     const token = this.getAuthToken()
-    
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
-    
+
     return headers
   }
 
@@ -69,7 +69,7 @@ class ApiClient {
   async handleResponse(response) {
     if (!response.ok) {
       let errorMessage = 'Error en la petición'
-      
+
       try {
         const errorData = await response.json()
         errorMessage = errorData.message || errorData.error || errorMessage
@@ -81,7 +81,7 @@ class ApiClient {
       error.status = response.status
       error.statusText = response.statusText
       error.data = await response.json().catch(() => null)
-      
+
       throw error
     }
 
@@ -99,7 +99,7 @@ class ApiClient {
    */
   async get(endpoint, params = {}, options = {}) {
     const url = new URL(`${this.baseURL}${endpoint}`)
-    
+
     // Agregar parámetros de consulta
     Object.keys(params).forEach(key => {
       if (params[key] !== null && params[key] !== undefined) {
@@ -122,7 +122,7 @@ class ApiClient {
    */
   async post(endpoint, data = {}, options = {}) {
     const headers = options.headers ? { ...this.getHeaders(), ...options.headers } : this.getHeaders()
-    
+
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method: 'POST',
       headers: headers,
@@ -176,7 +176,7 @@ class ApiClient {
   async uploadFile(endpoint, file, additionalData = {}) {
     const formData = new FormData()
     formData.append('file', file)
-    
+
     Object.keys(additionalData).forEach(key => {
       formData.append(key, additionalData[key])
     })
@@ -201,4 +201,3 @@ class ApiClient {
 
 // Exportar instancia singleton
 export default new ApiClient()
-
